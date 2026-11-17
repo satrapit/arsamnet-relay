@@ -1,0 +1,195 @@
+<PARSED TEXT FOR SHEET: 1 / 1 TABS
+TAB NAME: ERD(1).csv>
+index,table,column,mysql_type,attributes,description,migration_owner
+0,users,id,bigint,"pk, increment",Human identity identifier,Arsam Relay
+1,users,name,varchar(191),not null,Display name,Arsam Relay
+2,users,email,varchar(191),"not null, unique",Unique verified login address,Arsam Relay
+3,users,email_verified_at,datetime,,Email proof time,Arsam Relay
+4,users,password,varchar(255),,Optional password hash; account enrollment policy required,Arsam Relay
+5,users,two_factor_secret,text,,Fortify encrypted TOTP secret,Arsam Relay
+6,users,two_factor_recovery_codes,text,,Fortify encrypted recovery codes,Arsam Relay
+7,users,two_factor_confirmed_at,datetime,,Fortify TOTP confirmation,Arsam Relay
+8,users,status,varchar(24),"not null, default: 'active'",Active / disabled / suspended,Arsam Relay
+9,users,remember_token,varchar(100),,Session remember token,Arsam Relay
+10,users,created_at,datetime,not null,Creation time UTC,Arsam Relay
+11,users,updated_at,datetime,not null,Last update UTC,Arsam Relay
+12,roles,id,bigint,"pk, increment",Role identifier,Arsam Relay
+13,roles,code,varchar(48),not null,"Super admin, support, client developer, etc.",Arsam Relay
+14,roles,scope,varchar(12),not null,platform or client,Arsam Relay
+15,roles,created_at,datetime,not null,Creation time UTC,Arsam Relay
+16,platform_role_assignments,user_id,bigint,not null,Assigned human,Arsam Relay
+17,platform_role_assignments,role_id,bigint,not null,Platform role,Arsam Relay
+18,platform_role_assignments,created_at,datetime,not null,Assignment time UTC,Arsam Relay
+19,clients,id,bigint,"pk, increment",Client identifier,Arsam Relay
+20,clients,slug,varchar(100),"not null, unique",Public-safe stable slug,Arsam Relay
+21,clients,name,varchar(191),not null,Customer display name,Arsam Relay
+22,clients,status,varchar(24),"not null, default: 'active'",Active / suspended / archived,Arsam Relay
+23,clients,monthly_quota,bigint,,Optional quota; null means default policy,Arsam Relay
+24,clients,created_at,datetime,not null,Creation time UTC,Arsam Relay
+25,clients,updated_at,datetime,not null,Last update UTC,Arsam Relay
+26,client_memberships,id,bigint,"pk, increment",Membership identifier,Arsam Relay
+27,client_memberships,client_id,bigint,not null,Tenant,Arsam Relay
+28,client_memberships,user_id,bigint,not null,Human identity,Arsam Relay
+29,client_memberships,role_id,bigint,not null,Client-scoped role,Arsam Relay
+30,client_memberships,status,varchar(24),"not null, default: 'active'",Active / suspended,Arsam Relay
+31,client_memberships,created_at,datetime,not null,Creation time UTC,Arsam Relay
+32,api_keys,id,bigint,"pk, increment",Key record,Arsam Relay
+33,api_keys,client_id,bigint,not null,Tenant owner,Arsam Relay
+34,api_keys,created_by_user_id,bigint,,Administrative creator,Arsam Relay
+35,api_keys,label,varchar(100),not null,Operator-friendly label,Arsam Relay
+36,api_keys,key_prefix,varchar(16),not null,Non-secret display prefix,Arsam Relay
+37,api_keys,key_hash,char(64),"not null, unique",SHA-256 digest of 256-bit random token,Arsam Relay
+38,api_keys,scopes,json,not null,Allowlisted ability names,Arsam Relay
+39,api_keys,expires_at,datetime,,Expiration time,Arsam Relay
+40,api_keys,revoked_at,datetime,,Revocation time,Arsam Relay
+41,api_keys,last_used_at,datetime,,Usage telemetry,Arsam Relay
+42,api_keys,created_at,datetime,not null,Creation time UTC,Arsam Relay
+43,client_ip_allowlist,id,bigint,"pk, increment",CIDR record,Arsam Relay
+44,client_ip_allowlist,client_id,bigint,not null,Tenant,Arsam Relay
+45,client_ip_allowlist,cidr,varchar(49),not null,Normalized IPv4/IPv6 CIDR,Arsam Relay
+46,client_ip_allowlist,enabled,boolean,"not null, default: true",Allowlist switch,Arsam Relay
+47,client_ip_allowlist,created_at,datetime,not null,Creation time UTC,Arsam Relay
+48,provider_accounts,id,bigint,"pk, increment",Provider account,Arsam Relay
+49,provider_accounts,client_id,bigint,,Null is platform-shared; non-null is private to this client,Arsam Relay
+50,provider_accounts,adapter_code,varchar(64),not null,Registered adapter identifier,Arsam Relay
+51,provider_accounts,channel,varchar(20),not null,sms / email / webhook,Arsam Relay
+52,provider_accounts,display_name,varchar(100),not null,UI label,Arsam Relay
+53,provider_accounts,credentials_ciphertext,longtext,not null,Encrypted adapter config; no plaintext secrets,Arsam Relay
+54,provider_accounts,enabled,boolean,"not null, default: true",Enabled status,Arsam Relay
+55,provider_accounts,created_at,datetime,not null,Creation time UTC,Arsam Relay
+56,provider_accounts,updated_at,datetime,not null,Last update UTC,Arsam Relay
+57,client_provider_routes,id,bigint,"pk, increment",Route,Arsam Relay
+58,client_provider_routes,client_id,bigint,not null,Tenant,Arsam Relay
+59,client_provider_routes,provider_account_id,bigint,not null,Shared or tenant-owned provider,Arsam Relay
+60,client_provider_routes,channel,varchar(20),not null,Channel,Arsam Relay
+61,client_provider_routes,priority,smallint,not null,Lower = preferred,Arsam Relay
+62,client_provider_routes,enabled,boolean,"not null, default: true",Route enabled,Arsam Relay
+63,client_provider_routes,created_at,datetime,not null,Creation time UTC,Arsam Relay
+64,templates,id,bigint,"pk, increment",Template,Arsam Relay
+65,templates,client_id,bigint,,Null is shared,Arsam Relay
+66,templates,code,varchar(100),not null,Template identifier; uniqueness policy in app for shared vs owned,Arsam Relay
+67,templates,channel,varchar(20),not null,Channel,Arsam Relay
+68,templates,subject_template_ciphertext,text,,Encrypted email subject template,Arsam Relay
+69,templates,body_template_ciphertext,longtext,not null,Encrypted template body,Arsam Relay
+70,templates,enabled,boolean,"not null, default: true",Template enabled,Arsam Relay
+71,templates,created_at,datetime,not null,Creation time UTC,Arsam Relay
+72,topics,id,bigint,"pk, increment",Topic,Arsam Relay
+73,topics,client_id,bigint,not null,Tenant,Arsam Relay
+74,topics,name,varchar(100),not null,Topic key,Arsam Relay
+75,topics,enabled,boolean,"not null, default: true",Topic enabled,Arsam Relay
+76,topics,created_at,datetime,not null,Creation time UTC,Arsam Relay
+77,delivery_targets,id,bigint,"pk, increment",Recipient target,Arsam Relay
+78,delivery_targets,client_id,bigint,not null,Tenant,Arsam Relay
+79,delivery_targets,channel,varchar(20),not null,Channel,Arsam Relay
+80,delivery_targets,address_ciphertext,text,not null,Encrypted phone/email/webhook URL,Arsam Relay
+81,delivery_targets,address_hmac,char(64),not null,"Keyed lookup hash, not raw address digest",Arsam Relay
+82,delivery_targets,enabled,boolean,"not null, default: true",Target enabled,Arsam Relay
+83,delivery_targets,created_at,datetime,not null,Creation time UTC,Arsam Relay
+84,subscriptions,id,bigint,"pk, increment",Subscription,Arsam Relay
+85,subscriptions,client_id,bigint,not null,Tenant,Arsam Relay
+86,subscriptions,topic_id,bigint,not null,Tenant topic,Arsam Relay
+87,subscriptions,target_id,bigint,not null,Tenant target,Arsam Relay
+88,subscriptions,enabled,boolean,"not null, default: true",Subscription enabled,Arsam Relay
+89,subscriptions,created_at,datetime,not null,Creation time UTC,Arsam Relay
+90,messages,id,char(26),pk,ULID domain message ID,Arsam Relay
+91,messages,client_id,bigint,not null,Tenant,Arsam Relay
+92,messages,topic_id,bigint,,Optional topic for fan-out,Arsam Relay
+93,messages,template_id,bigint,,Optional authorized template,Arsam Relay
+94,messages,api_key_id,bigint,,Publishing machine identity,Arsam Relay
+95,messages,kind,varchar(20),not null,direct / notification / event,Arsam Relay
+96,messages,priority,varchar(12),"not null, default: 'normal'",high / normal / low,Arsam Relay
+97,messages,payload_ciphertext,longtext,not null,Encrypted message body/parameters,Arsam Relay
+98,messages,payload_hash,char(64),not null,Idempotency request equality digest (avoid raw PII hashing),Arsam Relay
+99,messages,idempotency_key_hash,char(64),,Client-scoped keyed digest; null when absent,Arsam Relay
+100,messages,scheduled_at,datetime,,Not before time,Arsam Relay
+101,messages,expires_at,datetime,,Expiry,Arsam Relay
+102,messages,created_at,datetime,not null,Creation time UTC,Arsam Relay
+103,deliveries,id,char(26),pk,ULID delivery identifier,Arsam Relay
+104,deliveries,client_id,bigint,not null,Tenant,Arsam Relay
+105,deliveries,message_id,char(26),not null,Domain message,Arsam Relay
+106,deliveries,target_id,bigint,not null,Recipient,Arsam Relay
+107,deliveries,subscription_id,bigint,,Subscription snapshot reference,Arsam Relay
+108,deliveries,state,varchar(24),"not null, default: 'queued'",queued / sending / accepted / delivered / retry_due / ambiguous / failed / dead,Arsam Relay
+109,deliveries,attempt_count,int,"not null, default: 0",Number of send attempts,Arsam Relay
+110,deliveries,next_attempt_at,datetime,,Next eligible attempt time,Arsam Relay
+111,deliveries,lease_token,char(36),,Atomic attempt ownership token,Arsam Relay
+112,deliveries,lease_expires_at,datetime,,Recovery lease deadline,Arsam Relay
+113,deliveries,last_error_code,varchar(64),,Normalized safe error code,Arsam Relay
+114,deliveries,created_at,datetime,not null,Creation time UTC,Arsam Relay
+115,deliveries,updated_at,datetime,not null,Last update UTC,Arsam Relay
+116,delivery_attempts,id,bigint,"pk, increment",Attempt identifier,Arsam Relay
+117,delivery_attempts,delivery_id,char(26),not null,Delivery,Arsam Relay
+118,delivery_attempts,provider_account_id,bigint,not null,Adapter instance,Arsam Relay
+119,delivery_attempts,attempt_no,int,not null,Ordinal number,Arsam Relay
+120,delivery_attempts,outcome,varchar(24),not null,accepted / rejected / timeout_unknown / retryable_failure,Arsam Relay
+121,delivery_attempts,provider_ref,varchar(191),,Opaque provider message ID,Arsam Relay
+122,delivery_attempts,http_status,smallint,,Sanitized provider response status,Arsam Relay
+123,delivery_attempts,error_code,varchar(64),,Normalized error code,Arsam Relay
+124,delivery_attempts,response_meta,json,,Strict allowlist of non-sensitive metadata,Arsam Relay
+125,delivery_attempts,created_at,datetime,not null,Creation time UTC,Arsam Relay
+126,callback_receipts,id,bigint,"pk, increment",Receipt,Arsam Relay
+127,callback_receipts,provider_account_id,bigint,not null,Verified provider,Arsam Relay
+128,callback_receipts,event_id_hmac,char(64),not null,HMAC of provider event ID,Arsam Relay
+129,callback_receipts,delivery_attempt_id,bigint,,"Resolved outbound attempt, if found",Arsam Relay
+130,callback_receipts,status,varchar(24),not null,verified / processed / unrecognized,Arsam Relay
+131,callback_receipts,received_at,datetime,not null,First receipt timestamp,Arsam Relay
+132,callback_receipts,processed_at,datetime,,Processing timestamp,Arsam Relay
+133,security_events,id,bigint,"pk, increment",Audit ID,Arsam Relay
+134,security_events,client_id,bigint,,Tenant context,Arsam Relay
+135,security_events,actor_user_id,bigint,,Human actor if known,Arsam Relay
+136,security_events,event_code,varchar(80),not null,Event taxonomy code,Arsam Relay
+137,security_events,severity,varchar(12),not null,info / warning / high / critical,Arsam Relay
+138,security_events,source_ip_hmac,char(64),,HMAC of IP for bounded correlation,Arsam Relay
+139,security_events,context_json,json,not null,Strict allowlist of safe metadata,Arsam Relay
+140,security_events,record_hmac,char(64),not null,Application-secret keyed integrity tag,Arsam Relay
+141,security_events,created_at,datetime,not null,Event time UTC,Arsam Relay
+142,operation_heartbeats,name,varchar(80),pk,Known monitor name e.g. schedule or queue,Arsam Relay
+143,operation_heartbeats,last_success_at,datetime,,Last successful run UTC,Arsam Relay
+144,operation_heartbeats,last_failure_at,datetime,,Last failed run UTC,Arsam Relay
+145,operation_heartbeats,last_error_code,varchar(64),,Sanitized error,Arsam Relay
+146,operation_heartbeats,updated_at,datetime,not null,Last monitor update UTC,Arsam Relay
+147,password_reset_tokens,email,varchar(191),pk,Reset subject,Laravel/Pennant/Fortify
+148,password_reset_tokens,token,varchar(255),not null,Hashed reset token,Laravel/Pennant/Fortify
+149,password_reset_tokens,created_at,datetime,,Issued timestamp,Laravel/Pennant/Fortify
+150,sessions,id,varchar(191),pk,Session identifier,Laravel/Pennant/Fortify
+151,sessions,user_id,bigint,,Authenticated user,Laravel/Pennant/Fortify
+152,sessions,ip_address,varchar(45),,"Source address, short retention",Laravel/Pennant/Fortify
+153,sessions,user_agent,text,,Session device string,Laravel/Pennant/Fortify
+154,sessions,payload,longtext,not null,Encrypted/safe session payload; validate configuration,Laravel/Pennant/Fortify
+155,sessions,last_activity,int,not null,Unix timestamp,Laravel/Pennant/Fortify
+156,cache,key,varchar(191),pk,Cache key,Laravel/Pennant/Fortify
+157,cache,value,longtext,not null,Cache value; never secrets,Laravel/Pennant/Fortify
+158,cache,expiration,bigint,not null,Unix time,Laravel/Pennant/Fortify
+159,cache_locks,key,varchar(191),pk,Atomic lock key,Laravel/Pennant/Fortify
+160,cache_locks,owner,varchar(191),not null,Lock owner token,Laravel/Pennant/Fortify
+161,cache_locks,expiration,bigint,not null,Unix time,Laravel/Pennant/Fortify
+162,jobs,id,bigint,"pk, increment",Job ID,Laravel/Pennant/Fortify
+163,jobs,queue,varchar(191),not null,Queue name,Laravel/Pennant/Fortify
+164,jobs,payload,longtext,not null,"Serializable job must contain IDs, not sensitive message content",Laravel/Pennant/Fortify
+165,jobs,attempts,tinyint,not null,Worker attempts,Laravel/Pennant/Fortify
+166,jobs,reserved_at,bigint,,Unix reservation time,Laravel/Pennant/Fortify
+167,jobs,available_at,bigint,not null,Unix available time,Laravel/Pennant/Fortify
+168,jobs,created_at,bigint,not null,Unix creation time,Laravel/Pennant/Fortify
+169,job_batches,id,varchar(191),pk,Batch ID,Laravel/Pennant/Fortify
+170,job_batches,name,varchar(191),not null,Batch name,Laravel/Pennant/Fortify
+171,job_batches,total_jobs,int,not null,Total,Laravel/Pennant/Fortify
+172,job_batches,pending_jobs,int,not null,Pending,Laravel/Pennant/Fortify
+173,job_batches,failed_jobs,int,not null,Failures,Laravel/Pennant/Fortify
+174,job_batches,failed_job_ids,longtext,not null,Failed IDs,Laravel/Pennant/Fortify
+175,job_batches,options,text,,Batch options,Laravel/Pennant/Fortify
+176,job_batches,cancelled_at,bigint,,Unix time,Laravel/Pennant/Fortify
+177,job_batches,created_at,bigint,not null,Unix time,Laravel/Pennant/Fortify
+178,job_batches,finished_at,bigint,,Unix time,Laravel/Pennant/Fortify
+179,failed_jobs,id,bigint,"pk, increment",Failure ID,Laravel/Pennant/Fortify
+180,failed_jobs,uuid,varchar(191),"not null, unique",Job identifier,Laravel/Pennant/Fortify
+181,failed_jobs,connection,text,not null,Queue connection,Laravel/Pennant/Fortify
+182,failed_jobs,queue,text,not null,Queue name,Laravel/Pennant/Fortify
+183,failed_jobs,payload,longtext,not null,Safe job payload (IDs only),Laravel/Pennant/Fortify
+184,failed_jobs,exception,longtext,not null,Sanitized exception; must not include secrets,Laravel/Pennant/Fortify
+185,failed_jobs,failed_at,datetime,not null,Failure time,Laravel/Pennant/Fortify
+186,features,id,bigint,"pk, increment",Pennant row,Laravel/Pennant/Fortify
+187,features,name,varchar(191),not null,Flag key,Laravel/Pennant/Fortify
+188,features,scope,varchar(191),not null,Pennant-resolved scope key,Laravel/Pennant/Fortify
+189,features,value,text,not null,Boolean serialized value,Laravel/Pennant/Fortify
+190,features,created_at,datetime,not null,Creation time UTC,Laravel/Pennant/Fortify
+191,features,updated_at,datetime,not null,Update time UTC,Laravel/Pennant/Fortify

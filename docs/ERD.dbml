@@ -1,0 +1,380 @@
+// Arsam Relay Milestone 0 PROPOSED design; NOT migration-approved.
+// Source of truth is this DBML, not CSV. See docs/ERD.md.
+Project arsamrelay {
+  database_type: "MySQL"
+  Note: "Proposed v0.1 schema; requires architecture sign-off before migrations"
+}
+
+Table users {
+  id bigint [pk, increment, note: "Human identity identifier"]
+  name varchar(191) [not null, note: "Display name"]
+  email varchar(191) [not null, unique, note: "Unique verified login address"]
+  email_verified_at datetime [note: "Email proof time"]
+  password varchar(255) [note: "Optional password hash; account enrollment policy required"]
+  two_factor_secret text [note: "Fortify encrypted TOTP secret"]
+  two_factor_recovery_codes text [note: "Fortify encrypted recovery codes"]
+  two_factor_confirmed_at datetime [note: "Fortify TOTP confirmation"]
+  status varchar(24) [not null, default: 'active', note: "Active / disabled / suspended"]
+  remember_token varchar(100) [note: "Session remember token"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  updated_at datetime [not null, note: "Last update UTC"]
+}
+
+Table roles {
+  id bigint [pk, increment, note: "Role identifier"]
+  code varchar(48) [not null, note: "Super admin, support, client developer, etc."]
+  scope varchar(12) [not null, note: "platform or client"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (scope, code) [unique]
+  }
+}
+
+Table platform_role_assignments {
+  user_id bigint [not null, note: "Assigned human"]
+  role_id bigint [not null, note: "Platform role"]
+  created_at datetime [not null, note: "Assignment time UTC"]
+  indexes {
+    (user_id, role_id) [pk]
+  }
+}
+
+Table clients {
+  id bigint [pk, increment, note: "Client identifier"]
+  slug varchar(100) [not null, unique, note: "Public-safe stable slug"]
+  name varchar(191) [not null, note: "Customer display name"]
+  status varchar(24) [not null, default: 'active', note: "Active / suspended / archived"]
+  monthly_quota bigint [note: "Optional quota; null means default policy"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  updated_at datetime [not null, note: "Last update UTC"]
+}
+
+Table client_memberships {
+  id bigint [pk, increment, note: "Membership identifier"]
+  client_id bigint [not null, note: "Tenant"]
+  user_id bigint [not null, note: "Human identity"]
+  role_id bigint [not null, note: "Client-scoped role"]
+  status varchar(24) [not null, default: 'active', note: "Active / suspended"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, user_id) [unique]
+    (user_id, status)
+  }
+}
+
+Table api_keys {
+  id bigint [pk, increment, note: "Key record"]
+  client_id bigint [not null, note: "Tenant owner"]
+  created_by_user_id bigint [note: "Administrative creator"]
+  label varchar(100) [not null, note: "Operator-friendly label"]
+  key_prefix varchar(16) [not null, note: "Non-secret display prefix"]
+  key_hash char(64) [not null, unique, note: "SHA-256 digest of 256-bit random token"]
+  scopes json [not null, note: "Allowlisted ability names"]
+  expires_at datetime [note: "Expiration time"]
+  revoked_at datetime [note: "Revocation time"]
+  last_used_at datetime [note: "Usage telemetry"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, revoked_at)
+  }
+}
+
+Table client_ip_allowlist {
+  id bigint [pk, increment, note: "CIDR record"]
+  client_id bigint [not null, note: "Tenant"]
+  cidr varchar(49) [not null, note: "Normalized IPv4/IPv6 CIDR"]
+  enabled boolean [not null, default: true, note: "Allowlist switch"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, cidr) [unique]
+  }
+}
+
+Table provider_accounts {
+  id bigint [pk, increment, note: "Provider account"]
+  client_id bigint [note: "Null is platform-shared; non-null is private to this client"]
+  adapter_code varchar(64) [not null, note: "Registered adapter identifier"]
+  channel varchar(20) [not null, note: "sms / email / webhook"]
+  display_name varchar(100) [not null, note: "UI label"]
+  credentials_ciphertext longtext [not null, note: "Encrypted adapter config; no plaintext secrets"]
+  enabled boolean [not null, default: true, note: "Enabled status"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  updated_at datetime [not null, note: "Last update UTC"]
+  indexes {
+    (client_id, channel)
+  }
+}
+
+Table client_provider_routes {
+  id bigint [pk, increment, note: "Route"]
+  client_id bigint [not null, note: "Tenant"]
+  provider_account_id bigint [not null, note: "Shared or tenant-owned provider"]
+  channel varchar(20) [not null, note: "Channel"]
+  priority smallint [not null, note: "Lower = preferred"]
+  enabled boolean [not null, default: true, note: "Route enabled"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, channel, priority) [unique]
+    (client_id, channel, provider_account_id) [unique]
+  }
+}
+
+Table templates {
+  id bigint [pk, increment, note: "Template"]
+  client_id bigint [note: "Null is shared"]
+  code varchar(100) [not null, note: "Template identifier; uniqueness policy in app for shared vs owned"]
+  channel varchar(20) [not null, note: "Channel"]
+  subject_template_ciphertext text [note: "Encrypted email subject template"]
+  body_template_ciphertext longtext [not null, note: "Encrypted template body"]
+  enabled boolean [not null, default: true, note: "Template enabled"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, channel, code) [unique]
+  }
+}
+
+Table topics {
+  id bigint [pk, increment, note: "Topic"]
+  client_id bigint [not null, note: "Tenant"]
+  name varchar(100) [not null, note: "Topic key"]
+  enabled boolean [not null, default: true, note: "Topic enabled"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, name) [unique]
+    (id, client_id) [unique]
+  }
+}
+
+Table delivery_targets {
+  id bigint [pk, increment, note: "Recipient target"]
+  client_id bigint [not null, note: "Tenant"]
+  channel varchar(20) [not null, note: "Channel"]
+  address_ciphertext text [not null, note: "Encrypted phone/email/webhook URL"]
+  address_hmac char(64) [not null, note: "Keyed lookup hash, not raw address digest"]
+  enabled boolean [not null, default: true, note: "Target enabled"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, channel, address_hmac) [unique]
+    (id, client_id) [unique]
+  }
+}
+
+Table subscriptions {
+  id bigint [pk, increment, note: "Subscription"]
+  client_id bigint [not null, note: "Tenant"]
+  topic_id bigint [not null, note: "Tenant topic"]
+  target_id bigint [not null, note: "Tenant target"]
+  enabled boolean [not null, default: true, note: "Subscription enabled"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, topic_id, target_id) [unique]
+    (id, client_id) [unique]
+  }
+}
+
+Table messages {
+  id char(26) [pk, note: "ULID domain message ID"]
+  client_id bigint [not null, note: "Tenant"]
+  topic_id bigint [note: "Optional topic for fan-out"]
+  template_id bigint [note: "Optional authorized template"]
+  api_key_id bigint [note: "Publishing machine identity"]
+  kind varchar(20) [not null, note: "direct / notification / event"]
+  priority varchar(12) [not null, default: 'normal', note: "high / normal / low"]
+  payload_ciphertext longtext [not null, note: "Encrypted message body/parameters"]
+  payload_hash char(64) [not null, note: "Idempotency request equality digest (avoid raw PII hashing)"]
+  idempotency_key_hash char(64) [note: "Client-scoped keyed digest; null when absent"]
+  scheduled_at datetime [note: "Not before time"]
+  expires_at datetime [note: "Expiry"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (client_id, idempotency_key_hash) [unique]
+    (id, client_id) [unique]
+    (client_id, created_at)
+  }
+}
+
+Table deliveries {
+  id char(26) [pk, note: "ULID delivery identifier"]
+  client_id bigint [not null, note: "Tenant"]
+  message_id char(26) [not null, note: "Domain message"]
+  target_id bigint [not null, note: "Recipient"]
+  subscription_id bigint [note: "Subscription snapshot reference"]
+  state varchar(24) [not null, default: 'queued', note: "queued / sending / accepted / delivered / retry_due / ambiguous / failed / dead"]
+  attempt_count int [not null, default: 0, note: "Number of send attempts"]
+  next_attempt_at datetime [note: "Next eligible attempt time"]
+  lease_token char(36) [note: "Atomic attempt ownership token"]
+  lease_expires_at datetime [note: "Recovery lease deadline"]
+  last_error_code varchar(64) [note: "Normalized safe error code"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  updated_at datetime [not null, note: "Last update UTC"]
+  indexes {
+    (message_id, target_id) [unique]
+    (id, client_id) [unique]
+    (state, next_attempt_at)
+  }
+}
+
+Table delivery_attempts {
+  id bigint [pk, increment, note: "Attempt identifier"]
+  delivery_id char(26) [not null, note: "Delivery"]
+  provider_account_id bigint [not null, note: "Adapter instance"]
+  attempt_no int [not null, note: "Ordinal number"]
+  outcome varchar(24) [not null, note: "accepted / rejected / timeout_unknown / retryable_failure"]
+  provider_ref varchar(191) [note: "Opaque provider message ID"]
+  http_status smallint [note: "Sanitized provider response status"]
+  error_code varchar(64) [note: "Normalized error code"]
+  response_meta json [note: "Strict allowlist of non-sensitive metadata"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  indexes {
+    (delivery_id, attempt_no) [unique]
+    (provider_account_id, provider_ref)
+  }
+}
+
+Table callback_receipts {
+  id bigint [pk, increment, note: "Receipt"]
+  provider_account_id bigint [not null, note: "Verified provider"]
+  event_id_hmac char(64) [not null, note: "HMAC of provider event ID"]
+  delivery_attempt_id bigint [note: "Resolved outbound attempt, if found"]
+  status varchar(24) [not null, note: "verified / processed / unrecognized"]
+  received_at datetime [not null, note: "First receipt timestamp"]
+  processed_at datetime [note: "Processing timestamp"]
+  indexes {
+    (provider_account_id, event_id_hmac) [unique]
+  }
+}
+
+Table security_events {
+  id bigint [pk, increment, note: "Audit ID"]
+  client_id bigint [note: "Tenant context"]
+  actor_user_id bigint [note: "Human actor if known"]
+  event_code varchar(80) [not null, note: "Event taxonomy code"]
+  severity varchar(12) [not null, note: "info / warning / high / critical"]
+  source_ip_hmac char(64) [note: "HMAC of IP for bounded correlation"]
+  context_json json [not null, note: "Strict allowlist of safe metadata"]
+  record_hmac char(64) [not null, note: "Application-secret keyed integrity tag"]
+  created_at datetime [not null, note: "Event time UTC"]
+  indexes {
+    (event_code, created_at)
+    (client_id, created_at)
+  }
+}
+
+Table operation_heartbeats {
+  name varchar(80) [pk, note: "Known monitor name e.g. schedule or queue"]
+  last_success_at datetime [note: "Last successful run UTC"]
+  last_failure_at datetime [note: "Last failed run UTC"]
+  last_error_code varchar(64) [note: "Sanitized error"]
+  updated_at datetime [not null, note: "Last monitor update UTC"]
+}
+
+Table password_reset_tokens {
+  email varchar(191) [pk, note: "Reset subject"]
+  token varchar(255) [not null, note: "Hashed reset token"]
+  created_at datetime [note: "Issued timestamp"]
+}
+
+Table sessions {
+  id varchar(191) [pk, note: "Session identifier"]
+  user_id bigint [note: "Authenticated user"]
+  ip_address varchar(45) [note: "Source address, short retention"]
+  user_agent text [note: "Session device string"]
+  payload longtext [not null, note: "Encrypted/safe session payload; validate configuration"]
+  last_activity int [not null, note: "Unix timestamp"]
+  indexes {
+    user_id
+    last_activity
+  }
+}
+
+Table cache {
+  key varchar(191) [pk, note: "Cache key"]
+  value longtext [not null, note: "Cache value; never secrets"]
+  expiration bigint [not null, note: "Unix time"]
+}
+
+Table cache_locks {
+  key varchar(191) [pk, note: "Atomic lock key"]
+  owner varchar(191) [not null, note: "Lock owner token"]
+  expiration bigint [not null, note: "Unix time"]
+}
+
+Table jobs {
+  id bigint [pk, increment, note: "Job ID"]
+  queue varchar(191) [not null, note: "Queue name"]
+  payload longtext [not null, note: "Serializable job must contain IDs, not sensitive message content"]
+  attempts tinyint [not null, note: "Worker attempts"]
+  reserved_at bigint [note: "Unix reservation time"]
+  available_at bigint [not null, note: "Unix available time"]
+  created_at bigint [not null, note: "Unix creation time"]
+  indexes {
+    (queue, reserved_at, available_at)
+  }
+}
+
+Table job_batches {
+  id varchar(191) [pk, note: "Batch ID"]
+  name varchar(191) [not null, note: "Batch name"]
+  total_jobs int [not null, note: "Total"]
+  pending_jobs int [not null, note: "Pending"]
+  failed_jobs int [not null, note: "Failures"]
+  failed_job_ids longtext [not null, note: "Failed IDs"]
+  options text [note: "Batch options"]
+  cancelled_at bigint [note: "Unix time"]
+  created_at bigint [not null, note: "Unix time"]
+  finished_at bigint [note: "Unix time"]
+}
+
+Table failed_jobs {
+  id bigint [pk, increment, note: "Failure ID"]
+  uuid varchar(191) [not null, unique, note: "Job identifier"]
+  connection text [not null, note: "Queue connection"]
+  queue text [not null, note: "Queue name"]
+  payload longtext [not null, note: "Safe job payload (IDs only)"]
+  exception longtext [not null, note: "Sanitized exception; must not include secrets"]
+  failed_at datetime [not null, note: "Failure time"]
+}
+
+Table features {
+  id bigint [pk, increment, note: "Pennant row"]
+  name varchar(191) [not null, note: "Flag key"]
+  scope varchar(191) [not null, note: "Pennant-resolved scope key"]
+  value text [not null, note: "Boolean serialized value"]
+  created_at datetime [not null, note: "Creation time UTC"]
+  updated_at datetime [not null, note: "Update time UTC"]
+  indexes {
+    (name, scope) [unique]
+  }
+}
+
+// Composite tenant references are intentional and must be checked against MySQL migration indexes.
+Ref: platform_role_assignments.user_id > users.id [delete: restrict]
+Ref: platform_role_assignments.role_id > roles.id [delete: restrict]
+Ref: client_memberships.client_id > clients.id [delete: restrict]
+Ref: client_memberships.user_id > users.id [delete: restrict]
+Ref: client_memberships.role_id > roles.id [delete: restrict]
+Ref: api_keys.client_id > clients.id [delete: restrict]
+Ref: api_keys.created_by_user_id > users.id [delete: restrict]
+Ref: client_ip_allowlist.client_id > clients.id [delete: restrict]
+Ref: provider_accounts.client_id > clients.id [delete: restrict]
+Ref: client_provider_routes.client_id > clients.id [delete: restrict]
+Ref: client_provider_routes.provider_account_id > provider_accounts.id [delete: restrict]
+Ref: templates.client_id > clients.id [delete: restrict]
+Ref: topics.client_id > clients.id [delete: restrict]
+Ref: delivery_targets.client_id > clients.id [delete: restrict]
+Ref: subscriptions.(topic_id, client_id) > topics.(id, client_id) [delete: restrict]
+Ref: subscriptions.(target_id, client_id) > delivery_targets.(id, client_id) [delete: restrict]
+Ref: messages.client_id > clients.id [delete: restrict]
+Ref: messages.(topic_id, client_id) > topics.(id, client_id) [delete: restrict]
+Ref: messages.template_id > templates.id [delete: restrict]
+Ref: messages.api_key_id > api_keys.id [delete: restrict]
+Ref: deliveries.(message_id, client_id) > messages.(id, client_id) [delete: restrict]
+Ref: deliveries.(target_id, client_id) > delivery_targets.(id, client_id) [delete: restrict]
+Ref: deliveries.(subscription_id, client_id) > subscriptions.(id, client_id) [delete: restrict]
+Ref: delivery_attempts.delivery_id > deliveries.id [delete: restrict]
+Ref: delivery_attempts.provider_account_id > provider_accounts.id [delete: restrict]
+Ref: callback_receipts.provider_account_id > provider_accounts.id [delete: restrict]
+Ref: callback_receipts.delivery_attempt_id > delivery_attempts.id [delete: restrict]
+Ref: security_events.client_id > clients.id [delete: restrict]
+Ref: security_events.actor_user_id > users.id [delete: restrict]
+Ref: sessions.user_id > users.id [delete: restrict]
