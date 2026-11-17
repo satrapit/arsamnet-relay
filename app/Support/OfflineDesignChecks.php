@@ -222,10 +222,14 @@ final class OfflineDesignChecks
     private static function phpColumns(string $expression): array
     {
         $trimmed = trim($expression);
-        if (!preg_match('/^\[\s*\'[a-z_]+\'(?:\s*,\s*\'[a-z_]+\')*\s*\]$/', $trimmed)) {
+        if (preg_match('/^\'([a-z_]+)\'$/', $trimmed, $single)) {
+            return [$single[1]];
+        }
+        if (! preg_match('/^\[\s*\'[a-z_]+\'(?:\s*,\s*\'[a-z_]+\')*\s*\]$/', $trimmed)) {
             throw new InvalidArgumentException('Unsupported FK columns: '.$trimmed);
         }
         preg_match_all('/\'([a-z_]+)\'/', $trimmed, $matches);
+
         return $matches[1];
     }
 

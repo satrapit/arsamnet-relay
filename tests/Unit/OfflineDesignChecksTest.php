@@ -42,4 +42,44 @@ MIGRATION;
         $this->expectException(InvalidArgumentException::class);
         OfflineDesignChecks::parseMigrationReferences($source);
     }
+    public function test_parser_accepts_scalar_explicit_foreign_key_columns(): void
+    {
+        $source = <<<'MIGRATION'
+Schema::create('examples', function (Blueprint $table): void {
+            $table->foreign('delivery_id')->references('id')->on('deliveries')->restrictOnDelete();
+        });
+MIGRATION;
+
+        $this->assertSame(
+            ['examples(delivery_id)->deliveries(id)'],
+            OfflineDesignChecks::parseMigrationReferences($source)
+        );
+    }
+
+    public function test_parser_accepts_composite_explicit_foreign_key_columns(): void
+    {
+        $source = <<<'MIGRATION'
+Schema::create('examples', function (Blueprint $table): void {
+            $table->foreign(['message_id', 'client_id'])->references(['id', 'client_id'])->on('messages')->restrictOnDelete();
+        });
+MIGRATION;
+
+        $this->assertSame(
+            ['examples(message_id,client_id)->messages(id,client_id)'],
+            OfflineDesignChecks::parseMigrationReferences($source)
+        );
+    }
+
+    public function test_parser_rejects_dynamic_explicit_fk_columns(): void
+    {
+        $source = <<<'MIGRATION'
+Schema::create('examples', function (Blueprint $table): void {
+            $table->foreign($column)->references('id')->on('deliveries')->restrictOnDelete();
+        });
+MIGRATION;
+
+        $this->expectException(InvalidArgumentException::class);
+        OfflineDesignChecks::parseMigrationReferences($source);
+    }
+
 }
