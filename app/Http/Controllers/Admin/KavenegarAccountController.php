@@ -97,7 +97,9 @@ final class KavenegarAccountController extends Controller
             }
 
             $credentials = [];
-            if ($account) {
+            // Supplying a replacement key must recover even when existing
+            // encrypted settings are corrupt or were encrypted by an old key.
+            if ($account && empty($validated['api_key'])) {
                 try {
                     $credentials = json_decode(
                         Crypt::decryptString((string) $account->credentials_ciphertext),
