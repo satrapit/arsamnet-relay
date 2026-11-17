@@ -101,3 +101,7 @@ See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/buil
 - Added `scripts/check_migration_relationships.py` to detect DBML/migration FK drift. Static check found **32 matches / no differences** in current GitHub sources; run it on Mac and re-run `relay:db-verify`.
 - `./vendor/bin/pint --test` found 20 style issues among 61 files. On Mac run `./vendor/bin/pint`, then `./vendor/bin/pint --test`, then `php artisan test`. Commit formatting once tests pass; do not replace domain logic while doing a style-only cleanup.
 - Still uncommitted local lockfiles: composer.lock and package-lock.json. Add to feature branch after review, then push; keep PR #1 draft.
+
+## Current CSV dictionary blocker fixed in source (2026-11-17)
+
+Developer Mac confirmed 35 tests/110 assertions, MySQL schema verifier full PASS (28 tables / 192 documented fields / 61 indexes / 32 FKs / 4 migration records), Pint --test PASS after 20 files reformatted, Composer strict validation PASS. `scripts/validate_design.py` failed because docs/ERD.csv had a literal two-line spreadsheet extraction preamble above its header. Source updated to remove just that preamble and improve strict dictionary/header checks; **await Mac re-run** before claiming PASS. Pint local edits and generated composer.lock/package-lock.json are uncommitted; commit reviewed changes on Mac once this passes.

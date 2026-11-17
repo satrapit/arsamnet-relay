@@ -1,5 +1,3 @@
-<PARSED TEXT FOR SHEET: 1 / 1 TABS
-TAB NAME: ERD(1).csv>
 index,table,column,mysql_type,attributes,description,migration_owner
 0,users,id,bigint,"pk, increment",Human identity identifier,Arsam Relay
 1,users,name,varchar(191),not null,Display name,Arsam Relay

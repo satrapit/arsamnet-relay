@@ -107,3 +107,12 @@ No schema signoff, version tag or production readiness claim.
 - `./vendor/bin/pint --test` found **20 style issues in 61 files**. These are code-formatting issues, not evidence of failing feature tests or database integrity. Run `./vendor/bin/pint` on the Mac, then rerun `./vendor/bin/pint --test` and `php artisan test` and commit the autoformatted changes.
 - UNTRACKED on Mac: real `composer.lock` and `package-lock.json`. Review and commit those, never invent them from logs.
 - NOT RUN: post-fix MySQL verifier, post-format Pint check, MySQL runtime concurrency tests, deployment. PR remains draft.
+
+## Final schema verification and CSV dictionary issue (2026-11-17)
+
+- PASS (developer Mac): full `php artisan test` after code formatting — **35 tests, 110 assertions**.
+- PASS (developer Mac): `relay:db-verify --expect=arsamnet_relay` — **28 tables including migrations**, **192 documented fields**, **61 indexes**, **32 restricted foreign keys**, and **four migration records**. No schema discrepancy remains.
+- PASS (developer Mac): `./vendor/bin/pint` corrected 20 formatting issues; subsequent `./vendor/bin/pint --test` scanned 61 PHP files with no violations; Composer strict validation also passed.
+- PASS: offline `check_migration_parity.py` (27/192) and `check_migration_relationships.py` (32 FKs).
+- FAIL at time of user run: `scripts/validate_design.py` because `docs/ERD.csv` contains two non-CSV sheet-description lines before its header. The content after those lines has **exactly 192 data records** and all table/column/type/index values match DBML; the source CSV preamble was removed in this commit, and validator header/identity/type checks improved. Run the script again on Mac; **not yet confirmed after source fix**.
+- PENDING: developer's local Pint changes (~20 tracked PHP files), composer.lock and package-lock.json remain uncommitted on Mac. Commit after review and passing validators; do not add .env.

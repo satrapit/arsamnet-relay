@@ -33,11 +33,33 @@ for left, right in refs:
             assert table in tables and col in tables[table], item
 
 with (root / "docs" / "ERD.csv").open(newline="", encoding="utf-8") as stream:
-    dictionary = list(csv.DictReader(stream))
-assert len(dictionary) == sum(map(len, tables.values()))
-for row in dictionary:
-    assert row["table"] in tables
-    assert row["column"] in tables[row["table"]]
+    reader = csv.DictReader(stream)
+    expected_headers = ["index", "table", "column", "mysql_type", "attributes", "description", "migration_owner"]
+    if reader.fieldnames != expected_headers:
+        raise AssertionError("ERD.csv has an invalid header (check for non-CSV preamble lines)")
+    dictionary = list(reader)
+
+expected_keys = {(table, column) for table, columns in tables.items() for column in columns}
+found_keys = [(row["table"], row["column"]) for row in dictionary]
+if len(dictionary) != len(expected_keys):
+    raise AssertionError(f"ERD.csv has {len(dictionary)} rows; expected {len(expected_keys)}")
+if len(set(found_keys)) != len(found_keys) or set(found_keys) != expected_keys:
+    raise AssertionError("ERD.csv has duplicate, missing or unexpected table/column combinations")
+
+for index, row in enumerate(dictionary):
+    if row["index"] != str(index):
+        raise AssertionError(f"ERD.csv index mismatch at data row {index + 1}")
+    match = re.search(
+        rf"^  {re.escape(row['column'])} ((?:bigint|int|tinyint|smallint|boolean|datetime|char\\(\\d+\\)|varchar\\(\\d+\\)|longtext|text|json))(?: |$)",
+        next(
+            block.group(2)
+            for block in re.finditer(r"^Table ([a-z][a-z0-9_]*) \\{([\\s\\S]*?)^\\}", dbml, re.M)
+            if block.group(1) == row["table"]
+        ),
+        re.M,
+    )
+    if match is None or match.group(1) != row["mysql_type"]:
+        raise AssertionError(f"ERD.csv type mismatch: {row['table']}.{row['column']}")
 
 samples = list((root / "docs" / "dbdiagram-csv").glob("*.csv"))
 assert len(samples) == len(tables)
