@@ -205,4 +205,33 @@ class ProviderRouteSelectorTest extends TestCase
         $this->assertNull($selector->select($f['client'] + 1000, $f['delivery']));
         $this->assertNull($selector->select($f['client'], 'not-a-delivery'));
     }
+
+    public function test_future_scheduled_message_has_no_provider_until_due(): void
+    {
+        $f = $this->fixture('route-scheduled');
+        $selector = app(ProviderRouteSelector::class);
+        DB::table('messages')->where('id', $f['message'])
+            ->update(['scheduled_at' => now()->utc()->addMinutes(5)]);
+        $this->assertNull($selector->select($f['client'], $f['delivery']));
+
+        DB::table('messages')->where('id', $f['message'])
+            ->update(['scheduled_at' => now()->utc()->subMinute()]);
+        $this->assertSame($f['provider'], $selector->select($f['client'], $f['delivery']));
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
+
+    public function test_fake_provider_is_not_selected_in_production(): void
+    {
+        $f = $this->fixture('route-production-fake');
+        $selector = app(ProviderRouteSelector::class);
+
+        app()->detectEnvironment(fn (): string => 'production');
+        try {
+            $this->assertNull($selector->select($f['client'], $f['delivery']));
+        } finally {
+            app()->detectEnvironment(fn (): string => 'testing');
+        }
+
+        $this->assertSame($f['provider'], $selector->select($f['client'], $f['delivery']));
+    }
 }

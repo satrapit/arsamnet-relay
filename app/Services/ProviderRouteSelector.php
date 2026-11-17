@@ -62,6 +62,14 @@ final class ProviderRouteSelector
                 $query->whereNull('messages.expires_at')
                     ->orWhere('messages.expires_at', '>', now()->utc());
             })
+            ->where(function ($query): void {
+                $query->whereNull('messages.scheduled_at')
+                    ->orWhere('messages.scheduled_at', '<=', now()->utc());
+            })
+            ->when(! app()->environment('local', 'testing'), function ($query): void {
+                // Fake-only provider accounts must not be selectable in production.
+                $query->where('accounts.adapter_code', '!=', 'fake-only');
+            })
             ->orderBy('routes.priority')
             ->orderBy('routes.id')
             ->value('accounts.id');
