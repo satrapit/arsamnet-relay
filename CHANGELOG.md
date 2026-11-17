@@ -118,3 +118,5 @@ No version has been released.
   checkpoint await Mac QA. No automatic failover or real sending.
 
 - Developer Mac verified read-only ProviderRouteSelector with eleven focused tests/25 assertions, full 111 PHP tests/405 assertions, Pint 91 files, standalone MySQL route+fake lifecycle checks and clean Git. Future scheduling and fake-in-production guards included.
+
+- Verified Mac QA for initial ProviderRouteSelector: 111 PHP tests/405 assertions, Pint 91 files and isolated MySQL PASS. Added local/testing-only first-eligible fake dispatch integration, schedule guard for explicit fake calls, five new PHP tests and a MySQL schedule/priority checkpoint (new tests NOT YET RUN). No send or migration.

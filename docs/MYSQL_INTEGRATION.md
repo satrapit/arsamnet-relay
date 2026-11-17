@@ -272,3 +272,17 @@ The new selector/runner changes have **NOT YET RUN on Mac**.
 ## First-attempt route selector Mac MySQL PASS (2026-11-17)
 
 The existing PHP integration script passed the new first-attempt read-only provider selection checkpoint on the isolated MySQL 8 database, plus all previous transactional publish/race/lease/attempt/fake callback end-to-end checks. Fixture tables are empty at exit. The independent main schema verifier also passed read-only. No DDL, reset or provider network sends.
+
+
+## New fake coordinator route and scheduling checkpoint — not yet run
+
+The existing script now uses `dispatchFirstEligible` for its
+standalone fake-only end-to-end case, after first confirming that the
+same message with a future `scheduled_at` is rejected by both
+first-route and explicit-account dispatch with zero attempts. After
+changing the schedule to the past, the coordinator must produce one
+accepted attempt, refuse the second call, accept one separately
+authenticated fake receipt and clean all fixture rows. All previous
+MySQL checkpoints remain. No schema changes or migration rerun are
+required. Stop and inspect if any test fails; never manually wipe
+the test database.

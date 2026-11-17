@@ -195,3 +195,13 @@ route/account, message validity and configured priority. No credentials
 are decrypted, messages sent or automatic retries scheduled. Nine new
 PHP Feature tests and one isolated MySQL checkpoint are authored but
 not yet run on Mac. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+
+
+## Manual first-route fake dispatch (local/testing only)
+
+`FakeDispatchCoordinator::dispatchFirstEligible` uses the read-only
+provider priority selector to choose one eligible account for a staged
+unattempted delivery, then performs an entirely fake, no-network
+dispatch. A failed account is never automatically replaced with the
+next provider. A future-scheduled message cannot be dispatched early.
+New PHP and independent MySQL regressions are authored but await Mac QA.

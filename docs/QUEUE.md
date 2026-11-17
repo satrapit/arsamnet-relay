@@ -107,3 +107,14 @@ deliveries with any attempt or lease. It is not connected to a worker,
 and must not be used to select a fallback provider after an
 ambiguous/retryable outcome. No network I/O or writes. PHP and MySQL
 regression for this new source is pending.
+
+
+## First-route fake dispatch is not auto-failover
+
+A local/testing-only `dispatchFirstEligible` chooses a single eligible
+provider route for an unattempted staged delivery. It then calls the
+existing fake no-network coordinator exactly once. Failure never
+automatically tries lower-priority providers; any attempt-related
+uncertainty remains subject to manual review. Explicit fake dispatch
+now guards future schedule before claim. The new PHP and guarded
+MySQL regression tests are pending Mac execution.

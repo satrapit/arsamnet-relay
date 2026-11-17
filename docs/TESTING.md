@@ -247,3 +247,16 @@ and guarded MySQL integration after the focused selector tests.
 ## Initial provider route selection confirmed
 
 Developer Mac: **11/11 ProviderRouteSelectorTest (25 assertions)** and all **111 Laravel tests (405 assertions)** PASS. Pint **91 files PASS**. Existing independent MySQL 8 script PASS including selection for the authorized first staged delivery and rejection for foreign client/already leased delivery; integration fixture tables empty after completion. No external transports or production dispatch tested.
+
+
+## Manual first-eligible fake dispatch integration (Mac execution pending)
+
+Run `php artisan test --filter=FakeDispatchCoordinatorTest` for **15**
+PHP feature cases (ten previously confirmed, five new: route preference,
+disabled-first-route selection, strict no-failover, scheduled message
+guard, and client/production refusal). Run the full Laravel suite
+(expected **116 tests**), Pint, and the same guarded isolated real MySQL
+CLI. The CLI now verifies a future-scheduled message cannot be sent by
+the fake coordinator (even via explicit account) and can pass through the
+first-route fake-only lifecycle once due. These newest cases have NOT
+run on Mac; the previous baseline 111/405 and MySQL was PASS.

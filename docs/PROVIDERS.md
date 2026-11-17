@@ -229,3 +229,22 @@ isolated MySQL fake dispatch PASS) predates this change. Eleven focused
 `ProviderRouteSelectorTest` cases now cover routing and negative states,
 including future schedules and fake-only production exclusion; new
 PHP/Pint/MySQL QA is **NOT RUN**.
+
+
+## Local-only first eligible fake provider selection (pending QA)
+
+The internal `FakeDispatchCoordinator::dispatchFirstEligible` now
+combines the existing read-only initial `ProviderRouteSelector` with
+the fake-only, no-network dispatch path. This is deliberately a
+manual **local/testing-only** method. It selects only the first
+eligible provider account according to numeric route priority
+and **never scans subsequent routes after dispatch failure**.
+A selected non-fake adapter fails closed; the fake coordinator
+does not silently switch to a second provider.
+
+An explicit fake provider dispatch is still available for existing
+isolated test fixtures; it now also blocks messages with a
+`scheduled_at` time in the future before taking a lease.
+The five new PHP tests and updated real MySQL rehearsal for these
+changes are written but have NOT run on Mac. No provider I/O,
+runtime queue registration, retry/failover automation or DDL.

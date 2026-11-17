@@ -433,3 +433,13 @@ No schema signoff, version tag or production readiness claim.
 - **PASS:** read-only `relay:db-verify --expect=arsamnet_relay`: 28 tables including migrations, 192 documented fields, 61 indexes, 32 restricted FKs and 4 migration records.
 - **PASS:** no whitespace issues or local Git changes reported by `git diff --check` / `git status --short`.
 - **NOT TESTED / NOT IMPLEMENTED:** real provider network sends, third-party signed receipt, dispatcher/worker integration, load/stress beyond one two-process race, cPanel production tests. PR Draft and Publish disabled.
+
+
+## First-route fake dispatch integration — source awaiting Mac QA (2026-11-17)
+
+- **CONFIRMED PRIOR BASELINE**: developer Mac ran 111 Laravel tests / 405 assertions, focused ProviderRouteSelector 11 tests / 25 assertions, Pint 91 files, and isolated MySQL 8 end-to-end transaction/initial routing/fake callback and two-process idempotency checks — all PASS. The guarded schema was cleaned to empty; original MySQL schema verifier PASS; local Git worktree clean.
+- **NEW SOURCE — NOT YET TESTED ON MAC**: `FakeDispatchCoordinator::dispatchFirstEligible(clientId,deliveryId)` composes the existing READ-ONLY `ProviderRouteSelector` with the existing local/testing-only explicit fake dispatch. Selects exactly one first eligible provider, never automatically fails over after a failed or uncertain send; if selected account is a non-fake adapter, it refuses without trying a lower priority route.
+- The existing explicit `dispatch(...,providerAccountId)` now also blocks future `messages.scheduled_at` before claiming a lease/starting an attempt. Neither method adds a queue worker, public route or any network call.
+- Added five `FakeDispatchCoordinatorTest` feature cases covering higher-preference account selection, disabled higher-priority route before any attempt, no fallback from invalid first account, future schedule protection even with explicit account, and cross-client/production guards. Fake coordinator now **15 focused cases**, projected **116 total PHP tests** if all pass.
+- Updated the existing guarded real MySQL integration runner: creates a future scheduled fake delivery, verifies neither selection nor explicit fake dispatch starts an attempt, moves the schedule to the past, selects the first eligible account, requires one accepted attempt and signed receipt, rejects a second selection, then cleans up. The integration schema remains migrated and clean after the last confirmed run. **This revised script has NOT been executed on Mac.**
+- No new schema or migrations; original `arsamnet_relay` database unchanged by source edits. Real sending still disabled. PR stays Draft.
