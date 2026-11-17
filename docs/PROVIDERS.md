@@ -251,3 +251,8 @@ isolated test fixtures; it now also blocks messages with a
 The five new PHP tests and updated real MySQL rehearsal for these
 changes are written but have NOT run on Mac. No provider I/O,
 runtime queue registration, retry/failover automation or DDL.
+
+
+## Kavenegar outbound SMS implementation (new; NOT RUN)
+
+The Kavenegar adapter handles fixed-host, TLS-verified single send, one sendarray request for up to 25 distinct numbers, and VerifyLookup for OTP. Client-owned credentials and sender are encrypted in provider_accounts through the privileged client provider settings page; enabled route accounts are selected per tenant. API intake uses the existing atomic publisher; KavenegarSmsDispatcher records fenced started attempts before HTTP calls, classifies provider results without storing bodies/secrets, and never retries unknown results. Global publish and Kavenegar network gates default OFF. See [KAVENEGAR.md](KAVENEGAR.md). No real network/sandbox/production tests have been performed.

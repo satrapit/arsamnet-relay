@@ -120,3 +120,5 @@ No version has been released.
 - Developer Mac verified read-only ProviderRouteSelector with eleven focused tests/25 assertions, full 111 PHP tests/405 assertions, Pint 91 files, standalone MySQL route+fake lifecycle checks and clean Git. Future scheduling and fake-in-production guards included.
 
 - Verified Mac QA for initial ProviderRouteSelector: 111 PHP tests/405 assertions, Pint 91 files and isolated MySQL PASS. Added local/testing-only first-eligible fake dispatch integration, schedule guard for explicit fake calls, five new PHP tests and a MySQL schedule/priority checkpoint (new tests NOT YET RUN). No send or migration.
+
+- Added gated Kavenegar SMS single/sendarray/VerifyLookup transport, client encrypted account/route management UI, authenticated machine SMS APIs and sanitized status, durable attempt reporting and rate/cooldown guards; added 24 PHP tests and real-MySQL HTTP-fake scenarios. All new QA still NOT RUN on Mac; no live SMS or schema changes.

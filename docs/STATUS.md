@@ -73,3 +73,8 @@ git status --short
 
 **Do not** recreate, drop, wipe or migrate the already existing integration
 schema to repeat the script. Never run tests/migrations on `arsamnet_relay`.
+
+
+## New Kavenegar SMS source — pending independent verification (2026-11-17)
+
+The preceding table is the last developer-confirmed PASS baseline (116 PHP tests/430 assertions; fake-only MySQL). Since that run, a gated Kavenegar SMS integration was authored: privileged encrypted account settings, fixed-host REST single/sendarray/VerifyLookup, machine endpoints and redacted status, durable attempts, OTP cooldown, per-client quota and 24 new HTTP-faked PHP tests. The current full suite is expected to have **140 tests if green**, but **NO NEW TESTS HAVE RUN on developer Mac**. The standalone isolated MySQL runner was extended to exercise all three Kavenegar operations with Http::fake (no real network) and is likewise NOT RUN. See [KAVENEGAR.md](KAVENEGAR.md). Sending gates remain OFF. No real Kavenegar delivery or production readiness claim is authorized.

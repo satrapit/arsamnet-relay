@@ -208,3 +208,8 @@ unattempted delivery, then performs an entirely fake, no-network
 dispatch. A failed account is never automatically replaced with the
 next provider. A future-scheduled message cannot be dispatched early.
 New PHP and independent MySQL regressions are authored but await Mac QA.
+
+
+## Kavenegar SMS provider (new source; QA pending)
+
+See [Kavenegar integration guide](docs/KAVENEGAR.md) for privileged client configuration, single/bulk/OTP machine APIs, safe defaults and offline test steps. The Kavenegar network gate is OFF by default; no real SMS has been sent or verified.

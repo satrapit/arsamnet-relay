@@ -446,3 +446,12 @@ No schema signoff, version tag or production readiness claim.
 - Added five `FakeDispatchCoordinatorTest` feature cases covering higher-preference account selection, disabled higher-priority route before any attempt, no fallback from invalid first account, future schedule protection even with explicit account, and cross-client/production guards. Fake coordinator now **15 focused cases**, projected **116 total PHP tests** if all pass.
 - Updated the existing guarded real MySQL integration runner: creates a future scheduled fake delivery, verifies neither selection nor explicit fake dispatch starts an attempt, moves the schedule to the past, selects the first eligible account, requires one accepted attempt and signed receipt, rejects a second selection, then cleans up. The integration schema remains migrated and clean after the last confirmed run. **This revised script has NOT been executed on Mac.**
 - No new schema or migrations; original `arsamnet_relay` database unchanged by source edits. Real sending still disabled. PR stays Draft.
+
+
+## New Kavenegar SMS provider source — QA pending (2026-11-17)
+
+- Previous developer Mac baseline: full **116 PHP tests / 430 assertions PASS**, Pint **91 files PASS**, isolated MySQL fake-only routing/attempt/receipt PASS; original schema verified read-only.
+- Added KavenegarSmsAdapter for fixed-host single, SendArray and VerifyLookup with no retries, TLS verification and normalized outcomes; encrypted account configuration with MFA/password and redacted audit/attempt UI; SMS machine API and client-scoped status; durable staged/leased/attempt dispatch, quota/cooldown and idempotency.
+- Added **24 new PHP tests** across KavenegarSmsAdapterTest (10), KavenegarSmsApiTest (10) and KavenegarAccountConfigurationTest (4), and three HTTP-faked provider scenarios to the existing isolated real MySQL integration script.
+- **NOT RUN on developer Mac:** PHP lint, Pint, new focused PHP tests, complete suite (expected **140 tests** if green), updated MySQL integration runner and live Kavenegar sandbox checks. No schema migration, real SMS, callback or network request was executed by the assistant.
+- Both global sending flags default OFF, PR #1 remains Draft, main unchanged. Do not migrate/recreate the integration database.

@@ -39,3 +39,8 @@ The 1–25 existing, enabled target IDs **must belong to the authenticated clien
 A new request returns HTTP 202 with `data.message_id`, `data.delivery_ids`, `data.state = "stored"` and `data.replayed = false`. A byte/semantic equivalent request using the same idempotency key returns HTTP 200 with the same message ID and `replayed = true`. The same key with different content/targets/priority/TTL returns 409, a missing/invalid key or target validation error returns 422, insufficient key scope returns 403, and publishing disabled returns 503. Sensitive payload is stored with Laravel Crypt encryption; fingerprints and idempotency keys are HMACed using the application key, never returned.
 
 This endpoint **accepts and stores a message; it does NOT mean an SMS, email, or webhook has been accepted by any provider**. The native database queue records contain only delivery IDs. `StageDeliveryJob` either marks a queued delivery `awaiting_provider` (no provider calls) or `expired`. No actual `delivery_attempts` are created yet. Future milestones will integrate provider routes, leasing, ACK/NACK, safe retries and DLQ. Until then this is a controlled development-only foundation, not a general-use messaging service.
+
+
+## Kavenegar SMS single, bulk, OTP and status (source; Mac QA pending)
+
+See [KAVENEGAR.md](KAVENEGAR.md). New authenticated routes: POST /api/v1/sms/send, POST /api/v1/sms/bulk, POST /api/v1/sms/otp (messages.publish scope, Idempotency-Key, both send gates ON), and GET /api/v1/sms/messages/{message_ulid} (messages.read scope). The existing /api/v1/messages endpoint remains stage-only. Neither endpoint's accepted status means delivered. Kavenegar feature not yet validated on developer Mac; do not enable outbound traffic.

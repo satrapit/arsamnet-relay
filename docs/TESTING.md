@@ -260,3 +260,8 @@ CLI. The CLI now verifies a future-scheduled message cannot be sent by
 the fake coordinator (even via explicit account) and can pass through the
 first-route fake-only lifecycle once due. These newest cases have NOT
 run on Mac; the previous baseline 111/405 and MySQL was PASS.
+
+
+## Kavenegar adapter/API/config tests — pending execution
+
+New tests: 10 KavenegarSmsAdapterTest (fixed URL/form, sendarray, VerifyLookup, malformed/non200/redirect, disabled gates, redaction), 10 KavenegarSmsApiTest (single, bulk, OTP, tenant, quota, idempotency, status and failures), 4 KavenegarAccountConfigurationTest (encrypted key, MFA/permission/password, rotation and disabling). New isolated real MySQL script checks all three with Http::fake. Before this work, 116 tests/430 assertions passed. After adding these 24, expected total 140 tests if all pass. Run php -l, Pint, focused/full artisan test, then guarded real MySQL script. No live provider tests run. See docs/KAVENEGAR.md.
