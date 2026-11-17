@@ -120,3 +120,14 @@ dedicated schema `arsamnet_relay_integration_test` and refuses to touch
 `arsamnet_relay`. No destructive reset or actual provider send is involved.
 **The Mac MySQL integration run is still pending.** See
 [docs/MYSQL_INTEGRATION.md](docs/MYSQL_INTEGRATION.md) for safe one-time setup.
+
+ 
+## Lease fencing groundwork
+
+The internal PHP `DeliveryLeaseManager` can atomically claim a staged
+delivery for one tenant, renew only with its live fencing token, and move
+an expired/uncertain lease to manual review rather than sending again.
+It does not contact providers or expose new routes. New PHP unit/feature
+and isolated MySQL lease tests are written but **not yet run on Mac**.
+See [docs/QUEUE.md](docs/QUEUE.md) and
+[docs/MYSQL_INTEGRATION.md](docs/MYSQL_INTEGRATION.md).

@@ -14,3 +14,14 @@ Every phase requires explicit test outputs and honest Not Run/Failed/Passed ledg
 ## Current Milestone 3 partial groundwork
 
 Added a **draft, disabled-by-default** direct publish endpoint and ID-only durable queue staging with test cases covering scope/tenant isolation, idempotency replay/conflict, encrypted persistence, no provider calls, and job creation. This is a *partial* Milestone 3 deliverable. User Mac test execution remains pending; real provider adapters, topic fanout, quota enforcement, delivery leases, concurrency guarantees, ACK/NACK, retry/DLQ and production enablement are still NOT IMPLEMENTED. No migrations were added or run for this change.
+
+ 
+## Milestone 3 — lease groundwork (source only, pending QA)
+
+The initial publish MySQL integration (rollback, one two-process race,
+idempotency conflict/replay and no-provider staging) passed on Mac. Next
+source changes implement internal tenant-fenced delivery lease claiming,
+renewal and expired-uncertainty quarantine, with PHP tests and isolated
+MySQL follow-up. They are **not integrated with a sender**, and **not yet
+tested on Mac**. No delivery retries, ACK/NACK, DLQ worker, provider routes,
+quota controls or production dispatch are claimed.

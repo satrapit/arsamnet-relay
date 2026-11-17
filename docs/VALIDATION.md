@@ -192,3 +192,13 @@ No schema signoff, version tag or production readiness claim.
 - **NOT RUN:** integration database creation and migrations, real MySQL
   concurrency/rollback assertions, provider deliveries, host production QA.
   No database was created/altered from this authoring environment.
+
+ 
+## Real MySQL 8 transaction/idempotency test PASSED on Mac — 2026-11-17
+
+- **PASS (developer Mac):** read-only `relay:db-preflight --expect=arsamnet_relay_integration_test` confirmed an empty MySQL 8 integration schema (0 tables/views). The isolated schema was created by `scripts/mysql_publish_prepare.php`.
+- **PASS:** all four initial migrations ran successfully in the **isolated integration schema**; no migration executed on `arsamnet_relay` during this procedure.
+- **PASS:** `scripts/mysql_publish_integration.php --expect=arsamnet_relay_integration_test`, executed with `DB_DATABASE` pointing to the test schema, confirmed actual MySQL rollback of messages/deliveries/native jobs, sequential idempotency, mismatch rejection, inert StageDeliveryJob, **two concurrent PHP processes creating only one message and one delivery**, and fixture cleanup back to empty tables.
+- No provider sends, table drops, truncation or migrations performed by the integration runner. This evidence covers one reproducible two-worker race, **not** general load testing or every possible interleaving.
+- **SOURCE ADDED AFTER THE PASS:** `DeliveryLeaseManager` internal (no route, no provider adapter) with tenant-scoped claim, 15–120 second leases, token-fenced renew, message-expiry cap, and quarantine of expired uncertain leases to `review_required` rather than automatic retry; ten PHP Feature test cases (8 initial, 2 later) and extension to the isolated MySQL CLI for lease claim/renew/quarantine.
+- **NOT RUN:** new lease PHPUnit cases, updated MySQL integration runner and Pint after the lease commits. Older MySQL PASS refers to the previously committed runner, not the expanded lease checks. All code awaits verification on developer Mac. No schema/DDL changed.

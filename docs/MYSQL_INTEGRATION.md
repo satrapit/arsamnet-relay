@@ -90,3 +90,35 @@ The last schema verification deliberately selects the **original main
 development schema**, not the test schema. No provider sends or queue
 consumption is enabled by this integration test. Report the complete output
 of any failed step before making schema changes.
+
+ 
+## Executed baseline and incremental lease test (2026-11-17)
+
+On the developer Mac, the one-time schema creator, empty-schema preflight and **four migrations** succeeded. The original PHP MySQL transaction/idempotency runner passed each of its steps, including two simultaneously launched PHP processes; it returned the schema to an empty fixture state. The schema and original migration ledger remain available for **rerunning** this test.
+
+New source (not yet executed on Mac) extends the SAME integration runner with:
+
+- Claiming the staged delivery through `DeliveryLeaseManager`, with a UUID fencing token.
+- Rejecting a second claim, stale/wrong token renewal and quarantining an active lease.
+- Successfully renewing a live lease, then simulating an expired timestamp and denying further renewal.
+- Transitioning the expired lease to `review_required` with `LEASE_EXPIRED_UNCERTAIN`, without permitting automatic re-claim or creating any provider attempt.
+
+Re-run only the existing integration test; **do not run the schema creator, preflight or migrations again** because the schema now exists and migrations are already installed:
+
+```bash
+cd ~/Sites/arsamnet-relay
+git pull --ff-only origin feat/laravel13-foundation
+php artisan config:clear
+php -l app/Services/DeliveryLeaseManager.php
+php -l tests/Feature/DeliveryLeaseManagerTest.php
+php -l scripts/mysql_publish_integration.php
+
+php artisan test --filter=DeliveryLeaseManagerTest
+php artisan test
+php vendor/bin/pint --test
+
+DB_DATABASE=arsamnet_relay_integration_test \
+  php scripts/mysql_publish_integration.php --expect=arsamnet_relay_integration_test
+```
+
+All tests use PHP. The standalone MySQL runner rejects preexisting project rows and runs only on the explicitly selected local integration schema. Stopping a worker after any hypothetical external send could leave uncertainty; consequently this prototype does **not** support releasing timed-out leases back to a sendable queue.

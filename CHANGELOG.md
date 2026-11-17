@@ -52,3 +52,10 @@ No version has been released.
   and npm vulnerability audits reported zero advisories. Added safe PHP-only
   MySQL integration schema setup and rollback/concurrent idempotency test
   harness, not yet executed on the developer Mac.
+
+- Developer Mac confirmed the isolated MySQL 8 integration schema and four
+  migrations passed. Real MySQL transactional rollback, sequential/replayed
+  idempotency, one two-process race and fixture cleanup all PASS. Added
+  provider-free tenant-scoped delivery leases, token fencing, expiry-capped
+  renewal and uncertain-lease quarantine to operator review, with ten PHP
+  Feature cases and expanded MySQL checks (new cases pending Mac run).

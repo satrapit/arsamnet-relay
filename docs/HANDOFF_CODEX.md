@@ -176,3 +176,10 @@ phpunit.xml**, so run this integration CLI separately. Never use
 `migrate:fresh` or `db:wipe` on the current development schema. New
 integration schema creation requires real user action and is not assumed done.
 PR remains Draft; sending remains disabled by default.
+
+ 
+## MySQL integration passed; new delivery lease primitive (2026-11-17)
+
+Developer Mac **PASS**: newly created isolated schema `arsamnet_relay_integration_test` passed preflight (0 tables/views), ran the original four migrations, then passed independent PHP MySQL integration: nested rollback of domain+queue writes; sequential same-key replay; conflict rejection; StageDeliveryJob without provider call; two concurrent processes yielding exactly one message/delivery; cleanup back to empty. Existing main `arsamnet_relay` was not changed in this process. Not equivalent to load testing.
+
+Follow-up source is now committed but **NOT YET TESTED ON MAC**: `app/Services/DeliveryLeaseManager.php`, ten tests in `tests/Feature/DeliveryLeaseManagerTest.php`, and new lease cases in `scripts/mysql_publish_integration.php`. This internal lease manager supports client/target/status checks, random UUID fencing tokens, bounded TTL and expiry-capped renewals, and quarantines stale leases into `review_required` with `LEASE_EXPIRED_UNCERTAIN`. No public lease route, provider call, ACK/NACK, retry or requeue has been enabled. Lease expiry must **not** automatically resend uncertain OTP/SMS. Run PHP lint, focused/full PHPUnit, Pint and the expanded isolated MySQL integration script. No need to migrate again or create another schema. PR stays Draft.

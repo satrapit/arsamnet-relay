@@ -25,3 +25,27 @@ separately migrated `arsamnet_relay_integration_test` schema and cannot run
 against the ordinary `arsamnet_relay` development database.
 Read `docs/MYSQL_INTEGRATION.md`. No provider calls, no sender/consumer
 loop and no destructive DB reset have been added.
+
+ 
+## Lease/fencing foundation — no provider processing
+
+An internal `DeliveryLeaseManager` provides a narrow state machine for
+future workers; it is not connected to a public endpoint or automatic sender:
+
+- `awaiting_provider -> leased` via an atomic, tenant-bound claim; checks
+  live client, enabled target, nonexpired message and a clean lease field set.
+- A lease token is a new random UUID; repeated claims are rejected. Renewals
+  require the matching token, live lease, active ownership and unexpired
+  message. The deadline cannot exceed message expiry.
+- Expired `leased` rows can only be quarantined to `review_required`
+  with `LEASE_EXPIRED_UNCERTAIN`. **Do not automatically reclaim, retry or
+  fail over** an uncertain attempt, especially an OTP.
+- `review_required`, `expired`, `leased` and other non-staged states
+  are not claimable. No state transition marks a provider receipt delivered
+  or inserts a delivery attempt.
+
+The local PHP/SQLite feature tests and expanded isolated MySQL lease cases
+were added after the last Mac regression; those additions are **NOT YET RUN**.
+Claim is purely an internal primitive and must not be wired into a real
+provider worker without routing, status, attempt durability, crash recovery,
+quotas and audit design.

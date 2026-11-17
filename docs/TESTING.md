@@ -96,3 +96,19 @@ transaction/rollback and simultaneous PHP-process idempotency checks. It
 refuses anything but the explicitly prepared and empty isolated schema.
 It never runs migrations or reset commands. See `docs/MYSQL_INTEGRATION.md`
 for safe setup and command examples. **Not yet executed on the developer Mac.**
+
+ 
+## Delivery lease tests — new, execution pending
+
+`php artisan test --filter=DeliveryLeaseManagerTest` verifies tenant
+ownership, claim fencing, wrong/stale token rejection, disabled/suspended
+owners, message expiration, bounded TTL, quarantine to manual review,
+expiry-capped deadlines and prevention of provider/queue side effects.
+The expanded `scripts/mysql_publish_integration.php` adds real MySQL
+lease/renew/quarantine assertions to the previously successful isolated
+concurrency and rollback run.
+
+**Mac test result pending** for the new files. Use `php artisan test` and
+`php vendor/bin/pint --test` as the full PHP QA gates. The MySQL test should
+be rerun against the **already migrated** `arsamnet_relay_integration_test`
+schema only; no new schema/migration/reset is required.
