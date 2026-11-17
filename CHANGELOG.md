@@ -116,3 +116,5 @@ No version has been released.
   active/owned/shared routes, message expiry and schedule, and production
   exclusion for fake-only accounts. Eleven PHP tests and a real MySQL
   checkpoint await Mac QA. No automatic failover or real sending.
+
+- Developer Mac verified read-only ProviderRouteSelector with eleven focused tests/25 assertions, full 111 PHP tests/405 assertions, Pint 91 files, standalone MySQL route+fake lifecycle checks and clean Git. Future scheduling and fake-in-production guards included.

@@ -363,3 +363,8 @@ The existing fake coordinator still accepts an explicit fake account ID;
 no sender/cron/provider route was enabled. PHP lint, focused/full PHP tests,
 Pint and guarded isolated real MySQL regression remain the next QA gates.
 No migration or reset is required; PR Draft, Publish OFF.
+
+
+## ProviderRouteSelector QA PASS — developer Mac (2026-11-17)
+
+The consolidated first-attempt read-only provider selector passed **11 focused tests / 25 assertions**; complete Laravel suite passed **111 tests / 405 assertions**, and Pint passed **91 PHP files**. The already-migrated isolated MySQL 8 integration reran successfully including tenant-scoped staged-only route selection, existing rollback/lease/attempt/idempotency/two-process race and full fake-only authenticated receipt, with fixtures cleaned to empty. Read-only primary MySQL schema verifier passed (28 tables, 192 fields, 61 indexes, 32 FKs, 4 migrations). Local Git clean. Earlier estimate of nine routing tests/109 total was superseded by two negative cases (scheduled future and fake-only production). No real sends or migrations; PR Draft.

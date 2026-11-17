@@ -421,3 +421,15 @@ No schema signoff, version tag or production readiness claim.
 - **NOT RUN on Mac:** focused selector tests, full suite (expected
   **111 tests** if all pass), Pint, and updated MySQL runner regression.
   No schema changes or actual sends. PR stays Draft; Publish OFF.
+
+
+## Initial provider selector QA verified on Mac — 2026-11-17
+
+- **PASS:** `php -l` for `ProviderRouteSelector.php`, `ProviderRouteSelectorTest.php` and `mysql_publish_integration.php`.
+- **PASS:** Pint and Pint --test, **91 PHP files**.
+- **PASS:** focused `ProviderRouteSelectorTest`: **11 tests, 25 assertions**, including scheduled-message deferral and the fake-provider production guard.
+- **PASS:** full `php artisan test`: **111 tests, 405 assertions** (PHPUnit SQLite in memory).
+- **PASS:** dedicated MySQL 8 integration on `arsamnet_relay_integration_test`: read-only tenant-scoped staged-only initial provider selection, independent transaction rollback, idempotency, two concurrent PHP processes, lease fencing, durable attempts, fake signed callbacks, fake end-to-end lifecycle and complete fixture cleanup.
+- **PASS:** read-only `relay:db-verify --expect=arsamnet_relay`: 28 tables including migrations, 192 documented fields, 61 indexes, 32 restricted FKs and 4 migration records.
+- **PASS:** no whitespace issues or local Git changes reported by `git diff --check` / `git status --short`.
+- **NOT TESTED / NOT IMPLEMENTED:** real provider network sends, third-party signed receipt, dispatcher/worker integration, load/stress beyond one two-process race, cPanel production tests. PR Draft and Publish disabled.

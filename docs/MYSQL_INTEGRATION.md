@@ -267,3 +267,8 @@ receipt stages proceed as before. Run only against the already
 migrated/empty `arsamnet_relay_integration_test` schema, not the main
 `arsamnet_relay` database. Do not recreate, reset or remigrate tables.
 The new selector/runner changes have **NOT YET RUN on Mac**.
+
+
+## First-attempt route selector Mac MySQL PASS (2026-11-17)
+
+The existing PHP integration script passed the new first-attempt read-only provider selection checkpoint on the isolated MySQL 8 database, plus all previous transactional publish/race/lease/attempt/fake callback end-to-end checks. Fixture tables are empty at exit. The independent main schema verifier also passed read-only. No DDL, reset or provider network sends.

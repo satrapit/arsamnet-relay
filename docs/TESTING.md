@@ -242,3 +242,8 @@ This new milestone **has not been verified on developer Mac**. Existing
 last confirmed baseline: 100 tests/380 assertions and Pint 89 files.
 Run full `php artisan test`, `php vendor/bin/pint --test`,
 and guarded MySQL integration after the focused selector tests.
+
+
+## Initial provider route selection confirmed
+
+Developer Mac: **11/11 ProviderRouteSelectorTest (25 assertions)** and all **111 Laravel tests (405 assertions)** PASS. Pint **91 files PASS**. Existing independent MySQL 8 script PASS including selection for the authorized first staged delivery and rejection for foreign client/already leased delivery; integration fixture tables empty after completion. No external transports or production dispatch tested.
