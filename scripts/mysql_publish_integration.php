@@ -552,10 +552,19 @@ try {
         ]);
         $kvService = app(KavenegarMessageService::class);
         $kvDispatch = app(KavenegarSmsDispatcher::class);
-        Http::fake(['*' => Http::response([
-            'return' => ['status' => 200, 'message' => 'OK'],
-            'entries' => [['messageid' => 777001]],
-        ], 200)]);
+        Http::fake(['*' => Http::sequence()
+            ->push([
+                'return' => ['status' => 200, 'message' => 'OK'],
+                'entries' => [['messageid' => 777001]],
+            ], 200)
+            ->push([
+                'return' => ['status' => 200, 'message' => 'OK'],
+                'entries' => [['messageid' => 777002], ['messageid' => 777003]],
+            ], 200)
+            ->push([
+                'return' => ['status' => 200, 'message' => 'OK'],
+                'entries' => [['messageid' => 777004]],
+            ], 200)]);
         $singleKv = $kvService->publish(
             $f['client'], $f['key'], 'kv-single-'.bin2hex(random_bytes(12)),
             'single', [['receptor' => '09123456789', 'message' => 'Isolated integration text']], [],
@@ -568,10 +577,6 @@ try {
         Http::assertSentCount(1);
         echo "PASS: MySQL Kavenegar single send and durable attempt using HTTP fake (zero network).\n";
 
-        Http::fake(['*' => Http::response([
-            'return' => ['status' => 200, 'message' => 'OK'],
-            'entries' => [['messageid' => 777002], ['messageid' => 777003]],
-        ], 200)]);
         $bulkKv = $kvService->publish(
             $f['client'], $f['key'], 'kv-bulk-'.bin2hex(random_bytes(12)),
             'bulk', [
@@ -586,13 +591,9 @@ try {
         ensure(DB::table('delivery_attempts')->whereIn('provider_ref', ['kv-777002', 'kv-777003'])
             ->where('provider_account_id', $kvAccount)->count() === 2,
             'Bulk messageids did not map to two durable provider attempts.');
-        Http::assertSentCount(1);
+        Http::assertSentCount(2);
         echo "PASS: MySQL Kavenegar SendArray stores two attempts from one faked HTTP call.\n";
 
-        Http::fake(['*' => Http::response([
-            'return' => ['status' => 200, 'message' => 'OK'],
-            'entries' => [['messageid' => 777004]],
-        ], 200)]);
         $otpKv = $kvService->publish(
             $f['client'], $f['key'], 'kv-otp-'.bin2hex(random_bytes(12)),
             'otp', [['receptor' => '09123456783']],
@@ -606,7 +607,7 @@ try {
         ensure(DB::table('delivery_attempts')->where('provider_ref', 'kv-777004')
             ->where('provider_account_id', $kvAccount)->count() === 1,
             'VerifyLookup attempt missing.');
-        Http::assertSentCount(1);
+        Http::assertSentCount(3);
         echo "PASS: MySQL Kavenegar VerifyLookup preserves OTP secrecy; faked HTTP only.\n";
     } finally {
         cleanup($clientId);
