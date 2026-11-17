@@ -3,14 +3,10 @@
 namespace App\Support;
 
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use RuntimeException;
 
 final class SecurityAudit
 {
-    /**
-     * Write only allowlisted, non-sensitive event metadata. Fail closed for privileged writes.
-     */
     public static function record(
         string $code,
         string $severity,
@@ -23,7 +19,10 @@ final class SecurityAudit
             throw new RuntimeException('Security audit signing key is not configured.');
         }
 
-        $allowed = ['flag_key', 'old_state', 'new_state', 'role_code', 'target_user_id', 'scope'];
+        $allowed = [
+            'flag_key', 'old_state', 'new_state', 'role_code',
+            'target_user_id', 'scope', 'client_id', 'key_id',
+        ];
         $safe = array_intersect_key($context, array_flip($allowed));
         $created = now()->utc();
         $record = [
