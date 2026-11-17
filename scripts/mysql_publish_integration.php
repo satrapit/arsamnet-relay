@@ -13,6 +13,8 @@ use App\Services\DeliveryLeaseManager;
 use App\Services\FakeDispatchCoordinator;
 use App\Services\FakeSignedCallbackReceipt;
 use App\Services\MessagePublisher;
+use App\Services\KavenegarMessageService;
+use App\Services\KavenegarSmsDispatcher;
 use App\Services\ProviderRouteSelector;
 use App\Support\MessagePublicationConflict;
 use App\Support\SchemaManifest;
@@ -20,6 +22,7 @@ use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Symfony\Component\Process\Process;
 
 require dirname(__DIR__).'/vendor/autoload.php';
@@ -525,6 +528,86 @@ try {
             ->where('status', 'delivered')->count() === 1,
             'The fake-only end-to-end delivery did not produce exactly one receipt.');
         echo "PASS: MySQL fake-only end-to-end publish/stage/lease/attempt/receipt; no network sends.\n";
+
+        // Kavenegar is exercised using Laravel's HTTP fake. Never make
+        // a real external request from this integration runner.
+        config()->set('relay.publish_enabled', true);
+        config()->set('relay.kavenegar_send_enabled', true);
+        Http::preventStrayRequests();
+        $kvKey = 'TEST_KAVENEGAR_KEY_12345678901234567890';
+        $kvAccount = DB::table('provider_accounts')->insertGetId([
+            'client_id' => $f['client'],
+            'adapter_code' => 'kavenegar',
+            'channel' => 'sms',
+            'display_name' => 'Integration Kavenegar (HTTP fake only)',
+            'credentials_ciphertext' => Crypt::encryptString(json_encode([
+                'api_key' => $kvKey, 'sender' => '10001234',
+            ], JSON_THROW_ON_ERROR)),
+            'enabled' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('client_provider_routes')->insert([
+            'client_id' => $f['client'], 'provider_account_id' => $kvAccount,
+            'channel' => 'sms', 'priority' => 1, 'enabled' => true,
+            'created_at' => now(),
+        ]);
+        $kvService = app(KavenegarMessageService::class);
+        $kvDispatch = app(KavenegarSmsDispatcher::class);
+        Http::fake(['*' => Http::response([
+            'return' => ['status' => 200, 'message' => 'OK'],
+            'entries' => [['messageid' => 777001]],
+        ], 200)]);
+        $singleKv = $kvService->publish(
+            $f['client'], $f['key'], 'kv-single-'.bin2hex(random_bytes(12)),
+            'single', [['receptor' => '09123456789', 'message' => 'Isolated integration text']], [],
+        );
+        $kvResult = $kvDispatch->dispatch($f['client'], $singleKv['message_id']);
+        ensure($kvResult['state'] === 'accepted', 'Real MySQL fake-HTTP Kavenegar single send not accepted.');
+        ensure(DB::table('delivery_attempts')->where('provider_account_id', $kvAccount)
+            ->where('provider_ref', 'kv-777001')->where('outcome', 'accepted')->count() === 1,
+            'Single send did not persist normalized Kavenegar attempt.');
+        Http::assertSentCount(1);
+        echo "PASS: MySQL Kavenegar single send and durable attempt using HTTP fake (zero network).\n";
+
+        Http::fake(['*' => Http::response([
+            'return' => ['status' => 200, 'message' => 'OK'],
+            'entries' => [['messageid' => 777002], ['messageid' => 777003]],
+        ], 200)]);
+        $bulkKv = $kvService->publish(
+            $f['client'], $f['key'], 'kv-bulk-'.bin2hex(random_bytes(12)),
+            'bulk', [
+                ['receptor' => '09123456781', 'message' => 'Bulk A'],
+                ['receptor' => '09123456782', 'message' => 'Bulk B'],
+            ], [],
+        );
+        $bulkKvResult = $kvDispatch->dispatch($f['client'], $bulkKv['message_id']);
+        ensure($bulkKvResult['state'] === 'accepted'
+            && count($bulkKvResult['deliveries']) === 2,
+            'Real MySQL fake-HTTP Kavenegar SendArray failed.');
+        ensure(DB::table('delivery_attempts')->whereIn('provider_ref', ['kv-777002', 'kv-777003'])
+            ->where('provider_account_id', $kvAccount)->count() === 2,
+            'Bulk messageids did not map to two durable provider attempts.');
+        Http::assertSentCount(1);
+        echo "PASS: MySQL Kavenegar SendArray stores two attempts from one faked HTTP call.\n";
+
+        Http::fake(['*' => Http::response([
+            'return' => ['status' => 200, 'message' => 'OK'],
+            'entries' => [['messageid' => 777004]],
+        ], 200)]);
+        $otpKv = $kvService->publish(
+            $f['client'], $f['key'], 'kv-otp-'.bin2hex(random_bytes(12)),
+            'otp', [['receptor' => '09123456783']],
+            ['template' => 'LoginCode', 'token' => '123456'],
+        );
+        $otpKvResult = $kvDispatch->dispatch($f['client'], $otpKv['message_id']);
+        ensure($otpKvResult['state'] === 'accepted', 'Real MySQL fake-HTTP VerifyLookup failed.');
+        $otpEncrypted = DB::table('messages')->where('id', $otpKv['message_id'])->value('payload_ciphertext');
+        ensure(! str_contains((string) $otpEncrypted, '123456'),
+            'OTP token escaped message encryption.');
+        ensure(DB::table('delivery_attempts')->where('provider_ref', 'kv-777004')
+            ->where('provider_account_id', $kvAccount)->count() === 1,
+            'VerifyLookup attempt missing.');
+        Http::assertSentCount(1);
+        echo "PASS: MySQL Kavenegar VerifyLookup preserves OTP secrecy; faked HTTP only.\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
