@@ -23,6 +23,16 @@
             <label class="flex items-center gap-2 text-xs"><input name="scopes[]" type="checkbox" value="messages.read">Read</label>
             <button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold">Issue API key</button>
         </form>
+        @foreach($keys->get($client->id, collect()) as $key)
+        <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 text-xs">
+            <span>{{ $key->label }} · {{ $key->key_prefix }}… · {{ $key->revoked_at ? 'Revoked' : 'Active' }}</span>
+            @unless($key->revoked_at)
+            <form method="POST" action="{{ route('clients.keys.revoke', [$client->id, $key->id]) }}">@csrf
+                <button type="submit" class="font-semibold text-red-700">Revoke key</button>
+            </form>
+            @endunless
+        </div>
+        @endforeach
     </section>
     @endforeach
     {{ $clients->links() }}

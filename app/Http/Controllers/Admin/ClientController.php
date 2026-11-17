@@ -17,8 +17,13 @@ class ClientController extends Controller
     {
         Gate::authorize('clients.manage');
 
+        $clients = DB::table('clients')->orderByDesc('id')->paginate(20);
+
         return view('admin.clients', [
-            'clients' => DB::table('clients')->orderByDesc('id')->paginate(20),
+            'clients' => $clients,
+            'keys' => DB::table('api_keys')
+                ->whereIn('client_id', $clients->getCollection()->pluck('id'))
+                ->orderByDesc('id')->get()->groupBy('client_id'),
         ]);
     }
 

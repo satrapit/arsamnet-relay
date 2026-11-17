@@ -14,6 +14,9 @@
         </div>
         <nav aria-label="Primary navigation" class="grid gap-2 text-sm">
             <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('dashboard') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('dashboard') }}"><i class="fa-solid fa-gauge-high mr-2" aria-hidden="true"></i>Overview</a>
+            @can('clients.manage')
+            <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('clients.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('clients.index') }}"><i class="fa-solid fa-users mr-2" aria-hidden="true"></i>Clients</a>
+            @endcan
             @can('feature-flags.view')
             <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('feature-flags.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('feature-flags.index') }}"><i class="fa-solid fa-toggle-on mr-2" aria-hidden="true"></i>Feature flags</a>
             @endcan

@@ -15,6 +15,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->middleware('password.confirm')->name('clients.store');
         Route::post('/clients/{client}/keys', [ClientApiKeyController::class, 'store'])
             ->middleware('password.confirm')->name('clients.keys.store');
+        Route::post('/clients/{client}/keys/{key}/revoke', [ClientApiKeyController::class, 'revoke'])
+            ->middleware('password.confirm')->name('clients.keys.revoke');
         Route::get('/system/feature-flags', [FeatureFlagController::class, 'index'])
             ->name('feature-flags.index');
         Route::post('/system/feature-flags/{key}', [FeatureFlagController::class, 'update'])

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\AuthenticateClientKey;
 use App\Http\Middleware\EnsurePlatformMfa;
 use App\Http\Middleware\SecurityHeaders;
 use Illuminate\Foundation\Application;
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'platform.mfa' => EnsurePlatformMfa::class,
+            'relay.machine' => AuthenticateClientKey::class,
         ]);
         $middleware->append(SecurityHeaders::class);
     })

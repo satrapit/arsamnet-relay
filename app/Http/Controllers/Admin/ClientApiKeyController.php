@@ -4,15 +4,16 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Support\SecurityAudit;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
-use Illuminate\View\View;
 
 class ClientApiKeyController extends Controller
 {
-    public function store(Request $request, int $client): View
+    public function store(Request $request, int $client): Response
     {
         Gate::authorize('clients.manage');
         $data = $request->validate([
@@ -39,9 +40,23 @@ class ClientApiKeyController extends Controller
             ], $client);
         });
 
-        // No session flash or log contains the raw token; display once in this response.
         return response()->view('admin.api-key-created', ['owner' => $owner, 'token' => $token])
             ->header('Cache-Control', 'no-store, private')
             ->header('Pragma', 'no-cache');
+    }
+
+    public function revoke(Request $request, int $client, int $key): RedirectResponse
+    {
+        Gate::authorize('clients.manage');
+        DB::transaction(function () use ($request, $client, $key): void {
+            $updated = DB::table('api_keys')->where('id', $key)->where('client_id', $client)
+                ->whereNull('revoked_at')->update(['revoked_at' => now()->utc()]);
+            abort_unless($updated === 1, 404);
+            SecurityAudit::record('api.key.revoked', 'high', (int) $request->user()->getKey(), [
+                'client_id' => $client, 'key_id' => $key,
+            ], $client);
+        });
+
+        return back()->with('status', 'API key revoked.');
     }
 }
