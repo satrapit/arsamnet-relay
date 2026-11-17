@@ -175,6 +175,7 @@ class DeliveryLeaseManagerTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $leases->claim($fixture['client'], $fixture['delivery'], 0);
     }
+
     public function test_lease_deadline_never_extends_past_message_expiration(): void
     {
         $fixture = $this->fixture('lease-deadline', 'awaiting_provider', 25);
@@ -202,5 +203,4 @@ class DeliveryLeaseManagerTest extends TestCase
 
         $this->assertFalse($leases->renew($fixture['client'], $fixture['delivery'], $token));
     }
-
 }
