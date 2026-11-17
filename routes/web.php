@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Route;
 Route::redirect('/', '/dashboard');
 Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/security/setup', 'security.setup')->name('security.setup');
+    // Client-owned Kavenegar configuration is intentionally opt-in.
+    // Authorization also checks active membership, MFA and Pennant flag.
+    Route::get('/account/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'index'])
+        ->name('account.clients.providers.kavenegar.index');
+    Route::post('/account/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'save'])
+        ->middleware('password.confirm')->name('account.clients.providers.kavenegar.save');
     Route::middleware(['platform.mfa'])->group(function (): void {
         Route::view('/dashboard', 'dashboard.index')->name('dashboard');
         Route::view('/security/recovery-codes', 'security.recovery-codes')

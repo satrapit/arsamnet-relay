@@ -2,7 +2,9 @@
 @section('title', 'Kavenegar provider')
 @section('content')
 <div class="mb-6">
+    @unless($isClientSelfService)
     <a href="{{ route('clients.index') }}" class="text-sm text-blue-700 hover:underline">Clients</a>
+    @endunless
     <h1 class="mt-2 text-3xl font-bold">Kavenegar SMS</h1>
     <p class="mt-2 text-sm text-slate-600">Client: {{ $client->name }} ({{ $client->slug }}). Credentials are encrypted and never displayed here.</p>
 </div>
@@ -19,7 +21,7 @@
 @endif
 <section class="mb-7 rounded-2xl border border-slate-200 bg-white p-6">
     <h2 class="mb-5 text-lg font-semibold">{{ $account ? 'Update provider' : 'Configure provider' }}</h2>
-    <form method="POST" action="{{ route('clients.providers.kavenegar.save', $client->id) }}" class="grid gap-4 sm:grid-cols-2" data-submit-once>
+    <form method="POST" action="{{ route($configurationRoute, $client->id) }}" class="grid gap-4 sm:grid-cols-2" data-submit-once>
         @csrf
         <label class="grid gap-1 text-sm">Display name
             <input class="rounded-lg border border-slate-300 p-3" name="display_name" value="{{ old('display_name', $account?->display_name ?? 'Kavenegar') }}" maxlength="100" required autocomplete="off">

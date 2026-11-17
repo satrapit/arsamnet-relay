@@ -17,9 +17,9 @@ use Illuminate\View\View;
  */
 final class KavenegarAccountController extends Controller
 {
-    public function index(int $client): View
+    public function index(Request $request, int $client): View
     {
-        Gate::authorize('clients.manage');
+        $this->authorizeConfiguration($request, $client);
 
         $owner = DB::table('clients')->where('id', $client)->first();
         abort_unless($owner, 404);
@@ -53,6 +53,9 @@ final class KavenegarAccountController extends Controller
             'client' => $owner,
             'account' => $safe,
             'attempts' => $attempts,
+            'configurationRoute' => $request->routeIs('account.clients.providers.kavenegar.*')
+                ? 'account.clients.providers.kavenegar.save' : 'clients.providers.kavenegar.save',
+            'isClientSelfService' => $request->routeIs('account.clients.providers.kavenegar.*'),
             'publishEnabled' => (bool) config('relay.publish_enabled', false),
             'sendEnabled' => (bool) config('relay.kavenegar_send_enabled', false),
         ]);
@@ -60,7 +63,7 @@ final class KavenegarAccountController extends Controller
 
     public function save(Request $request, int $client): RedirectResponse
     {
-        Gate::authorize('clients.manage');
+        $this->authorizeConfiguration($request, $client);
         $validated = $request->validate([
             'display_name' => ['required', 'string', 'min:2', 'max:100'],
             'api_key' => ['nullable', 'string', 'regex:/\A[A-Za-z0-9_-]{16,128}\z/D'],
@@ -161,7 +164,21 @@ final class KavenegarAccountController extends Controller
             );
         }, 3);
 
-        return redirect()->route('clients.providers.kavenegar.index', $client)
+        $redirectRoute = $request->routeIs('account.clients.providers.kavenegar.*')
+            ? 'account.clients.providers.kavenegar.index' : 'clients.providers.kavenegar.index';
+
+        return redirect()->route($redirectRoute, $client)
             ->with('status', 'Kavenegar settings saved. API key and sender are not shown again.');
+    }
+
+    private function authorizeConfiguration(Request $request, int $client): void
+    {
+        if ($request->routeIs('account.clients.providers.kavenegar.*')) {
+            Gate::authorize('kavenegar.client-configure', $client);
+
+            return;
+        }
+
+        Gate::authorize('clients.manage');
     }
 }

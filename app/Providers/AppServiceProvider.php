@@ -29,6 +29,25 @@ class AppServiceProvider extends ServiceProvider
         );
         Gate::define('clients.manage', fn (User $user): bool => $user->hasPlatformRole('super_admin') || $user->hasPlatformRole('platform_admin')
         );
+        Gate::define('kavenegar.client-configure', function (User $user, int $clientId): bool {
+            if ($user->status !== 'active'
+                || ! $user->two_factor_confirmed_at
+                || ! $user->two_factor_secret
+                || ! Feature::active('client-provider-overrides')) {
+                return false;
+            }
+
+            return \Illuminate\Support\Facades\DB::table('client_memberships as memberships')
+                ->join('roles', 'roles.id', '=', 'memberships.role_id')
+                ->join('clients', 'clients.id', '=', 'memberships.client_id')
+                ->where('memberships.client_id', $clientId)
+                ->where('memberships.user_id', $user->getKey())
+                ->where('memberships.status', 'active')
+                ->where('clients.status', 'active')
+                ->where('roles.scope', 'client')
+                ->whereIn('roles.code', ['owner', 'client_admin'])
+                ->exists();
+        });
         Gate::define('security.monitor', fn (User $user): bool => $user->hasPlatformRole('super_admin') || $user->hasPlatformRole('platform_admin')
         );
         Gate::define('dashboard.view', fn (User $user): bool => $user->isPlatformStaff());
