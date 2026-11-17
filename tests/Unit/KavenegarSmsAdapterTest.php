@@ -120,7 +120,9 @@ class KavenegarSmsAdapterTest extends TestCase
 
     public function test_bulk_incomplete_or_duplicate_ids_are_all_ambiguous(): void
     {
-        Http::fake(['*' => Http::response($this->success([111]), 200)]);
+        Http::fake(['*' => Http::sequence()
+            ->push($this->success([111]), 200)
+            ->push($this->success([222, 222]), 200)]);
 
         $items = [
             ['receptor' => '09123456789', 'message' => 'A'],
@@ -130,7 +132,6 @@ class KavenegarSmsAdapterTest extends TestCase
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $results[0]->outcome);
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $results[1]->outcome);
 
-        Http::fake(['*' => Http::response($this->success([222, 222]), 200)]);
         $again = $this->adapter()->sendBulk($items);
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $again[0]->outcome);
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $again[1]->outcome);
@@ -138,12 +139,13 @@ class KavenegarSmsAdapterTest extends TestCase
 
     public function test_http_error_and_redirect_are_not_retried(): void
     {
-        Http::fake(['*' => Http::response('No connection', 503)]);
+        Http::fake(['*' => Http::sequence()
+            ->push('No connection', 503)
+            ->push('', 302, ['Location' => 'https://other.example'])]);
         $result = $this->adapter()->sendOtp('09123456789', 'LoginCode', '123456');
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $result->outcome);
         Http::assertSentCount(1);
 
-        Http::fake(['*' => Http::response('', 302, ['Location' => 'https://other.example'])]);
         $result = $this->adapter()->sendOtp('09123456789', 'LoginCode', '123456');
         $this->assertSame(ProviderAttemptOutcome::Ambiguous, $result->outcome);
     }
