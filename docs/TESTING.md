@@ -112,3 +112,8 @@ concurrency and rollback run.
 `php vendor/bin/pint --test` as the full PHP QA gates. The MySQL test should
 be rerun against the **already migrated** `arsamnet_relay_integration_test`
 schema only; no new schema/migration/reset is required.
+
+
+## Lease PHP test results (2026-11-17)
+
+On developer Mac, `php artisan test --filter=DeliveryLeaseManagerTest` passed 10 tests/41 assertions and the complete in-memory PHPUnit suite passed **62 tests/207 assertions**. PHP syntax checks passed for new source/test/integration files; Pint passed all 76 PHP files after correcting one styling issue in the new lease test. Real-MySQL lease claims/renewals/quarantine in the updated integration runner remain to be checked. No live provider sends were attempted.

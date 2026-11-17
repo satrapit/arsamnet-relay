@@ -202,3 +202,13 @@ No schema signoff, version tag or production readiness claim.
 - No provider sends, table drops, truncation or migrations performed by the integration runner. This evidence covers one reproducible two-worker race, **not** general load testing or every possible interleaving.
 - **SOURCE ADDED AFTER THE PASS:** `DeliveryLeaseManager` internal (no route, no provider adapter) with tenant-scoped claim, 15–120 second leases, token-fenced renew, message-expiry cap, and quarantine of expired uncertain leases to `review_required` rather than automatic retry; ten PHP Feature test cases (8 initial, 2 later) and extension to the isolated MySQL CLI for lease claim/renew/quarantine.
 - **NOT RUN:** new lease PHPUnit cases, updated MySQL integration runner and Pint after the lease commits. Older MySQL PASS refers to the previously committed runner, not the expanded lease checks. All code awaits verification on developer Mac. No schema/DDL changed.
+
+
+## Delivery lease PHP QA result from developer Mac (2026-11-17)
+
+- **PASS:** PHP lint of `app/Services/DeliveryLeaseManager.php`, `tests/Feature/DeliveryLeaseManagerTest.php` and `scripts/mysql_publish_integration.php` (no syntax errors).
+- **PASS:** `php artisan test --filter=DeliveryLeaseManagerTest`: **10 passed, 41 assertions**. Checked tenant ownership, duplicate claim rejection, client/target disablement, expiration, fencing token renewal, quarantine, TTL bounds and suspended-client renewal refusal.
+- **PASS:** full `php artisan test`: **62 passed, 207 assertions** (SQLite in memory).
+- **PASS:** `php vendor/bin/pint --test`: **76 PHP files**. Initial `php vendor/bin/pint` made **one local style-only change** in `tests/Feature/DeliveryLeaseManagerTest.php` (`class_attributes_separation`). This edit is not yet reported committed or pushed.
+- **NOT RUN in supplied output:** expanded real-MySQL lease/renew/quarantine checks in `scripts/mysql_publish_integration.php`; no additional MySQL claim/concurrency assertions can be claimed yet.
+- Next: run expanded PHP MySQL integration on preexisting, migrated, empty `arsamnet_relay_integration_test`, then inspect and commit only intended local Pint diff and push. Do not recreate or wipe test schema.
