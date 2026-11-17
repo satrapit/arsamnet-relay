@@ -63,3 +63,13 @@ Read the updated ClientApiKeyController and tests/Feature/ApiKeyLifecycleTest.ph
 ## Developer Mac installation feedback and immediate next actions (2026-11-17)
 
 See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/build (102 packages) PASSED, Laravel 13.42 bootstrap and 42 route registrations PASSED. `schedule:list` failed due to missing default SQLite DB + cache_locks, not a verified scheduler defect. The developer must create private .env from .env.example (local/MySQL, no secrets committed), run `CACHE_STORE=array php artisan schedule:list` first, then run safe in-memory PHPUnit tests and report errors. `composer.lock` and `package-lock.json` generated on Mac are not in the remote repo yet. PSR4 warning resolved by moving offline scripts to scripts/offline/. PHPUnit DB settings now forced in phpunit.xml to lower the risk of accidentally using an externally configured database, but cached config must be cleared. The real MySQL 8 migration rehearsal is still outstanding.
+
+
+## Mac PHPUnit output / database identity (2026-11-17)
+
+- Unit suite 2 PASS/8 assertions; Feature 7 PASS, 1 FAIL in stock ExampleTest, 18 not reached due to stop-on-failure. Tests for API key lifecycle (3) and IP allowlists (4) already passed in SQLite :memory: using supplied phpunit.xml.
+- Fixed ExampleTest to assert the intentional root redirect to /dashboard and guest redirect to /login; run complete Feature suite without stop-on-failure to discover remaining failures.
+- `composer audit --locked` reports no known advisories (current installed lock). Composer validation, offline smoke tests and database-free schedule listing pass on Mac.
+- MySQL `db:show` and `migrate:status` fail 1049 "Unknown database arsamnet_relay", host 127.0.0.1, port 3306. User says a database exists. Inspect real host/port/schema and private .env; do not create or migrate until reconciled, and do not ask user for DB_PASSWORD.
+- Vite deleted tracked public/build/.gitignore. Removed from Git; generated /public/build/ is already ignored by root .gitignore.
+- Local Composer and npm lockfiles have not yet been committed. They need review and commit on dev machine; do not forge a lockfile from a log.

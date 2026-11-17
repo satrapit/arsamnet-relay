@@ -122,3 +122,29 @@ php artisan test --testsuite=Feature
 If SQLite fails due to driver or schema differences, preserve the failure and report it. A separate disposable MySQL 8 integration test environment is required before approving the DBML/migrations. **Do not run `php artisan migrate`, `migrate:fresh` or `migrate:refresh` against an unknown database or a shared environment.**
 
 Git commit guidance: review `composer.lock` / `package-lock.json` changes and, after validation, commit *only* those generated lockfiles (not `.env`, `vendor/`, `node_modules/`, or `public/build/`) to the feature branch, then push. Record exact lockfile contents rather than recreating versions from a log.
+
+
+## MySQL 1049 when checking a freshly created database
+
+MySQL error `SQLSTATE[HY000] [1049] Unknown database 'arsamnet_relay'` means the current MySQL server did not find that schema at the supplied host/port. It is **not** proof of a bad migration, nor is it the error for a missing migrations table. A database may have been created under a different name, on a different MySQL instance, or with a hosting account prefix.
+
+Use read-only checks, and do not display DB_PASSWORD or APP_KEY:
+
+```bash
+php artisan config:clear
+grep -E '^(DB_CONNECTION|DB_HOST|DB_PORT|DB_DATABASE)=' .env
+mysql -h 127.0.0.1 -P 3306 -u YOUR_DB_USERNAME -p -e "SHOW DATABASES;"
+```
+
+Replace `YOUR_DB_USERNAME` from your private `.env` locally. The MySQL CLI prompts for the password; **do not** put the password in the shell command. Check the database name and host/port used to create it. If the client is unavailable, inspect the same MySQL instance using the local database manager. Change only local `.env` to match the *existing* schema and run `php artisan config:clear` before retrying `php artisan db:show` and `php artisan migrate:status`. These are inspection commands; an absent migrations table is expected prior to migration. Do not run `migrate` until the confirmed target is empty, disposable and approved.
+
+## First PHPUnit result and generated assets
+
+On the developer Mac, `php artisan test --testsuite=Unit --stop-on-failure` passed **2 tests / 8 assertions**. `--testsuite=Feature --stop-on-failure` had **7 passing tests, one failing stock ExampleTest, and 18 not run**; key issue/rotation and IP allowlist tests were among the passes. The stock example incorrectly expected HTTP 200 at `/`, while this project intentionally redirects to `/dashboard` (302). That expectation is fixed in the source branch; after pulling, run the entire Feature suite **without `--stop-on-failure`** to expose further failures:
+
+```bash
+php artisan config:clear
+php artisan test --testsuite=Feature
+```
+
+`composer audit --locked` reported no known advisories for the then-installed locks; it does not establish that every dependency or application is vulnerability-free. A Vite build deletes `public/build/.gitignore` because it replaces the entire build directory; the nested placeholder has now been removed from version control since the root `.gitignore` already ignores `/public/build/`.

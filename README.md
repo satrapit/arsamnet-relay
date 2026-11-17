@@ -51,7 +51,7 @@ The command prompts for the password securely. Disable provisioning immediately 
 
 Only public/ may be the web document root. Build public/build assets off-host; no Node runtime is required by cPanel. To use Scheduler, configure a verified every-minute Cron invoking php artisan schedule:run. No Redis/Supervisor/systemd/permanent process dependency.
 
-The current development environment could not install Composer packages or Node packages, execute migrations, or run Laravel tests. Dependencies and lockfiles must be resolved in the real developer environment. See docs/VALIDATION.md and docs/HANDOFF_CODEX.md.
+Dependency installation and Vite build succeeded on the developer Mac (Composer 133 packages, npm 102 packages). Unit tests passed (2), and 7 Feature tests passed before a stock example test failed because it expected HTTP 200 from the intentionally redirected root URL; the test expectation is fixed in the feature branch but awaits rerun. Database migrations have not been executed: the current configured MySQL name returned error 1049. The package lockfiles exist locally only, pending review/commit. See docs/VALIDATION.md and docs/LOCAL_DEVELOPMENT.md.
 
 No GitHub Actions workflows were created.
 
@@ -61,7 +61,7 @@ Run `php scripts/offline/AuditIntegritySmoke.php` without Composer for the narro
 
 ## Machine API key lifecycle
 
-Platform admins can issue keys expiring after 7/30/90/365 days, revoke keys, or rotate keys. Rotation replaces the token in one database transaction (the old token is revoked immediately, and the replacement is shown once); the new token expires after 90 days. Operations require recent password confirmation and log a redacted HMAC-tagged audit event. Runtime integration tests are NOT RUN.
+Platform admins can issue keys expiring after 7/30/90/365 days, revoke keys, or rotate keys. Rotation replaces the token in one database transaction (the old token is revoked immediately, and the replacement is shown once); the new token expires after 90 days. Operations require recent password confirmation and log a redacted HMAC-tagged audit event. Initial in-memory SQLite Feature tests for key issuance/rotation/tenant isolation PASSED; MySQL integration/concurrency tests remain NOT RUN.
 
 ## Client machine IP allowlist
 

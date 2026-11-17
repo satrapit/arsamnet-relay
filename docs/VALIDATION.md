@@ -61,3 +61,15 @@ No schema signoff, version tag or production readiness claim.
 - NOT RUN: `artisan test`/PHPUnit, MySQL migrations or rollback, Composer security audit, deployment, final licensing/security signoff.
 - FIXED IN SOURCE (needs rerun): standalone Audit/IpCidr smoke scripts moved to scripts/offline/ to avoid Composer PSR-4 scanning; provisional proprietary license added. PHPUnit config now forces ephemeral sqlite :memory: for test safety.
 - LOCKFILES: composer.lock and package-lock.json exist only in user's local checkout until explicitly reviewed/committed/pushed.
+
+
+## Follow-up developer output — unit/feature tests and MySQL connectivity (2026-11-17)
+
+- PASS: `php artisan config:clear`; `composer validate --strict`; optimized Composer autoload generated with no PSR-4 warnings; both offline smoke suites (Audit 6, CIDR 23).
+- PASS: `CACHE_STORE=array php artisan schedule:list` lists the minute heartbeat and bounded queue worker; `PDO::getAvailableDrivers()` includes MySQL and SQLite.
+- PASS: PHPUnit Unit 2 tests / 8 assertions.
+- PARTIAL: PHPUnit Feature 7 passed, 1 failed, 18 skipped by `--stop-on-failure` (35 assertions in output). The stock ExampleTest expected 200 from root; project redirects root to dashboard. Test expectation updated and PHP syntax checked locally, but not yet re-executed on the developer Mac.
+- PASS (reported): `composer audit --locked` reported no known security vulnerability advisories.
+- BLOCKED: `php artisan db:show` and `migrate:status` returned MySQL error 1049 for `arsamnet_relay` at 127.0.0.1:3306. Developer reports a database exists and is configured; host/port/name must be reconciled read-only before any migrations.
+- SOURCE FIX: stop tracking `public/build/.gitignore`, which Vite had removed locally; root .gitignore already excludes generated build assets.
+- NOT RUN: Full successful Feature suite, actual MySQL migrations/rollback, package lockfile commits, deploy. Draft PR remains unmerged.
