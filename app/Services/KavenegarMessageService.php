@@ -48,18 +48,27 @@ final class KavenegarMessageService
                 throw new InvalidPublishTargets('Kavenegar is unavailable for this client.');
             }
 
-            // Conservative per-client quota counts all delivery records, not
-            // only this provider. This avoids new mutable counters/DDL.
-            $now = now()->utc();
-            $hourly = DB::table('deliveries')
-                ->where('client_id', $clientId)
-                ->where('created_at', '>=', $now->copy()->subHour())
-                ->count();
+            // Allow idempotent replays even after a quota is exhausted.
+            // MessagePublisher will still reject a changed replay payload.
+            $idempotencyHash = hash_hmac('sha256', $idempotencyKey,
+                'relay-publish-idempotency|'.config('app.key'));
+            $isReplay = DB::table('messages')->where('client_id', $clientId)
+                ->where('idempotency_key_hash', $idempotencyHash)->exists();
 
-            if ($hourly + count($phones) > (int) config('relay.kavenegar_hourly_limit', 100)) {
-                throw ValidationException::withMessages([
-                    'receptor' => 'Client hourly SMS submission limit has been reached.',
-                ]);
+            // Conservative per-client quota counts all delivery records,
+            // preventing unbounded fan-out using any machine API endpoint.
+            $now = now()->utc();
+            if (! $isReplay) {
+                $hourly = DB::table('deliveries')
+                    ->where('client_id', $clientId)
+                    ->where('created_at', '>=', $now->copy()->subHour())
+                    ->count();
+
+                if ($hourly + count($phones) > max(1, (int) config('relay.kavenegar_hourly_limit', 100))) {
+                    throw ValidationException::withMessages([
+                        'receptor' => 'Client hourly SMS submission limit has been reached.',
+                    ]);
+                }
             }
 
             $targetIds = [];
@@ -81,6 +90,17 @@ final class KavenegarMessageService
                 }
 
                 $targetIds[] = (int) $targetId;
+            }
+
+            // OTP rate limit: one new code submission per recipient/minute.
+            // The caller is still responsible for verification and expiry.
+            if ($mode === 'otp' && ! $isReplay
+                && DB::table('deliveries')->where('client_id', $clientId)
+                    ->where('target_id', $targetIds[0])
+                    ->where('created_at', '>=', $now->copy()->subMinute())->exists()) {
+                throw ValidationException::withMessages([
+                    'receptor' => 'Wait before requesting another OTP for this recipient.',
+                ]);
             }
 
             $payload = ['provider' => 'kavenegar', 'mode' => $mode];

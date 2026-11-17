@@ -46,7 +46,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
     /** @return list<ProviderCapability> */
     public function capabilities(): array
     {
-        return [ProviderCapability::Send, ProviderCapability::StatusQuery];
+        return [ProviderCapability::Send];
     }
 
     public function send(OutboundProviderRequest $request): OutboundProviderResult
@@ -181,12 +181,18 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
             $entries = $body['entries'] ?? null;
             if (is_array($entries) && array_is_list($entries) && count($entries) === $count) {
                 $results = [];
+                $seen = [];
                 foreach ($entries as $entry) {
                     $id = is_array($entry) ? ($entry['messageid'] ?? null) : null;
                     if ((! is_string($id) && ! is_int($id))
                         || ! preg_match('/\A[0-9]{1,18}\z/D', (string) $id)) {
                         return $this->repeat(ProviderAttemptOutcome::Ambiguous, $count, $safeHttp);
                     }
+
+                    if (isset($seen[(string) $id])) {
+                        return $this->repeat(ProviderAttemptOutcome::Ambiguous, $count, $safeHttp);
+                    }
+                    $seen[(string) $id] = true;
 
                     $results[] = new OutboundProviderResult(
                         ProviderAttemptOutcome::Accepted, $safeHttp, 'kv-'.(string) $id,
