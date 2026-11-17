@@ -110,3 +110,9 @@ No version has been released.
   Attempt, callback, concurrency and cleanup PASS; original DB metadata
   and Git clean. Added a read-only, tenant-bound initial provider route
   selector with nine PHP tests and a guarded MySQL check (not yet run).
+
+- Added and consolidated a single read-only, tenant-scoped provider route
+  selector for unattempted staged deliveries, honoring ascending priority,
+  active/owned/shared routes, message expiry and schedule, and production
+  exclusion for fake-only accounts. Eleven PHP tests and a real MySQL
+  checkpoint await Mac QA. No automatic failover or real sending.

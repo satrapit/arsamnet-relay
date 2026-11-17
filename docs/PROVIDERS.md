@@ -201,3 +201,31 @@ not yet called by the fake or production dispatch coordinator; the
 existing tested fake path keeps its explicit provider account argument.
 Nine feature tests plus an extra MySQL-only selection checkpoint have
 been authored but **NOT YET RUN on Mac**.
+
+
+## Provider route selector consolidation — unexecuted after latest changes
+
+To avoid two competing implementations, the duplicate
+`ProviderRouteResolver` and its tests were removed; the one supported
+read-only entrypoint is `ProviderRouteSelector::select(clientId, deliveryId)`.
+
+Selection chooses the lowest-priority eligible enabled route for an active
+client with an enabled same-channel target and a new
+`awaiting_provider` delivery with `attempt_count=0`, no lease,
+and a message that has neither expired nor is scheduled for the future.
+An enabled account must be either shared or owned by that client;
+`fake-only` accounts are ineligible outside `local/testing`.
+Disabled routes/accounts, wrong tenant/channel, leased, attempted,
+quarantined and terminal deliveries are excluded.
+
+This is a **read-only pre-attempt hint**, not authorization to send or a
+failover policy. The worker/attempt transaction must revalidate ownership,
+status and routing after selection. An uncertain/ambiguous attempt must
+never automatically select another provider. No network I/O, job
+or provider credentials are accessed here.
+
+The earlier Mac baseline (100 PHP tests, 380 assertions, Pint 89 files and
+isolated MySQL fake dispatch PASS) predates this change. Eleven focused
+`ProviderRouteSelectorTest` cases now cover routing and negative states,
+including future schedules and fake-only production exclusion; new
+PHP/Pint/MySQL QA is **NOT RUN**.

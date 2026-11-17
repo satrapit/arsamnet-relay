@@ -340,3 +340,26 @@ live network or public callback routes. PR remains Draft; Publish OFF.
 Mac confirmed full 100 PHPUnit tests/380 assertions PASS; targeted FakeDispatchCoordinator 10/51 PASS; Pint 89 files PASS; real MySQL 8 guarded integration PASS including adapter-wired fake-only end-to-end dispatch; read-only original DB verifier PASS; Git status clean.
 
 Next source in feature branch (**NOT YET TESTED ON MAC**): `app/Services/ProviderRouteSelector.php` is a read-only query that returns one eligible provider account ID for an active client's unleased, unattempted `awaiting_provider` delivery, matching enabled route/account/channel/tenant and message expiration, sorted by numeric route priority. It never decrypts credentials, begins an attempt, sends, fails over after uncertain results, updates state, or changes schema. Nine new tests in `tests/Feature/ProviderRouteSelectorTest.php` and additional guarded real MySQL checks in `scripts/mysql_publish_integration.php`. Previous full suite 100; expected **109 tests**. Run lint, focused/full Laravel PHP tests, Pint and isolated MySQL runner on existing migrated empty `arsamnet_relay_integration_test`. Keep PR Draft, Publish OFF; do not start real delivery.
+
+
+## Single initial provider selector — test gate pending
+
+The previous Mac run (full PHP 100/380, Pint 89, real MySQL fake-only
+lifecycle) passed. Added a read-only first-attempt provider selection
+service on the feature branch, choosing the lowest numeric priority
+enabled route whose account belongs to the client or is shared. A
+simultaneous development update introduced `ProviderRouteSelector`
+and a second `ProviderRouteResolver`; those were **consolidated** into
+the single `ProviderRouteSelector` to avoid parallel business logic.
+The selector now also blocks future-scheduled messages and excludes
+fake-only provider accounts outside local/testing. The one remaining
+`ProviderRouteSelectorTest` has **11 PHP Feature tests**, plus a
+first-attempt selection checkpoint in the existing isolated MySQL runner.
+All routing additions/changes are **NOT YET RUN ON MAC**.
+
+Important: this selector is READ-ONLY and never authorizes retransmission
+or automatically fails over an attempted, leased or uncertain delivery.
+The existing fake coordinator still accepts an explicit fake account ID;
+no sender/cron/provider route was enabled. PHP lint, focused/full PHP tests,
+Pint and guarded isolated real MySQL regression remain the next QA gates.
+No migration or reset is required; PR Draft, Publish OFF.

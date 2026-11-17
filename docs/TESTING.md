@@ -225,3 +225,20 @@ read-only. No live provider or cPanel production QA has been performed.
 ## First-attempt provider route selection — new checks pending
 
 `php artisan test --filter=ProviderRouteSelectorTest` tests nine scenarios: numeric priority and no DB side effects; disabled route/account; cross-tenant misrouted private account; explicitly shared account; suspended owner/disabled target; expired message/nonstaged delivery; prevention of selection when an attempt or lease already exists; channel mismatch; missing client/delivery. `ProviderRouteSelector` is read-only. The PHP MySQL CLI has been extended to check one staged eligible provider, a foreign client and a leased delivery, then continues the existing fully fake-only lifecycle. **New tests have NOT run on developer Mac**; previous baseline 100/380 and prior full MySQL integration PASS.
+
+
+## Provider route selection tests (pending)
+
+`php artisan test --filter=ProviderRouteSelectorTest` runs **11** tests:
+priority ordering, disabled route and account, private cross-tenant
+ownership, explicit shared routes, suspended client and disabled target,
+expired/nonstaged, existing attempt/lease, wrong channel and IDs,
+future-scheduled messages and exclusion of fake-only accounts in
+production. The existing independent MySQL integration additionally
+checks tenant-scoped, staged-only route selection. No automatic failover
+or real provider calls are involved.
+
+This new milestone **has not been verified on developer Mac**. Existing
+last confirmed baseline: 100 tests/380 assertions and Pint 89 files.
+Run full `php artisan test`, `php vendor/bin/pint --test`,
+and guarded MySQL integration after the focused selector tests.

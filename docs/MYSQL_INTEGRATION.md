@@ -255,3 +255,15 @@ attempt, signed fake callback, and end-to-end checks are unchanged.
 The integration schema already exists and contains four migrations
 but no fixture data after the last successful run. **Do not create,
 migrate, reset or drop it again**.
+
+
+## Initial provider route selector integration (test execution pending)
+
+The existing guarded PHP MySQL runner now checks a read-only
+`ProviderRouteSelector` result for an eligible fake provider on a fresh
+staged delivery, denies a different client's selection, and stops
+selection after leasing. Subsequent accepted and authenticated fake
+receipt stages proceed as before. Run only against the already
+migrated/empty `arsamnet_relay_integration_test` schema, not the main
+`arsamnet_relay` database. Do not recreate, reset or remigrate tables.
+The new selector/runner changes have **NOT YET RUN on Mac**.

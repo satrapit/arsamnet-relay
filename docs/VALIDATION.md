@@ -399,3 +399,25 @@ No schema signoff, version tag or production readiness claim.
 - **NEW SOURCE, NOT RUN ON MAC:** `ProviderRouteSelector` is a purely read-only, first-attempt provider account selector for **staged** `awaiting_provider` deliveries only. It requires active client, enabled target, unexpired message, zero attempts and no existing lease, enabled provider account and route, matching channel, same-tenant/private or platform-shared account, and selects the lowest numeric priority; no credentials, sending, writes, or second-attempt failover.
 - **NEW TESTS, NOT RUN:** nine feature cases in `ProviderRouteSelectorTest.php`; the existing isolated MySQL script now checks one eligible provider route and rejects cross-client and already leased deliveries. Expected full suite **109 tests** if all pass. No new migration; **do not create or migrate test schema again**.
 - This selector is **not wired** to an actual worker or provider adapter. Real SMS, SMTP, webhook and callback endpoints remain disabled. Publish OFF, PR Draft.
+
+
+## Read-only provider selection consolidated — pending Mac QA
+
+- **BASELINE CONFIRMED:** developer Mac PASS for full Laravel 100 tests/
+  380 assertions, Pint 89 files, standalone real MySQL 8 fake-only
+  lifecycle with rollback/race/attempt/callback and fixture cleanup,
+  original database metadata verifier PASS; no local Git changes.
+- **NEW SOURCE UNVERIFIED:** one `ProviderRouteSelector` class
+  selecting only the initial eligible tenant-owned or shared provider,
+  ordered by ascending route priority. It returns null for wrong tenant,
+  disabled route/account/target, suspended client, expired or future-
+  scheduled message, any existing attempt/lease or non-staged delivery.
+  `fake-only` accounts are excluded in production. No writes or I/O.
+- **CONSOLIDATION:** duplicate `ProviderRouteResolver` and its separate
+  tests were removed to avoid two competing routing paths. The
+  `ProviderRouteSelectorTest` class has **11 tests** after merging
+  missing negative cases. Existing guarded isolated MySQL integration
+  includes a first-attempt tenant-scoped selection checkpoint.
+- **NOT RUN on Mac:** focused selector tests, full suite (expected
+  **111 tests** if all pass), Pint, and updated MySQL runner regression.
+  No schema changes or actual sends. PR stays Draft; Publish OFF.
