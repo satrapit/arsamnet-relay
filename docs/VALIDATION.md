@@ -288,3 +288,12 @@ No schema signoff, version tag or production readiness claim.
   schema migration, generic provider verification, or production delivery
   proof.** This fake contract must not be used as a signature algorithm for
   arbitrary SMS/SMTP/third-party providers.
+
+
+## Fake signed receipt PHP/MySQL QA — developer Mac 2026-11-17
+
+- **PASS:** Full `php artisan test`: **81 tests / 292 assertions**, including nine FakeSignedCallbackReceipt feature cases.
+- **PASS:** Isolated real MySQL 8 PHP integration on `arsamnet_relay_integration_test`: rollback, sequential and simultaneous idempotency, staged job, lease fencing and expiry quarantine, durable attempt results, authenticated fake signed delivery receipt applied exactly once, modified/replayed callback rejected, ambiguous result quarantined, and all fixture tables returned empty.
+- **PASS:** Read-only `php artisan relay:db-verify --expect=arsamnet_relay`: 28 tables (including migrations), 192 documented columns, 61 indexes, 32 restricted FKs and four migration records.
+- **PASS:** `git diff --check` reported no whitespace errors and `git status --short` reported no local changes in the submitted output.
+- This evidence **does not** validate a live provider signature, a network callback endpoint, multi-process replay races, production cPanel deployment or guaranteed external delivery. The fake callback service is local/testing-only.

@@ -78,3 +78,5 @@ No version has been released.
   correlation and atomic accepted-to-delivered state update. Nine new
   PHP Feature cases and expanded isolated MySQL assertions were authored
   (Mac execution pending). No real provider callback route or send.
+
+- Verified full fake signed callback stage on developer Mac: 81 PHP tests and 292 assertions PASS; isolated real MySQL receipt verification, replay rejection and cleanup PASS; primary MySQL schema verification and clean Git worktree confirmed. No public callback endpoint or real provider sending.

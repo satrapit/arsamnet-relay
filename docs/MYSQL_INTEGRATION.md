@@ -194,3 +194,8 @@ After pulling the branch, run PHP lint and focused `FakeSignedCallbackReceiptTes
 the full Laravel suite, Pint and only then the guarded PHP MySQL runner.
 Any failure must be inspected before retrying; do not manually wipe the
 test schema.
+
+
+## Confirmed fake callback result (2026-11-17)
+
+Developer Mac execution confirmed the extended PHP MySQL runner passed signed fake callback acceptance, state change to delivered once, replay rejection, payload-tampering rejection and full FK-safe fixture cleanup. All prior transaction/idempotency/attempt/lease checks also passed. Do not confuse this with a third-party provider's real webhook authentication or load-test.

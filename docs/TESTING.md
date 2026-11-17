@@ -164,3 +164,8 @@ Existing guarded PHP MySQL runner now also verifies receipt persistence,
 delivery state, tamper/replay resistance and FK-safe cleanup. This new
 code **has not been run on Mac**. Existing 72-test/257-assertion suite
 and earlier MySQL acceptance remain the prior verified baseline.
+
+
+## Fake signed receipt verified (Mac, 2026-11-17)
+
+Full PHP regression: **81 tests / 292 assertions PASS**. Independent PHP on real MySQL PASS for fake HMAC callback delivery proof, event replay rejection and tamper resistance, plus all previous transaction, lease and attempt checkpoints. Integration fixture cleaned to empty, primary schema read-only verification PASS. No public callback endpoint, real provider cryptographic contract or production call was tested.

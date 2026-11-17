@@ -253,3 +253,8 @@ delivery_attempts. **None of the newly added checks have run on developer
 Mac yet**. Run lint, focused/full PHPUnit, Pint, and isolated CLI; do
 not re-create or migrate the existing test schema. Keep Publish OFF
 and PR Draft.
+
+
+## Fake-only signed receipt QA PASSED (Mac, 2026-11-17)
+
+Developer reports 81 Laravel PHP tests/292 assertions all PASS. Isolated MySQL integration PASS including authenticated fake receipt accepted->delivered, duplicate/replayed and tampered receipt denied, plus prior rollback/idempotency/lease/attempt checks; test fixture cleanup succeeded. Primary schema verifier PASS (28 tables, 192 fields, 61 indexes, 32 restrict FKs, 4 migrations), and Git status clean. No public callback route, no external network or real adapter. PR Draft, Publish OFF. Next phase can integrate *internal fake-only* coordinator for a full local lifecycle test; never connect production worker to it.
