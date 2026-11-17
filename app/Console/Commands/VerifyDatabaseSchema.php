@@ -62,7 +62,7 @@ final class VerifyDatabaseSchema extends Command
             $actualIndexes = DB::select(
                 'SELECT TABLE_NAME AS table_name, INDEX_NAME AS index_name, NON_UNIQUE AS non_unique, '.
                 'SEQ_IN_INDEX AS sequence_no, COLUMN_NAME AS column_name '.
-                'FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() AND NON_UNIQUE = 0 '.
+                'FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE() '.
                 'ORDER BY TABLE_NAME, INDEX_NAME, SEQ_IN_INDEX'
             );
             $actualForeignKeys = DB::select(
@@ -122,23 +122,28 @@ final class VerifyDatabaseSchema extends Command
             }
         }
 
-        $realUnique = [];
+        $realIndexes = [];
         foreach ($actualIndexes as $row) {
             $key = $row->table_name."\0".$row->index_name;
-            $realUnique[$key]['table'] = (string) $row->table_name;
-            $realUnique[$key]['fields'][] = (string) $row->column_name;
+            $realIndexes[$key]['table'] = (string) $row->table_name;
+            $realIndexes[$key]['fields'][] = (string) $row->column_name;
+            $realIndexes[$key]['unique'] = (int) $row->non_unique === 0;
         }
-        foreach ($design['unique_indexes'] as $table => $expectedIndexes) {
-            foreach ($expectedIndexes as $expectedFields) {
-                $found = false;
-                foreach ($realUnique as $index) {
-                    if ($index['table'] === $table && $index['fields'] === $expectedFields) {
-                        $found = true;
-                        break;
+        foreach (['unique_indexes' => true, 'ordinary_indexes' => false] as $kind => $uniqueRequired) {
+            foreach ($design[$kind] as $table => $expectedIndexes) {
+                foreach ($expectedIndexes as $expectedFields) {
+                    $found = false;
+                    foreach ($realIndexes as $index) {
+                        if ($index['table'] === $table && $index['fields'] === $expectedFields
+                            && (!$uniqueRequired || $index['unique'])) {
+                            $found = true;
+                            break;
+                        }
                     }
-                }
-                if (!$found) {
-                    $issues[] = 'Missing unique/primary index: '.$table.'('.implode(',', $expectedFields).')';
+                    if (!$found) {
+                        $issues[] = 'Missing '.($uniqueRequired ? 'unique/primary' : 'ordinary').
+                            ' index: '.$table.'('.implode(',', $expectedFields).')';
+                    }
                 }
             }
         }
@@ -188,9 +193,10 @@ final class VerifyDatabaseSchema extends Command
         }
 
         $fieldCount = array_sum(array_map('count', $design['tables']));
-        $indexCount = array_sum(array_map('count', $design['unique_indexes']));
+        $indexCount = array_sum(array_map('count', $design['unique_indexes']))
+            + array_sum(array_map('count', $design['ordinary_indexes']));
         $this->info('PASS: '.count($expectedTables).' tables (including migrations), '.
-            $fieldCount.' documented fields, '.$indexCount.' unique/primary indexes, '.
+            $fieldCount.' documented fields, '.$indexCount.' declared indexes (including unique/primary), '.
             count($design['references']).' restricted FKs and 4 migration records.');
         $this->warn('Read-only verification. Does not prove runtime tenant isolation, column defaults, concurrent transactions or safe rollback.');
         return self::SUCCESS;

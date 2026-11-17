@@ -13,13 +13,14 @@ use InvalidArgumentException;
 final class SchemaManifest
 {
     /**
-     * @return array{tables: array<string, array<string, array{type: string, length: ?int, required: bool}>>, references: list<string>, unique_indexes: array<string, list<list<string>>>}
+     * @return array{tables: array<string, array<string, array{type: string, length: ?int, required: bool}>>, references: list<string>, unique_indexes: array<string, list<list<string>>>, ordinary_indexes: array<string, list<list<string>>>}
      */
     public static function parse(string $dbml): array
     {
         $tables = [];
         $references = [];
         $indexes = [];
+        $ordinaryIndexes = [];
 
         preg_match_all('/^Table ([a-z_]+) \{([\s\S]*?)^\}/m', $dbml, $blocks, PREG_SET_ORDER);
 
@@ -31,6 +32,7 @@ final class SchemaManifest
 
             $tables[$table] = [];
             $indexes[$table] = [];
+            $ordinaryIndexes[$table] = [];
 
             foreach (preg_split('/\R/', $block[2]) as $line) {
                 if (trim($line) === '' || trim($line) === 'indexes {' || trim($line) === '}') {
@@ -56,9 +58,13 @@ final class SchemaManifest
                     continue;
                 }
 
-                if (preg_match('/^    \(([a-z_, ]+)\) \[(pk|unique)\]\s*$/', $line, $index)) {
-                    $columns = array_map('trim', explode(',', $index[1]));
-                    $indexes[$table][] = $columns;
+                if (preg_match('/^    (?:\(([a-z_, ]+)\)|([a-z_]+))(?: \[(pk|unique)\])?\s*$/', $line, $index)) {
+                    $columns = array_map('trim', explode(',', $index[1] !== '' ? $index[1] : $index[2]));
+                    if (!empty($index[3])) {
+                        $indexes[$table][] = $columns;
+                    } else {
+                        $ordinaryIndexes[$table][] = $columns;
+                    }
                     continue;
                 }
 
@@ -92,6 +98,7 @@ final class SchemaManifest
             'tables' => $tables,
             'references' => $references,
             'unique_indexes' => $indexes,
+            'ordinary_indexes' => $ordinaryIndexes,
         ];
     }
 

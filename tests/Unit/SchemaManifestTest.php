@@ -24,6 +24,10 @@ class SchemaManifestTest extends TestCase
             $design['unique_indexes']['messages']
         );
         $this->assertTrue($design['tables']['users']['email']['required']);
+        $this->assertContains(
+            ['event_code', 'created_at'],
+            $design['ordinary_indexes']['security_events']
+        );
     }
 
     public function test_missing_reference_fails_closed(): void
