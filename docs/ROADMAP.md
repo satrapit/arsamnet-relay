@@ -58,3 +58,15 @@ webhook transport, and without enabling queue consumption. Tests
 have been authored but are not yet executed on the developer Mac.
 Real provider selection, adapter integration, callbacks, quotas,
 automated retries and production release remain separate milestones.
+
+
+## Milestone 4 — adapter contract authored (awaiting tests)
+
+The transport-neutral adapter interface, explicit capability enum,
+sensitive short-lived request DTO, normalized result DTO and local-only
+fake implementation were added after the successful full fake dispatch
+MySQL integration. Nine PHPUnit contract tests are authored but not
+executed on Mac. Next: validate the contract; subsequently implement
+provider-specific adapters using verified credentials, routing, SSRF
+controls and provider-specific callback proof before considering live
+delivery. Do not silently replace the existing fake coordinator.

@@ -89,3 +89,8 @@ No version has been released.
   No real adapter or network sends.
 
 - Mac confirmed 88 PHP tests/331 assertions, Pint 83 files and isolated MySQL full fake-only message lifecycle PASS; production/main schema read-only verifier PASS and local Git clean. No real provider sends.
+
+- Introduced a typed provider transport interface, capability declarations,
+  transient/redacted/nonserializable outbound request, normalized result,
+  and fake-only local/testing adapter with nine PHP contract tests
+  (not yet executed on Mac). No real transports, worker connection or sends.

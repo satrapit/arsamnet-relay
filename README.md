@@ -164,3 +164,15 @@ fake callback independently verifies delivery before marking
 `delivered`. Neither component exposes a public route or does
 outbound network I/O. Seven new PHP Feature tests and an isolated
 MySQL test extension have been written but await the next Mac run.
+
+
+## Transport-neutral provider adapters (contract only)
+
+The PHP `OutboundProviderAdapter` interface declares channel,
+capabilities and a single normalized send contract for future SMS,
+SMTP and webhook transports. The only implementation today is
+`FakeOutboundProviderAdapter`, which is **strictly local/testing-only**
+and performs no external I/O. Sensitive request objects reject
+serialization and redact debug output. New unit tests are written
+but have not run on Mac. No real provider delivery is enabled.
+See [docs/PROVIDERS.md](docs/PROVIDERS.md).

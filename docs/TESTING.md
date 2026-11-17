@@ -189,3 +189,19 @@ Both the new PHPUnit cases and the updated MySQL runner are **NOT RUN**.
 ## Fake end-to-end integration QA executed
 
 Developer Mac confirmed 7 new FakeDispatchCoordinator tests PASS (39 assertions), full suite 88 tests PASS (331 assertions), Pint 83 PHP files PASS. The standalone guarded MySQL CLI also PASS for complete fake-only publish/stage/lease/attempt/accepted/signed receipt/delivered and cleanup to empty. Live provider contract testing, real HTTPS/network delivery and production deployment are not yet implemented.
+
+
+## Provider adapter contract QA — pending Mac execution
+
+Run `php artisan test --filter=ProviderAdapterContractTest` for nine
+contract tests of the transport-neutral interface and local/testing-only
+fake adapter. `OutboundProviderRequest` rejects serialization and returns
+redacted debug details; `OutboundProviderResult` prevents PII-like
+provider references, nonaccepted references, invalid HTTP statuses, and
+delivered-as-send-result conflation. Run full `php artisan test`, Pint,
+PHP syntax and the existing isolated MySQL integration as regression gates.
+Expected total after the nine new tests: **97 tests** if all pass.
+
+These new tests are source-authored **NOT RUN**; the previously verified
+Mac baseline was 88 PHP tests/331 assertions, 83 Pint files and isolated
+real MySQL fake-only dispatch PASS.

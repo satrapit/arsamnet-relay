@@ -329,3 +329,24 @@ No schema signoff, version tag or production readiness claim.
 - **PASS:** independent read-only primary MySQL schema check `arsamnet_relay`: 28 tables including migration ledger, 192 documented fields, 61 indexes, 32 restricted FKs, four migration records.
 - **PASS:** `git diff --check` and `git status --short` produced no changes/errors in the Mac output.
 - No provider network sends, callbacks from actual third parties, production cron or external ACK/delivery guarantees were tested. PR Draft and Publish OFF remain unchanged.
+
+
+## Provider transport contract source pending QA — 2026-11-17
+
+- **Last verified Mac baseline:** focused FakeDispatchCoordinator
+  7/7 tests and 39 assertions; complete Laravel PHP 88/88 with
+  331 assertions; Pint 83 files PASS; isolated real MySQL full fake
+  dispatch/receipt and two-process idempotency tests PASS; read-only
+  original MySQL metadata 28 tables/192 fields/61 indexes/32 restricted FKs
+  PASS; worktree clean.
+- **NEW SOURCE**: typed `OutboundProviderAdapter` contract and
+  `ProviderCapability` enum; short-lived private/guarded
+  `OutboundProviderRequest` and sanitized `OutboundProviderResult`
+  DTOs; `FakeOutboundProviderAdapter` that only simulates accepted for
+  fake channels in `local/testing`.
+- **NEW TESTS**: nine `tests/Unit/ProviderAdapterContractTest.php`
+  cases. **NOT RUN YET ON MAC**, including Pint and PHP lint on new files.
+- **NOT IMPLEMENTED:** integration into production worker, provider-specific
+  SMS/SMTP/webhook transports, provider credential selection, real
+  callbacks, SSRF-safe outbound HTTP, automatic retries or production
+  delivery guarantees. No schema changes or real I/O.

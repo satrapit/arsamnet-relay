@@ -113,3 +113,44 @@ Failure after obtaining a lease conservatively leaves the lease/attempt
 for later expiry review rather than silently resetting it to sendable.
 This is a test seam, **not a production provider or dispatch engine**.
 No PHP/real MySQL tests of the new coordinator have run on the developer Mac.
+
+
+## Transport-neutral provider adapter contract — source only, QA pending
+
+The new `App\Contracts\Providers\OutboundProviderAdapter` is a narrow,
+typed boundary for future SMS, SMTP/email and outbound webhook transports.
+Each implementation declares `code()`, `channel()`,
+`capabilities()` and `send(OutboundProviderRequest): OutboundProviderResult`.
+Capabilities are explicit `Send`, `SignedDeliveryReceipt` and
+`StatusQuery`; merely declaring a send capability does **not** authorize
+marking a delivery as `delivered`.
+
+`OutboundProviderRequest` exists only in short-lived process memory, with
+private destination/content values, size/channel validation and redacted
+debugging. It deliberately throws on PHP serialization, so it cannot be
+silently embedded in Laravel's native queue payloads. Consumers must not
+log request objects, recipient identifiers, OTPs, credentials or plaintext
+content. This is defense-in-depth, **not** a substitute for application
+redaction and PII controls.
+
+`OutboundProviderResult` is deliberately limited to normalized
+`ProviderAttemptOutcome`, optional HTTP status (100–599) and optional
+validated opaque provider reference. It never stores raw provider responses.
+`accepted` remains distinct from `delivered`; retryable and ambiguous
+results remain review-only until safe retry policies exist.
+
+The sole implementation is `FakeOutboundProviderAdapter`, usable only in
+`local/testing` and explicitly supporting SMS, email or webhook *as fake
+channels* without real network operations. It returns an opaque synthetic
+`fake-ULID` and does not access the database, send emails/SMS or call a
+URL. It is **not wired** into the existing fake coordinator, public APIs,
+production queue, runtime provider routing, or any real transport.
+Its capability declaration is for fake signed receipts only and does not
+implement a third-party callback verification protocol.
+
+Nine PHP `ProviderAdapterContractTest` cases are added for capabilities,
+channel isolation, synthetic accepted-not-delivered result, local-only
+guard, redacted debug output and serialization protection, invalid request
+inputs and normalized response metadata. **New code has NOT run on Mac**.
+Real adapters, selected providers, SSRF-safe webhook transports and
+callback authentication remain future implementation phases.

@@ -284,3 +284,33 @@ No public callback or provider transport; keep PR Draft/publish OFF.
 ## End-to-end fake dispatch confirmed PASS (2026-11-17)
 
 Mac reports **88/88 PHP tests with 331 assertions PASS**, focused FakeDispatchCoordinator **7/7 with 39 assertions PASS**, 83/83 Pint PHP files PASS and all 3 new/modified files `php -l` PASS. Guarded isolated real MySQL 8 integration PASS for Publish → Stage → Lease → Attempt → accepted → separately verified fake HMAC receipt → delivered, plus original rollback/idempotency/race checks and cleanup back to empty. Read-only primary schema verification PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). Local Git status clean. This is a fake-only internal rehearsal; no actual SMS, SMTP, Webhook, callback route or production sender enabled. PR remains Draft.
+
+
+## Provider adapter contract foundation (new, NOT RUN on Mac)
+
+Confirmed prior Mac baseline: 88 full Laravel PHP tests/331 assertions
+PASS, focused FakeDispatchCoordinator seven tests/39 assertions PASS,
+Pint all 83 PHP files PASS and isolated real MySQL full fake-only
+message lifecycle PASS. Main schema metadata verifier PASS, Git worktree
+clean.
+
+Added `App\Contracts\Providers\OutboundProviderAdapter`,
+`App\Enums\ProviderCapability`, `App\DTO\OutboundProviderRequest`,
+`App\DTO\OutboundProviderResult` and local/test-only
+`App\Providers\Adapters\FakeOutboundProviderAdapter`. The contract
+separates provider transport from publisher, tenant routing, durable
+attempts and verified callback receipt. The request DTO keeps sensitive
+destination/body private, redacts debug, and blocks serialize/unserialize;
+response DTO only exposes sanitized outcome/status/ref. Fake adapter
+handles typed SMS/email/webhook channels with **NO I/O**, returning
+synthetic accepted-not-delivered; it cannot run in production.
+The interface is not yet wired into the existing fake coordinator or any
+queue/sender. This is intentional to preserve the proven fake-only
+pipeline while the adapter contract is verified.
+
+Nine PHP unit contract tests were added to
+`tests/Unit/ProviderAdapterContractTest.php`. NEW tests/code **NOT YET
+RUN** on Mac; next lint, run focused/full Laravel tests, Pint, and repeat
+the already migrated isolated MySQL integration regression. No migrations,
+provider contacts, route changes, secrets, public callback endpoint or
+workflow files. Publish OFF, PR remains Draft.
