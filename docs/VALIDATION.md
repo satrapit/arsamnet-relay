@@ -42,7 +42,7 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 | IPv4/IPv6 normalization and CIDR matching | PASS | `php scripts/offline/IpCidrSmoke.php` — 23 assertions, no framework/database |
 | PHP syntax for newly authored CIDR/controller/tests | PASS | `php -l` on IpCidr, IpCidrSmoke, ClientIpAllowlistController, ClientIpAllowlistTest in local authoring container |
 | DBML vs draft migration table and column names | PASS (static comparison) | Live GitHub file content analysis found 27 matching tables, 192 matching columns; no extras |
-| Schema-parity CLI good and bad fixtures | PASS (synthetic) | `php scripts/check_migration_parity.php --root <fixture>`; correct schema passed; drift failed |
+| Schema-parity CLI good and bad fixtures | PASS (synthetic) | Legacy Python fixture check (now retired); matching fixture passed, deliberate drift failed. Current PHP equivalent uses `php scripts/check_migration_parity.php`. |
 | Server Laravel Feature tests / MySQL migrations | NOT RUN | Composer and PHP extensions (mbstring, pdo_mysql, pdo_sqlite) absent; no MySQL test DB |
 | Dependency resolution / lockfiles / Vite build | NOT RUN | Registry access unavailable |
 | DBML official import, FK/type/default parity | NOT RUN | Only names were compared |
