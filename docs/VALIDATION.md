@@ -455,3 +455,25 @@ No schema signoff, version tag or production readiness claim.
 - Added **24 new PHP tests** across KavenegarSmsAdapterTest (10), KavenegarSmsApiTest (10) and KavenegarAccountConfigurationTest (4), and three HTTP-faked provider scenarios to the existing isolated real MySQL integration script.
 - **NOT RUN on developer Mac:** PHP lint, Pint, new focused PHP tests, complete suite (expected **140 tests** if green), updated MySQL integration runner and live Kavenegar sandbox checks. No schema migration, real SMS, callback or network request was executed by the assistant.
 - Both global sending flags default OFF, PR #1 remains Draft, main unchanged. Do not migrate/recreate the integration database.
+
+
+## Kavenegar provider source / tenant settings (Mac QA NOT RUN, 2026-11-18)
+
+- **Last verified baseline:** 116 PHP tests/430 assertions, Pint 91 files
+  and fake-only isolated real MySQL integration PASS.
+- **New, unverified:** Kavenegar fixed-host HTTPS transport, per-client
+  encrypted keys, staff settings UI, single/bulk/OTP machine APIs,
+  message/attempt/status bookkeeping, bounded rate/quota and OTP cooldown,
+  offline provider HTTP fake tests and offline real MySQL integration
+  extensions. Provider sends require BOTH disabled-by-default global gates.
+- **Additional, unverified self-service:** client-owned settings routes
+  accessible only by confirmed-MFA active client owner/admin, feature flag
+  `client-provider-overrides` ON, recent password on save. Client portal
+  landing and onboarding are not implemented. Four more tenant isolation
+  tests authored.
+- **Test execution:** total new Kavenegar tests authored: 28; complete
+  suite **144 expected**, but no Kavenegar PHP/Pint/MySQL tests have yet
+  run on Mac. No actual SMS sent or billed. Do not claim PASS.
+- Existing original DB `arsamnet_relay` must not be modified by test
+  scripts. Reuse only the existing migrated/empty
+  `arsamnet_relay_integration_test` schema for the guarded integration.

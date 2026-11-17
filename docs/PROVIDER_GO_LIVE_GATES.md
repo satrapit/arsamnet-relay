@@ -117,3 +117,15 @@ this checklist.
 ## Kavenegar adapter implementation update — still NO-GO
 
 A concrete Kavenegar transport, provider configuration UI and three machine SMS operations have now been authored, with default-off sending gates and offline HTTP-fake tests. This changes the real-transport line in the prior table from NOT IMPLEMENTED to **SOURCE AUTHORED, NOT VERIFIED**; it does NOT imply provider approval. Critical gaps remain: no real Kavenegar test-account connectivity or charged-send trial, no provider-specific delivery proof/status polling, no host-level outgoing-secret URL log verification, no production quota stress or crash recovery rehearsal. Do not enable global gates or merge the draft PR until developer Mac tests and a separate limited sandbox plan are approved.
+
+
+## Client-credential configuration guard (new source unverified)
+
+Tenant settings require active owner/admin membership, verified login,
+MFA, recent password and the disabled-by-default Super Admin Pennant
+`client-provider-overrides` flag. Platform staff have an independent
+privileged setup route. These are **source checks pending Mac tests**,
+not evidence of production tenant self-service readiness. A dedicated
+client portal and membership onboarding are still required for
+self-service usability; these routes must be exercised with foreign
+client IDs and revoked memberships before approval.

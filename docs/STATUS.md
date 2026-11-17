@@ -78,3 +78,22 @@ schema to repeat the script. Never run tests/migrations on `arsamnet_relay`.
 ## New Kavenegar SMS source — pending independent verification (2026-11-17)
 
 The preceding table is the last developer-confirmed PASS baseline (116 PHP tests/430 assertions; fake-only MySQL). Since that run, a gated Kavenegar SMS integration was authored: privileged encrypted account settings, fixed-host REST single/sendarray/VerifyLookup, machine endpoints and redacted status, durable attempts, OTP cooldown, per-client quota and 24 new HTTP-faked PHP tests. The current full suite is expected to have **140 tests if green**, but **NO NEW TESTS HAVE RUN on developer Mac**. The standalone isolated MySQL runner was extended to exercise all three Kavenegar operations with Http::fake (no real network) and is likewise NOT RUN. See [KAVENEGAR.md](KAVENEGAR.md). Sending gates remain OFF. No real Kavenegar delivery or production readiness claim is authorized.
+
+
+## Kavenegar milestone — source authored, Mac tests pending (2026-11-18)
+
+The latest **confirmed** result remains the 116 PHP tests/430 assertions
+and fake-only MySQL integration above. New code implements Kavenegar
+single SMS, 1–25 item SendArray and VerifyLookup OTP; tenant-scoped
+machine API, encrypted provider account settings, priority route selection,
+bounded synchronous dispatch and sanitized durable Attempt/status history.
+`Http::fake` tests cover provider behavior without contacting Kavenegar.
+
+Newly added tenant self-service URLs are opt-in, gated by client owner/admin
+membership, MFA, recent password and disabled-by-default
+`client-provider-overrides` flag. Client portal navigation/onboarding is
+not built. Overall **28 new Kavenegar tests are authored but not yet run**,
+so the full suite is expected to contain **144 tests** if green.
+The separate guarded MySQL integration runner has offline Kavenegar
+single/bulk/OTP cases, also NOT RUN after the changes. No real network
+send or third-party callback/status verification has occurred.

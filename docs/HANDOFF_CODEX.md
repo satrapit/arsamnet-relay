@@ -383,3 +383,30 @@ New `FakeDispatchCoordinator::dispatchFirstEligible(clientId,deliveryId)` is a *
 ## Kavenegar initial SMS integration — NOT YET TESTED on Mac (2026-11-17)
 
 Last verified baseline: 116 Laravel tests/430 assertions, Pint 91 files, real MySQL fake-only pipeline and original schema verifier PASS. Added client-specific encrypted Kavenegar API key/sender config via protected Clients → SMS provider, HTTP-fake-only tests of POST /api/v1/sms/send, /bulk, /otp and GET /api/v1/sms/messages/{id}. New adapter uses official api.kavenegar.com HTTPS POST form, SendArray and VerifyLookup, 3/8s timeouts, TLS verified, redirects and retry disabled. Bounded request path first durably publishes+stages, then leases and writes one attempt per delivery before any HTTP call; bulk maps unique IDs; provider errors are normalized. Global ARSAM_PUBLISH_ENABLED and ARSAM_KAVENEGAR_SEND_ENABLED remain false, no real provider request sent. Client SMS quota default 100 recipients/hour and 1 OTP per recipient/minute; idempotent replays never resend. 24 PHP new tests and HTTP-faked MySQL checks are authored but NOT RUN. Full suite expected 140 if PASS; do not claim until user sends results. No DDL or migration. See docs/KAVENEGAR.md for exact Mac commands; PR Draft and main untouched.
+
+
+## Kavenegar SMS provider milestone (source only, Mac verification pending)
+
+A new HTTPS-fixed-host Kavenegar transport implements single SMS,
+SendArray (maximum 25), and VerifyLookup OTP via REST, using per-client
+encrypted API key/sender configuration, existing first eligible route,
+bounded synchronous Stage/Lease/durable Attempt/outcome and scoped
+machine endpoints. Normalized status and recent attempt history omit
+numbers, token and message bodies. No automatic retries, no delivery
+proof (accepted is not delivered), and global publish plus Kavenegar
+network gates remain OFF by default.
+
+Platform staff may configure accounts with the usual MFA and password
+confirmation. Separate opt-in tenant-owned GET/POST routes were added
+under `/account/clients/{client}/providers/kavenegar`, with active
+client membership restricted to `owner`/`client_admin`,
+confirmed MFA, password confirmation on POST, and the default-off
+`client-provider-overrides` Pennant flag. No tenant portal landing or
+self-service onboarding exists yet; direct link only. Four new feature
+cases cover these guards. Total 28 new Kavenegar PHP tests authored, for
+an estimated complete suite of 144 if green. Kavenegar Http::fake
+unit/API and guarded MySQL integration checks are **NOT RUN on Mac**.
+Run official validation commands in docs/KAVENEGAR.md plus
+`php artisan test --filter=KavenegarClientSelfServiceTest`.
+Keep PR Draft, live sending OFF, do not migrate/reset the existing MySQL
+test schema and do not enable real network calls.

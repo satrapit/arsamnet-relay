@@ -136,3 +136,35 @@ git status --short
 All new automated HTTP interactions are faked, even in MySQL integration. The MySQL script enforces the exact existing separately migrated, initially empty arsamnet_relay_integration_test database and never migrates, truncates or drops. **Do not recreate/migrate/reset that schema.** If a test fails, inspect the failure before retrying. No real provider traffic is sent during these tests.
 
 **NOT RUN / future gates:** real Kavenegar connectivity/charges and delivery receipt, status-query integration, tenant self-service setup, outbound endpoint DNS/IP pinning review, simultaneous send-race stress, operational alerts and cPanel short-lived Cron rehearsal.
+
+
+## Opt-in tenant-owned settings — source authored, Mac QA pending
+
+In addition to the existing platform-staff account configuration, tenant
+owners and client administrators can manage **only their own** Kavenegar
+account using:
+
+- `GET /account/clients/{client}/providers/kavenegar`
+- `POST /account/clients/{client}/providers/kavenegar`
+
+These session-based pages require a verified login, active client membership
+with a `client`-scoped role of `owner` or `client_admin`, active client,
+confirmed MFA, and the Super Admin-controlled Pennant feature flag
+`client-provider-overrides`. Saving credentials also requires recent password
+confirmation and CSRF. The feature is **OFF by default**; the existing
+platform-staff configuration pages remain available independently.
+No account key or sender value is shown after saving, and security audit
+records omit credentials, message contents, OTP and recipient values.
+
+Client portal landing/navigation, invitation/membership onboarding and
+independent client role management are **not completed**. A permitted member
+can use the direct client-scoped URL after an authorized membership exists;
+there is currently no client self-service homepage. Four new negative/positive
+feature tests cover feature-off, own-account configuration, wrong tenant/role,
+and MFA/password restrictions. **These tests have NOT run on Mac.**
+
+This newly authored self-service source joins the original 24 Kavenegar
+tests; the entire new Kavenegar milestone now has **28 additional tests**
+relative to the last 116-test verified baseline. The expected complete suite
+is **144 tests if all pass**, but no Kavenegar tests have been executed on
+the developer Mac. Do NOT enable live sends based on this code alone.
