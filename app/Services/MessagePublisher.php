@@ -19,8 +19,9 @@ use LogicException;
 final class MessagePublisher
 {
     /**
-     * @param array<string, mixed> $payload
-     * @param list<int> $targetIds
+     * @param  list<int>  $targetIds
+     * @param  array<string, mixed>  $payload
+     *
      * @return array{message_id: string, delivery_ids: list<string>, replayed: bool}
      */
     public function publish(
