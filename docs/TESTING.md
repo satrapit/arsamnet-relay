@@ -184,3 +184,8 @@ has an extra fake-only end-to-end message, validated for accepted-before-
 delivered, no duplicate dispatch, signed receipt correlation, one
 attempt/receipt and FK-safe cleanup. No new schema or migrations required.
 Both the new PHPUnit cases and the updated MySQL runner are **NOT RUN**.
+
+
+## Fake end-to-end integration QA executed
+
+Developer Mac confirmed 7 new FakeDispatchCoordinator tests PASS (39 assertions), full suite 88 tests PASS (331 assertions), Pint 83 PHP files PASS. The standalone guarded MySQL CLI also PASS for complete fake-only publish/stage/lease/attempt/accepted/signed receipt/delivered and cleanup to empty. Live provider contract testing, real HTTPS/network delivery and production deployment are not yet implemented.

@@ -217,3 +217,8 @@ this new coordinator section has **NOT YET RUN**. Use the already
 migrated, clean `arsamnet_relay_integration_test` schema only.
 Do **not** recreate it, rerun migrations, reset tables, or run a
 separate queue worker against it.
+
+
+## Full fake-only coordinator lifecycle executed on Mac
+
+Existing isolated real MySQL 8 script PASS for all baseline checkpoints and the new end-to-end fake dispatch plus separate authenticated fake receipt. Data returned to empty project tables; no new migrations, schema creation, drops, SMTP, SMS or outbound HTTP calls. This does not authorize a real provider send.

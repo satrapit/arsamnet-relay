@@ -318,3 +318,14 @@ No schema signoff, version tag or production readiness claim.
   MySQL integration runner. Do not claim these checks passed.
 - No provider or callback HTTP endpoint, no real sender, no migrations
   and no change to production Cron/queue worker. Publish remains OFF.
+
+
+## Fake end-to-end dispatch PHP + MySQL PASS — developer Mac (2026-11-17)
+
+- **PASS:** `php -l` for `FakeDispatchCoordinator.php`, its test class, and MySQL integration CLI. `php vendor/bin/pint` and `php vendor/bin/pint --test` scanned **83 PHP files** with zero corrections/failures.
+- **PASS:** `php artisan test --filter=FakeDispatchCoordinatorTest`: **7 tests, 39 assertions**.
+- **PASS:** complete `php artisan test`: **88 tests, 331 assertions**, SQLite in memory.
+- **PASS:** guarded, isolated real MySQL 8 integration script: transactional rollback; idempotent request replay/conflict; fenced leasing; durable attempt bookkeeping; authenticated fake callback/replay protection; two-process same-key race; **complete fake-only publish/stage/lease/attempt/signed receipt lifecycle**; final fixture tables empty.
+- **PASS:** independent read-only primary MySQL schema check `arsamnet_relay`: 28 tables including migration ledger, 192 documented fields, 61 indexes, 32 restricted FKs, four migration records.
+- **PASS:** `git diff --check` and `git status --short` produced no changes/errors in the Mac output.
+- No provider network sends, callbacks from actual third parties, production cron or external ACK/delivery guarantees were tested. PR Draft and Publish OFF remain unchanged.

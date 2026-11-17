@@ -279,3 +279,8 @@ but NOT RUN on developer Mac. No DDL or migration modifications.
 Next run focused/full PHP tests, Pint, isolated real MySQL CLI, and
 inspect `git status --short` before any further implementation.
 No public callback or provider transport; keep PR Draft/publish OFF.
+
+
+## End-to-end fake dispatch confirmed PASS (2026-11-17)
+
+Mac reports **88/88 PHP tests with 331 assertions PASS**, focused FakeDispatchCoordinator **7/7 with 39 assertions PASS**, 83/83 Pint PHP files PASS and all 3 new/modified files `php -l` PASS. Guarded isolated real MySQL 8 integration PASS for Publish → Stage → Lease → Attempt → accepted → separately verified fake HMAC receipt → delivered, plus original rollback/idempotency/race checks and cleanup back to empty. Read-only primary schema verification PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). Local Git status clean. This is a fake-only internal rehearsal; no actual SMS, SMTP, Webhook, callback route or production sender enabled. PR remains Draft.
