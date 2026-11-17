@@ -27,3 +27,7 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 - PASS: Node `node --check` run on the mobile drawer JavaScript before committing.
 - NOT RUN: PHP lint for the entire GitHub branch, PHPUnit, MySQL migrations, Composer and npm installs, Vite build and browser interaction tests.
 - Current security monitor is read-only and depends on the configured `ARSAM_AUDIT_HMAC_KEY` and migrated database.
+
+- PASS: `php tests/offline/AuditIntegritySmoke.php` executed against a temporary local source mirror using minimal stubs: six audit assertions passed. No Composer/Laravel or MySQL code was executed.
+- PASS: `php -l` on security audit implementation, event recorder, monitor controller, verification command and offline smoke test.
+- NOT RUN: Official DBML parser; MySQL schema/migrations; complete PHP lint and Laravel/PHPUnit suite; Vite production build and cPanel smoke checks.

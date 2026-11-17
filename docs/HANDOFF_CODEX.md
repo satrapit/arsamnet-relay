@@ -6,7 +6,7 @@ Repository: https://github.com/satrapit/arsamnet-relay (PUBLIC). Branch: feat/la
 
 - Original source specification is docs/MASTER_PROMPT.md. Proposed schema docs/ERD.dbml has 27 tables, 192 columns and 30 references. Four migration files are drafted, but not approved or tested.
 - Laravel 13 source, Fortify/Pennant configuration, admin MFA gate, protected CLI Super Admin, clients/key issuance/revocation, optional CIDR-bound machine API, global flags, responsive views and tests are committed.
-- Laravel dependencies, database tests, Vite build, official dbdiagram import, TailAdmin Free integration, Graphify install, actual send adapters and cPanel deployment have NOT run.
+- Laravel dependencies, database tests, Vite build, official dbdiagram import, full TailAdmin Free integration, Graphify install, actual send adapters and cPanel deployment have NOT run.
 - Composer.lock and package-lock.json are absent until real dependency resolution. Do NOT manufacture them manually.
 
 ## Next work — ordered
@@ -38,3 +38,11 @@ Never run migrate:fresh on production or a developer database with data. Only on
 ## Blocking limitations
 
 This authoring environment lacks Composer, required PHP extensions and network access to package registries. Actual PHP lint, Laravel/DB tests and frontend build were NOT RUN. This is a reviewable implementation draft, not a proven functioning app.
+
+## Security review continuation (2026-11-17)
+
+- Imported one TailAdmin Free card component with its upstream MIT notice. Improved mobile drawer and accessible menu state. Full TailAdmin integration is still unfinished.
+- Added redacted auth failure/MFA/throttle signals, operator security monitor with 15-minute counts and Cron heartbeat freshness, HMAC-based event integrity checks, and recent-password protection for recovery codes.
+- Run `php tests/offline/AuditIntegritySmoke.php` for an isolated no-Composer integrity smoke check (verified in the authoring container). **It does not test real Laravel or MySQL**.
+- Run `php artisan relay:verify-audit --limit=1000` only after dependencies, migrations and ARSAM_AUDIT_HMAC_KEY are configured; this only detects edits to inspected rows, not deleted records.
+- Full PHP lint and PHPUnit tests remain NOT RUN; do not merge before running them on the actual development environment.

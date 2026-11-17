@@ -10,7 +10,10 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 - Draft 27-table database schema and dbdiagram DBML/CSV artifacts.
 - Platform clients, one-time hashed API keys, revocation and scoped machine endpoint.
 - Pennant global flags with Super Admin authorization and redacted audit records.
-- Responsive Tailwind / local Font Awesome UI foundation; negative-security test sources and Codex handoff.
+- Responsive Tailwind / local Font Awesome UI foundation; one TailAdmin Free card component and accessible mobile drawer.
+- Authentication failure/MFA throttling event capture with redacted IP HMAC, restricted security monitor and audit integrity check command.
+- Recent password confirmation before recovery-code disclosure; dummy hash verification for absent-account login timing.
+- Dependency-free audit integrity smoke assertions and negative-security test sources.
 
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.

@@ -16,7 +16,7 @@ Self-hosted, multi-client messaging and notification platform for Laravel 13, PH
 
 ## Code now present (not runtime-tested)
 
-Official Laravel 13 scaffold; Fortify login/password reset/email verification; admin MFA gate; opt-in CLI Super Admin provisioning; initial roles/clients/API keys/audit table migrations; machine bearer key authorization and optional CIDR allowlist; Super Admin Pennant flags; responsive Tailwind 4 admin foundation; local npm Font Awesome webfonts; bounded database queue Cron schedule; initial regression tests.
+Official Laravel 13 scaffold; Fortify login/password reset/email verification; admin MFA gate; opt-in CLI Super Admin provisioning; initial roles/clients/API keys/audit table migrations; machine bearer key authorization and optional CIDR allowlist; Super Admin Pennant flags; responsive Tailwind 4 admin foundation with one TailAdmin Free MIT card component and a mobile drawer; local npm Font Awesome webfonts; bounded database queue Cron schedule; initial regression tests.
 
 **Not yet built:** live publishing and delivery, real provider adapters, ACK/NACK, retries/DLQ, secure webhooks, tenant provider configuration, complete TailAdmin Free component integration, full IDS/monitoring, OpenAPI/Postman/HTTPie, localization and production operations.
 
@@ -54,3 +54,7 @@ Only public/ may be the web document root. Build public/build assets off-host; n
 The current development environment could not install Composer packages or Node packages, execute migrations, or run Laravel tests. Dependencies and lockfiles must be resolved in the real developer environment. See docs/VALIDATION.md and docs/HANDOFF_CODEX.md.
 
 No GitHub Actions workflows were created.
+
+## Isolated smoke tests
+
+Run `php tests/offline/AuditIntegritySmoke.php` without Composer for the narrow Audit HMAC/redaction test. Run `php artisan relay:verify-audit --limit=1000` after installing dependencies and migrating the approved schema; it detects edits to rows under review but not deletions. See docs/VALIDATION.md for exact test evidence.
