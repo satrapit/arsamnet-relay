@@ -45,3 +45,5 @@ No version has been released.
 - Drafted opt-in `POST /api/v1/messages` with encrypted transactional persistence, idempotency conflict detection, tenant-scoped targets and native database queue staging jobs containing only opaque IDs. No provider sending; off by default. Nine feature tests added (unexecuted on Mac).
 
 - First Mac runtime verification of the safe direct-publish stage: 9 feature tests/48 assertions PASS; all 52 Laravel tests/166 assertions PASS. MySQL metadata inspection PASS. Fixed new-file Pint formatting complaints (follow-up Mac run pending).
+
+- Developer Mac confirmed 52/52 PHP tests (166 assertions), Pint 72/72 files, strict Composer validation and read-only MySQL metadata verifier all PASS after formatting. Local formatter diffs and two generated lockfiles remain uncommitted; concurrency/production tests still pending.

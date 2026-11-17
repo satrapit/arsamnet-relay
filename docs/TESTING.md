@@ -75,3 +75,13 @@ After pulling, run `php scripts/check_migration_relationships.php`, `php artisan
 ## First Publish runtime result
 
 The first Mac execution of `tests/Feature/PublishMessagesTest.php` passed all nine tests (48 assertions). Full SQLite PHPUnit result was 52 tests/166 assertions. A separate read-only MySQL schema check also passed. No real dispatch/provider or concurrent MySQL publishing was tested. The next QA gate is `php vendor/bin/pint --test` and a full regression rerun after formatting; then commit and push the developer's local Pint edits and actual generated Composer/npm lockfiles.
+
+ 
+## Publish/Pint stabilization — developer Mac confirmed
+
+- Full PHP test suite: **52 tests, 166 assertions, all PASS**.
+- `php vendor/bin/pint --test`: **72 PHP files, all PASS** after automated formatting.
+- Read-only MySQL 8 schema verification: PASS; **28 tables including migrations, 192 fields, 61 indexes and 32 restricted FKs**.
+- Strict Composer validation and Git whitespace check: PASS.
+
+These results cover in-memory SQLite runtime and MySQL metadata, **not** MySQL concurrent publish durability. Lockfile/formatting Git commits are still pending.

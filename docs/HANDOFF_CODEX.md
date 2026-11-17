@@ -142,3 +142,12 @@ Following 43 PASS / 118 assertions on developer Mac, a small, opt-in portion of 
 - Mac reported 9 Publish Feature tests PASS (48 assertions), total Laravel tests **52 PASS (166 assertions)** on SQLite :memory:. `php -l` for new PHP files PASS. Separate read-only real MySQL schema inspection PASS (28 tables, 192 documented fields, 61 indexes, 32 restricted FKs, four migrations).
 - Pint found three style-only issues on 72 PHP files: `app/Services/MessagePublisher.php`, `app/Support/InvalidPublishTargets.php`, and `app/Support/MessagePublicationConflict.php`. GitHub source now contains docblock alignment/empty-body formatting fix, but full Mac Pint rerun remains pending. Local `php vendor/bin/pint` may still be required for whitespace/unary-operator fixes. No application behavior change or migrations.
 - Existing local developer Pint changes and generated lockfiles remain uncommitted; push those in separate commits after final suite passes. Keep draft, feature OFF by default.
+
+ 
+## Final developer Pint/tests result before lockfile commit — 2026-11-17
+
+The developer Mac now reports **52/52 PHPUnit tests (166 assertions) PASS**, `pint --test` **72 PHP files PASS**, `relay:db-verify` **28 tables including migrations / 192 fields / 61 indexes / 32 restricted FKs / 4 migrations PASS**, `composer validate --strict` PASS and `git diff --check` with no errors.
+
+The remaining source-control task is local: review and commit **25 modified tracked PHP files from Pint** (137 insertions/75 deletions), then review and commit the actual locally generated `composer.lock` and `package-lock.json` as a separate build commit, and `git push origin feat/laravel13-foundation`. These exact local files are inaccessible to the GitHub connector until pushed; never fabricate them. Check clean status and stash inventory after push. Do not merge PR yet.
+
+Next technical QA gate: concurrent idempotent publish and transaction rollback on a **separate, explicitly disposable** MySQL integration database, with PHP test harness. Do not run destructive refresh/rollback/migration tests against `arsamnet_relay`. Provider sending stays disabled.
