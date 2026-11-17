@@ -10,6 +10,7 @@ use App\Enums\ProviderAttemptOutcome;
 use App\Jobs\StageDeliveryJob;
 use App\Services\DeliveryAttemptManager;
 use App\Services\DeliveryLeaseManager;
+use App\Services\FakeSignedCallbackReceipt;
 use App\Services\MessagePublisher;
 use App\Support\MessagePublicationConflict;
 use App\Support\SchemaManifest;
@@ -234,9 +235,14 @@ function cleanup(?int $clientId): void
             }
         }
     }
-    DB::transaction(function () use ($clientId, $jobIds, $deliveries): void {
+    $attemptIds = $deliveries === [] ? [] : DB::table('delivery_attempts')
+        ->whereIn('delivery_id', $deliveries)->pluck('id')->all();
+    DB::transaction(function () use ($clientId, $jobIds, $deliveries, $attemptIds): void {
         if ($jobIds !== []) {
             DB::table('jobs')->whereIn('id', $jobIds)->delete();
+        }
+        if ($attemptIds !== []) {
+            DB::table('callback_receipts')->whereIn('delivery_attempt_id', $attemptIds)->delete();
         }
         if ($deliveries !== []) {
             DB::table('delivery_attempts')->whereIn('delivery_id', $deliveries)->delete();
@@ -350,10 +356,13 @@ try {
             && DB::table('jobs')->count() === 2, 'Concurrent requests duplicated domain or queue rows.');
 
         // This is a fake-only provider account, not a callable adapter.
+        $callbackSecret = bin2hex(random_bytes(32));
         $providerAccountId = DB::table('provider_accounts')->insertGetId([
             'client_id' => $f['client'], 'adapter_code' => 'fake-only',
             'channel' => 'email', 'display_name' => 'Integration-only fake provider',
-            'credentials_ciphertext' => Crypt::encryptString('inert-credentials'),
+            'credentials_ciphertext' => Crypt::encryptString(json_encode([
+                'callback_secret' => $callbackSecret,
+            ], JSON_THROW_ON_ERROR)),
             'enabled' => true, 'created_at' => now(), 'updated_at' => now(),
         ]);
         DB::table('client_provider_routes')->insert([
@@ -391,6 +400,33 @@ try {
             $acceptedAttemptId, ProviderAttemptOutcome::Accepted
         ), 'Duplicate completion of a provider attempt succeeded.');
         echo "PASS: MySQL durable attempt start and accepted-not-delivered result; duplicate finish denied.\n";
+
+        $callbackTime = (string) time();
+        $callbackBody = json_encode([
+            'event_id' => 'event-'.bin2hex(random_bytes(12)),
+            'provider_ref' => 'opaque-test-ref-1',
+            'status' => 'delivered',
+        ], JSON_THROW_ON_ERROR);
+        $callbackSignature = 'sha256='.hash_hmac('sha256',
+            $providerAccountId."\n".$callbackTime."\n".$callbackBody, $callbackSecret);
+        $receipts = app(FakeSignedCallbackReceipt::class);
+        ensure($receipts->receive(
+            $providerAccountId, $callbackTime, $callbackBody, $callbackSignature
+        ), 'A valid fake-only signed callback was rejected.');
+        ensure(! $receipts->receive(
+            $providerAccountId, $callbackTime, $callbackBody, $callbackSignature
+        ), 'A signed callback replay was applied twice.');
+        ensure(! $receipts->receive(
+            $providerAccountId, $callbackTime, str_replace('delivered', 'rejected', $callbackBody),
+            $callbackSignature
+        ), 'An altered signed callback was accepted.');
+        ensure(DB::table('deliveries')->where('id', $acceptedDelivery)
+            ->where('state', 'delivered')->exists(),
+            'A verified fake receipt did not finalize the accepted delivery.');
+        ensure(DB::table('callback_receipts')->where('provider_account_id', $providerAccountId)
+            ->where('delivery_attempt_id', $acceptedAttemptId)->where('status', 'delivered')
+            ->count() === 1, 'Fake callback receipt was not durably deduplicated.');
+        echo "PASS: MySQL signed fake receipt verified; delivery updated once and replay/tampering denied.\n";
 
         $uncertainMessage = $publisher->publish(
             $f['client'], $f['key'], 'attempt-ambiguous-'.bin2hex(random_bytes(10)),
