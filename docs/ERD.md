@@ -22,3 +22,10 @@ The new `python3 scripts/check_migration_parity.py` checks table and column **na
 The developer's Mac has successfully applied all four initial migration files to an empty local MySQL 8 database. This confirms the DDL executes but not that every column, foreign key and index matches the proposed ERD.
 
 A new read-only metadata verifier is available: `php artisan relay:db-verify --expect=arsamnet_relay`. It uses a restricted local parser to extract 27 tables, 192 fields and 32 relationships from this DBML and compares them with `information_schema`; declared indexes are checked too. The verifier remains unexecuted on the real database until the user runs it. No schema drop, rollback or destructive reset is part of this check.
+
+ 
+## MySQL metadata discrepancy resolved in proposed ERD (2026-11-17)
+
+The actual MySQL verifier reported two **additional valid owner FKs** which already existed in the original migrations but were not represented in the DBML: `subscriptions.client_id -> clients.id` and `deliveries.client_id -> clients.id`. They reinforce tenant ownership. They have now been **added to the DBML only**; no schema mutation is necessary or appropriate. The current ERD therefore defines **27 tables, 192 fields, 32 restrictive foreign keys**.
+
+A new `python3 scripts/check_migration_relationships.py` compares the declared migration FKs against the DBML; a read-only comparison of GitHub sources found 32/32 matching. Run `php artisan relay:db-verify --expect=arsamnet_relay` on the local Mac to confirm the real deployed MySQL metadata is now in sync. Historical counts of 30 earlier in this changelog document describe an earlier DBML revision, not the current structure.

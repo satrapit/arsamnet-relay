@@ -92,3 +92,12 @@ See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/buil
 - Added 4 new PHPUnit checks: tests/Unit/SchemaManifestTest.php (2) and tests/Feature/DatabaseSchemaVerificationSafetyTest.php (2). Must run on Mac.
 - **Do not run migrate:fresh, refresh, rollback, db:wipe, or any DROP on this migrated project database.** If verifier fails, identify metadata mismatch and review schema before change.
 - Lockfiles `composer.lock` and `package-lock.json` are still local user files, not yet committed. On Mac, validate/commit/push them explicitly and only from the project branch, without touching .env.
+
+ 
+## Schema/FK/Pint output — latest follow-up (2026-11-17)
+
+- Full Mac Laravel suite PASS: 35 tests, 108 assertions (SQLite :memory:).
+- `relay:db-verify` on MySQL initially FAIL with ONLY 2 unexpected direct client FKs, in `subscriptions` and `deliveries`. They already exist in migrations and actual MySQL. Added them to docs/ERD.dbml, which now declares 32 FKs; **no DDL needed**.
+- Added `scripts/check_migration_relationships.py` to detect DBML/migration FK drift. Static check found **32 matches / no differences** in current GitHub sources; run it on Mac and re-run `relay:db-verify`.
+- `./vendor/bin/pint --test` found 20 style issues among 61 files. On Mac run `./vendor/bin/pint`, then `./vendor/bin/pint --test`, then `php artisan test`. Commit formatting once tests pass; do not replace domain logic while doing a style-only cleanup.
+- Still uncommitted local lockfiles: composer.lock and package-lock.json. Add to feature branch after review, then push; keep PR #1 draft.

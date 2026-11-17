@@ -95,3 +95,15 @@ No schema signoff, version tag or production readiness claim.
 - SOURCE ADDED (unexecuted on Mac): `SchemaManifest` parser for the supported local DBML subset and read-only `php artisan relay:db-verify --expect=arsamnet_relay` checking exact table names, documented column types/lengths/required fields, declared unique/primary and ordinary indexes, 30 FK definitions and restrict-on-delete behavior, and four migration entries.
 - SOURCE ADDED (unexecuted on Mac): `SchemaManifestTest` (2 Unit cases) and `DatabaseSchemaVerificationSafetyTest` (2 Feature cases) protect manifest parsing and verifier failure in non-local/test environments.
 - NOT RUN: the newly authored four tests, read-only MySQL schema verifier, MySQL rollback, concurrent inserts/rotations against MySQL, production/cPanel rehearsal. **Do not perform destructive reset on the now-populated schema.**
+
+ 
+## 35 green tests, schema verifier drift and Laravel Pint (2026-11-17)
+
+- PASS (developer Mac): `php artisan test` completed **35 tests, 108 assertions**. Four newly added schema-parser/verification-safety tests passed.
+- PASS: the four MySQL migration records remain in batch 1; no schema changes or reset were run.
+- `php artisan relay:db-verify --expect=arsamnet_relay` reported exactly two extra FKs: `subscriptions(client_id)->clients(id)` and `deliveries(client_id)->clients(id)`. These **already exist** in the deployed MySQL schema and in the initial migration code; the proposed DBML documentation omitted them.
+- FIXED IN SOURCE (not yet rerun on the developer Mac): Added both relationships to `docs/ERD.dbml`. The DBML now has **27 tables, 192 fields, 32 references**. Updated `SchemaManifest`, the unit test, and the offline design validator. Added `scripts/check_migration_relationships.py`, a source-level guard against ERD/Migration FK drift.
+- PASS (read-only source inspection): all **32 DBML foreign keys correspond exactly to 32 FK declarations in the four migration files**. This is not the same as a passing MySQL verifier run after the fix.
+- `./vendor/bin/pint --test` found **20 style issues in 61 files**. These are code-formatting issues, not evidence of failing feature tests or database integrity. Run `./vendor/bin/pint` on the Mac, then rerun `./vendor/bin/pint --test` and `php artisan test` and commit the autoformatted changes.
+- UNTRACKED on Mac: real `composer.lock` and `package-lock.json`. Review and commit those, never invent them from logs.
+- NOT RUN: post-fix MySQL verifier, post-format Pint check, MySQL runtime concurrency tests, deployment. PR remains draft.

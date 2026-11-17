@@ -81,3 +81,8 @@ Mac developer output (2026-11-17): 26 Feature tests / 82 assertions and 2 Unit t
 ## First successful MySQL migration
 
 On the developer Mac (2026-11-17), all four initial MySQL 8 migrations completed successfully on an initially empty `arsamnet_relay` schema and `migrate:status` reported batch 1 for each. PHPUnit results improved to **31 passing tests / 96 assertions** (on SQLite in-memory). Run the new **read-only** `php artisan relay:db-verify --expect=arsamnet_relay` for a follow-up check of tables/columns, key indexes and foreign keys. This has not been run yet, and the overall product remains pre-release. Do not reset the migrated database.
+
+ 
+## Current schema and quality gates (2026-11-17)
+
+The latest Mac run reports **35 passing PHPUnit tests / 108 assertions**, with all four migrations still `Ran`. The initial read-only MySQL verifier found two direct client foreign keys present in MySQL but missing from DBML. The DBML now documents **32 FK relationships**; no migration/schema change was needed. Run `python3 scripts/check_migration_relationships.py` and `php artisan relay:db-verify --expect=arsamnet_relay` to confirm the corrected source against the database. Pint reported 20 formatting issues; run `./vendor/bin/pint` locally, verify with `./vendor/bin/pint --test`, rerun PHPUnit and commit the resulting formatting changes plus the reviewed real Composer/npm lockfiles.

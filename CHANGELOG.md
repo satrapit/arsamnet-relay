@@ -34,3 +34,6 @@ No version has been released.
 
 - First real local MySQL 8 migration completed: four initial migrations applied in batch 1 after zero-table preflight; 31 PHPUnit tests / 96 assertions now pass on SQLite :memory:.
 - Added a read-only DBML-to-MySQL schema verifier checking field types/lengths, required flags, 30 restricted foreign-key relationships and declared indexes. Added four unexecuted safety/parser tests. No schema reset or rollback executed.
+
+- Verified 35 Mac Laravel tests / 108 assertions. Reconciled two existing subscriptions/deliveries owner FKs missing from the ERD; documented 32 total relationships, no MySQL DDL changes.
+- Added a strict offline migration-to-ERD foreign-key parity checker. Awaiting new MySQL schema-verifier result and Pint autofix (20 reported style issues).

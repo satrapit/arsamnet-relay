@@ -32,3 +32,12 @@ Run `python3 scripts/check_migration_parity.py` for a **names-only** DBML/migrat
 ## First Composer installation smoke checks
 
 User-reported macOS installation (2026-11-17): PHP 8.3.30, Composer 2.9.5, Node 24.13.0 and npm 11.6.2. Composer resolved 133 packages (Laravel v13.42.0, Fortify v1.42.0, Pennant v1.27.0); npm installed 102 packages and Vite production build passed; `artisan about` and 42 route registrations passed. `schedule:list` failed because no `.env`/SQLite database existed with `CACHE_STORE=database`. This does not establish any scheduler defect. See docs/LOCAL_DEVELOPMENT.md. The standalone PSR-4 warning was addressed by moving offline scripts to scripts/offline/. Actual PHPUnit, MySQL migrations and `CACHE_STORE=array artisan schedule:list` remain unverified until new user output.
+
+ 
+## Latest complete Mac tests and formatting follow-up
+
+The developer has reported **35 passing PHPUnit tests / 108 assertions** after the read-only DB schema verifier was added. The validator initially found two DBML-only omissions (the subscriptions/deliveries direct client foreign keys, already in MySQL); source documentation and verification expectations were updated to 32 total references.
+
+Use `python3 scripts/check_migration_relationships.py` to compare PHP migration FK declarations with DBML. A separate read-only MySQL check `php artisan relay:db-verify --expect=arsamnet_relay` must be rerun after pulling the updated DBML, before claiming full parity.
+
+Pint `--test` reported 20 style issues across 61 scanned PHP files. Run `./vendor/bin/pint` on Mac for autofix, rerun `--test`, then PHPUnit. Formatting does not require or justify a database migration.

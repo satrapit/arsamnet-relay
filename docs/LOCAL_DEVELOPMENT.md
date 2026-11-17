@@ -189,3 +189,31 @@ php artisan migrate:status
 The verifier cannot prove safe delivery, tenant boundary enforcement under real concurrent writes, default values, DDL rollback safety or race-free migrations. MySQL `ALTER`/`CREATE` DDL may commit independently; on any future migration failure inspect state before making changes. For MySQL transactional/runtime behavior, use a **separate disposable test database**, never the current schema for `migrate:fresh` or rollback.
 
 The initial full PHPUnit result: **31 passed (96 assertions)**. The new schema-parser and verifier tests introduced after that result have not yet been run.
+
+ 
+## Follow-up after metadata verification (2026-11-17)
+
+The first `relay:db-verify` run found two relationships already enforced by MySQL but missing in DBML. Both are now documented (32 in total). **Do not re-run migrations** to fix a documentation mismatch.
+
+```bash
+git pull --ff-only origin feat/laravel13-foundation
+php artisan config:clear
+python3 scripts/validate_design.py
+python3 scripts/check_migration_parity.py
+python3 scripts/check_migration_relationships.py
+php artisan test
+php artisan relay:db-verify --expect=arsamnet_relay
+```
+
+On the Mac, Pint's non-modifying check reported 20 formatting issues. To fix formatting automatically and check again:
+
+```bash
+./vendor/bin/pint
+./vendor/bin/pint --test
+php artisan test
+composer validate --strict
+```
+
+Pint changes the formatting of tracked PHP files; review the diff before committing. The already-generated local `composer.lock` and `package-lock.json` also need review and commit for reproducible builds. Do **not** stage `.env`, vendor or node_modules.
+
+If the database verifier still reports FK discrepancies, preserve the full output and stop before changing any MySQL constraints. The verifier is read-only and cannot repair a mismatch.
