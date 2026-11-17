@@ -321,3 +321,15 @@ workflow files. Publish OFF, PR remains Draft.
 Developer Mac confirmed nine provider adapter contract tests (37 assertions), all **97 Laravel tests/368 assertions**, Pint **89 PHP files**, and entire isolated real MySQL fake-only integration PASS, with primary schema verifier and Git clean.
 
 The follow-up source (not yet Mac-tested) refactors `FakeDispatchCoordinator` so its actual fake accepted result comes from `FakeOutboundProviderAdapter::send(OutboundProviderRequest)`. Only inside local/testing: validates authorized fake provider/channel/route and decrypted callback secret, retrieves tenant-matched encrypted target/message data, decrypts only to an in-memory nonserializable DTO, rejects corrupt/oversized values before leasing, durably begins one attempt, then invokes the adapter, normalizes result via `DeliveryAttemptManager`. No network or production dispatch. If fake adapter throws or returns accepted without a reference, the started attempt is quarantined as ambiguous; no automatic release/retry. Three new negative tests reject bad encrypted target/message and oversized plaintext; **10 focused fake coordinator tests** now, **100 full PHP tests expected** if green. No DDL, public route, API, worker or callback changes. Run PHP lint, Pint, focused/full PHPUnit and same guarded isolated MySQL regression before moving further. PR Draft.
+
+
+## Provider adapter integrated into fake coordinator — Mac QA PASS (2026-11-17)
+
+Local developer confirmed PHP lint, Pint **89/89 files PASS**, focused
+FakeDispatchCoordinator **10 tests/51 assertions PASS**, full
+Laravel **100 tests/380 assertions PASS** and real MySQL standalone
+integration on the isolated schema fully PASS including the now
+adapter-wired fake-only end-to-end path. Main development schema verifier
+PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). Git
+working tree clean. This test scope has no real SMS/SMTP/webhook calls,
+live network or public callback routes. PR remains Draft; Publish OFF.

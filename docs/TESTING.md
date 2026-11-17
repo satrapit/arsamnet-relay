@@ -210,3 +210,13 @@ real MySQL fake-only dispatch PASS.
 ## Fake adapter to coordinator integration (new, pending verification)
 
 The previously isolated fake transport contract is now used in `FakeDispatchCoordinator`: encrypted destination and payload are decrypted in memory **only for the authorized local/testing fake path**, wrapped in a nonserializable `OutboundProviderRequest`, and supplied to `FakeOutboundProviderAdapter::send` after the durable attempt row is created. No real transmission is attempted. Added three failure-before-lease checks to `FakeDispatchCoordinatorTest` (corrupt target, corrupt message and >16 KiB plaintext). Focused fake coordinator cases total **10**; whole PHP test suite should total **100** if they pass. These added tests and the updated coordinator have **NOT RUN** on Mac. Prior verified baseline is 97/368 and full MySQL PASS.
+
+
+## Adapter-wired fake dispatch Mac regression (2026-11-17)
+
+All 10 FakeDispatchCoordinator Feature tests passed (51 assertions);
+complete PHPUnit suite 100 tests/380 assertions passed; Pint 89 PHP
+files passed. The independent real MySQL integration passed the full
+adapter-wired fake-only lifecycle and cleanup, plus existing transactional,
+lease, idempotency and receipt scenarios. Main DB metadata check passed
+read-only. No live provider or cPanel production QA has been performed.

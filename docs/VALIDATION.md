@@ -361,3 +361,31 @@ No schema signoff, version tag or production readiness claim.
 - **NEW SOURCE (NOT YET RUN ON MAC)**: `FakeDispatchCoordinator` now uses `OutboundProviderRequest` and `FakeOutboundProviderAdapter` directly for the simulated provider result, instead of constructing a fake reference itself. It validates existing authorized client/provider/route and decrypts address/payload in memory, rejecting invalid/oversized data before claiming a delivery lease. Only after a durable attempt exists does it call the **no-network** fake adapter and normalize the outcome through `DeliveryAttemptManager`; failures never auto-retry.
 - Added three negative PHP cases to the existing `FakeDispatchCoordinatorTest` (now **10 tests**). Expected full suite **100 PHP tests** if all pass. Existing MySQL script remains unchanged by this latest refactor and should be rerun as a regression; new code and test results remain **NOT RUN**.
 - No real SMS/SMTP/webhook sends, endpoint, migration, production queue change or provider access. Publish OFF and PR DRAFT.
+
+
+## Adapter-wired fake coordinator QA confirmed — developer Mac, 2026-11-17
+
+- **PASS:** PHP lint of `FakeDispatchCoordinator.php` and
+  `FakeDispatchCoordinatorTest.php`.
+- **PASS:** `php vendor/bin/pint` and `php vendor/bin/pint --test`
+  both scanned **89 files** without corrections.
+- **PASS:** focused `FakeDispatchCoordinatorTest`: **10 tests,
+  51 assertions**. Negative cases cover corrupt encrypted recipient,
+  corrupt encrypted message, and oversized decrypted payload rejected
+  before claim or provider attempt.
+- **PASS:** full Laravel `php artisan test`: **100 tests,
+  380 assertions** (SQLite in memory).
+- **PASS:** guarded independent MySQL 8 integration:
+  transactional rollback of messages/deliveries/native database jobs;
+  idempotency replay/conflict; fenced claim/renew/quarantine;
+  two concurrent publish processes; durable provider attempt results;
+  signed fake callback validation, tamper/replay rejection;
+  full adapter-wired fake-only lifecycle; fixture tables cleaned empty.
+- **PASS:** read-only original `arsamnet_relay` schema verifier:
+  28 tables (including migrations), 192 documented fields,
+  61 indexes, 32 restricted FKs, four migration records.
+  `git diff --check`, `git diff --stat`, `git status --short`
+  produced no reported changes.
+- **NOT IMPLEMENTED/NOT RUN:** real provider sending, validated
+  external callbacks, automatic failover/retry, production worker,
+  cPanel runtime tests. No changes to production/main DB in the QA.

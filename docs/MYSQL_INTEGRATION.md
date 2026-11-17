@@ -234,3 +234,12 @@ decrypted/validated request rather than inventing an accepted response.
 The MySQL runner itself is unchanged; **run it again to validate the new
 coordinator on the already migrated, empty integration schema**.
 No schema creation or migration rerun is necessary.
+
+
+## Adapter-backed fake end-to-end run confirmed PASS
+
+The local MySQL 8 integration runner has been rerun successfully after
+the fake coordinator began invoking the typed outbound fake adapter.
+The existing schema was reused; the pipeline was verified end to end
+without network activity, and all fixture tables were empty at exit.
+No migrations or resets were performed.

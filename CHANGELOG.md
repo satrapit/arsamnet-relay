@@ -100,3 +100,7 @@ No version has been released.
   Then connected the internal local-only fake coordinator to the new
   typed provider adapter and added three encrypted-data/payload negative
   PHP tests (new implementation pending Mac QA). No sends or migrations.
+
+- Mac verified adapter-wired fake coordinator: 10 focused tests/51 assertions,
+  full PHP suite 100 tests/380 assertions, Pint 89 files and standalone
+  real MySQL integration PASS. No provider sends or migrations.
