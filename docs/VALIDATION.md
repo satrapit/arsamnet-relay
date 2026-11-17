@@ -389,3 +389,13 @@ No schema signoff, version tag or production readiness claim.
 - **NOT IMPLEMENTED/NOT RUN:** real provider sending, validated
   external callbacks, automatic failover/retry, production worker,
   cPanel runtime tests. No changes to production/main DB in the QA.
+
+
+## Adapter-wired coordinator Mac QA verified; read-only provider selection pending (2026-11-17)
+
+- **PASS (developer Mac):** focused `FakeDispatchCoordinatorTest` **10 tests / 51 assertions**, full `php artisan test` **100 tests / 380 assertions**, `php -l` on modified coordinator/test, and Pint **89 files** PASS with no changes.
+- **PASS:** independent PHP MySQL 8 integration on isolated `arsamnet_relay_integration_test` for transaction rollback, idempotency and two simultaneous PHP processes, lease fencing/quarantine, durable Attempt, signed fake receipt and adapter-wired fake-only end-to-end dispatch. Project fixture tables returned empty.
+- **PASS:** primary schema `arsamnet_relay` verified read-only (28 tables including migration ledger, 192 fields, 61 indexes, 32 restricted FKs and 4 migration records). `git diff --check`, `git diff --stat`, and `git status --short` produced no differences.
+- **NEW SOURCE, NOT RUN ON MAC:** `ProviderRouteSelector` is a purely read-only, first-attempt provider account selector for **staged** `awaiting_provider` deliveries only. It requires active client, enabled target, unexpired message, zero attempts and no existing lease, enabled provider account and route, matching channel, same-tenant/private or platform-shared account, and selects the lowest numeric priority; no credentials, sending, writes, or second-attempt failover.
+- **NEW TESTS, NOT RUN:** nine feature cases in `ProviderRouteSelectorTest.php`; the existing isolated MySQL script now checks one eligible provider route and rejects cross-client and already leased deliveries. Expected full suite **109 tests** if all pass. No new migration; **do not create or migrate test schema again**.
+- This selector is **not wired** to an actual worker or provider adapter. Real SMS, SMTP, webhook and callback endpoints remain disabled. Publish OFF, PR Draft.

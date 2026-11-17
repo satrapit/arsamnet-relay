@@ -220,3 +220,8 @@ files passed. The independent real MySQL integration passed the full
 adapter-wired fake-only lifecycle and cleanup, plus existing transactional,
 lease, idempotency and receipt scenarios. Main DB metadata check passed
 read-only. No live provider or cPanel production QA has been performed.
+
+
+## First-attempt provider route selection — new checks pending
+
+`php artisan test --filter=ProviderRouteSelectorTest` tests nine scenarios: numeric priority and no DB side effects; disabled route/account; cross-tenant misrouted private account; explicitly shared account; suspended owner/disabled target; expired message/nonstaged delivery; prevention of selection when an attempt or lease already exists; channel mismatch; missing client/delivery. `ProviderRouteSelector` is read-only. The PHP MySQL CLI has been extended to check one staged eligible provider, a foreign client and a leased delivery, then continues the existing fully fake-only lifecycle. **New tests have NOT run on developer Mac**; previous baseline 100/380 and prior full MySQL integration PASS.

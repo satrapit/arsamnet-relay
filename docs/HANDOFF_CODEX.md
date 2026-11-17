@@ -333,3 +333,10 @@ adapter-wired fake-only end-to-end path. Main development schema verifier
 PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). Git
 working tree clean. This test scope has no real SMS/SMTP/webhook calls,
 live network or public callback routes. PR remains Draft; Publish OFF.
+
+
+## Verified fake adapter integration; read-only route selection added (2026-11-17)
+
+Mac confirmed full 100 PHPUnit tests/380 assertions PASS; targeted FakeDispatchCoordinator 10/51 PASS; Pint 89 files PASS; real MySQL 8 guarded integration PASS including adapter-wired fake-only end-to-end dispatch; read-only original DB verifier PASS; Git status clean.
+
+Next source in feature branch (**NOT YET TESTED ON MAC**): `app/Services/ProviderRouteSelector.php` is a read-only query that returns one eligible provider account ID for an active client's unleased, unattempted `awaiting_provider` delivery, matching enabled route/account/channel/tenant and message expiration, sorted by numeric route priority. It never decrypts credentials, begins an attempt, sends, fails over after uncertain results, updates state, or changes schema. Nine new tests in `tests/Feature/ProviderRouteSelectorTest.php` and additional guarded real MySQL checks in `scripts/mysql_publish_integration.php`. Previous full suite 100; expected **109 tests**. Run lint, focused/full Laravel PHP tests, Pint and isolated MySQL runner on existing migrated empty `arsamnet_relay_integration_test`. Keep PR Draft, Publish OFF; do not start real delivery.

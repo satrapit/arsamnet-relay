@@ -70,3 +70,13 @@ executed on Mac. Next: validate the contract; subsequently implement
 provider-specific adapters using verified credentials, routing, SSRF
 controls and provider-specific callback proof before considering live
 delivery. Do not silently replace the existing fake coordinator.
+
+
+## Next foundation: provider route selection (new source pending QA)
+
+First-attempt provider lookup has been implemented as a read-only,
+tenant-bound query using enabled routes/accounts and numeric priority.
+Nine PHP Feature tests and an isolated MySQL checkpoint are written but
+not yet run on developer Mac. It is deliberately not a failover engine
+and has no sender/worker connection. Real provider integrations,
+credential management and callback contracts need separate signoff.

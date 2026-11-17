@@ -178,3 +178,26 @@ This is an intentionally scoped fake-only transport integration. It does
 not register the fake adapter as a global provider, add a worker, decrypt
 real provider credentials for sending, or implement real SMS, SMTP and
 webhook networking. Code is **awaiting new Mac PHP/MySQL regression**.
+
+
+## First-attempt provider route selection (source draft, QA pending)
+
+`ProviderRouteSelector::select(clientId, deliveryId): ?int` chooses the
+lowest numeric priority **eligible** provider account for a new staged
+delivery without decrypting credentials or sending. It reads the existing
+`client_provider_routes`, `provider_accounts`, `delivery_targets`,
+`clients`, `messages` and `deliveries` tables. It requires active
+client, enabled target and enabled same-channel route/account, correct
+private account ownership (or a platform-shared account), message not
+expired, delivery state `awaiting_provider`, zero attempts, no lease.
+Any mismatch returns null. The unique priority constraint makes the
+configuration order deterministic.
+
+This is **initial routing only, never retry/failover**. Once a delivery
+has been leased, attempted, accepted, rejected, quarantined or delivered,
+the selector will not select any account. It does not create a job,
+lease or Attempt and does not use the decrypted credentials. It is
+not yet called by the fake or production dispatch coordinator; the
+existing tested fake path keeps its explicit provider account argument.
+Nine feature tests plus an extra MySQL-only selection checkpoint have
+been authored but **NOT YET RUN on Mac**.

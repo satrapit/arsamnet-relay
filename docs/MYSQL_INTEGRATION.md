@@ -243,3 +243,15 @@ the fake coordinator began invoking the typed outbound fake adapter.
 The existing schema was reused; the pipeline was verified end to end
 without network activity, and all fixture tables were empty at exit.
 No migrations or resets were performed.
+
+
+## Route selector read-only MySQL checkpoint — awaiting Mac run
+
+In the existing guarded script, a newly staged fake-only delivery
+must return its explicitly authorized provider account from
+`ProviderRouteSelector`. The same lookup must fail using another
+client ID or after a lease has been claimed. All previous transaction,
+attempt, signed fake callback, and end-to-end checks are unchanged.
+The integration schema already exists and contains four migrations
+but no fixture data after the last successful run. **Do not create,
+migrate, reset or drop it again**.

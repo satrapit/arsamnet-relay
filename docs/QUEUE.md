@@ -95,3 +95,15 @@ database queue or logged. Corrupt encrypted targets/messages and excessive
 payloads stop the fake flow before its lease. Accepted is not delivered;
 ambiguous attempts do not automatically retry. This refactor is not
 wired to Cron or any production worker; QA is pending.
+
+
+## Provider selection before first attempt (not retry policy)
+
+An internal read-only `ProviderRouteSelector` obtains the highest
+configured eligible account ID for a fresh staged delivery, using
+client ownership, target channel, account and route enabled status,
+message expiry, and smallest numeric route priority. It refuses
+deliveries with any attempt or lease. It is not connected to a worker,
+and must not be used to select a fallback provider after an
+ambiguous/retryable outcome. No network I/O or writes. PHP and MySQL
+regression for this new source is pending.

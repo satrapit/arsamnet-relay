@@ -104,3 +104,9 @@ No version has been released.
 - Mac verified adapter-wired fake coordinator: 10 focused tests/51 assertions,
   full PHP suite 100 tests/380 assertions, Pint 89 files and standalone
   real MySQL integration PASS. No provider sends or migrations.
+
+- Mac confirmed 100 full Laravel PHP tests/380 assertions and 89-file
+  Pint PASS; isolated real MySQL adapter-wired fake dispatch, lease,
+  Attempt, callback, concurrency and cleanup PASS; original DB metadata
+  and Git clean. Added a read-only, tenant-bound initial provider route
+  selector with nine PHP tests and a guarded MySQL check (not yet run).

@@ -185,3 +185,13 @@ The internal local/testing-only coordinator now actually uses the typed
 request contains the authorized target and message content only in memory
 and cannot be serialized to queue jobs. No real network traffic or
 production sender is enabled. New PHP/MySQL regression validation pending.
+
+
+## Read-only provider selection
+
+A new `ProviderRouteSelector` chooses the first eligible account for
+an unleased, unattempted staged delivery by client, channel, enabled
+route/account, message validity and configured priority. No credentials
+are decrypted, messages sent or automatic retries scheduled. Nine new
+PHP Feature tests and one isolated MySQL checkpoint are authored but
+not yet run on Mac. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
