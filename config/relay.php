@@ -5,6 +5,7 @@ return [
     'provision_admin' => (bool) env('ARSAM_PROVISION_ADMIN', false),
     'publish_enabled' => (bool) env('ARSAM_PUBLISH_ENABLED', false),
     'kavenegar_send_enabled' => (bool) env('ARSAM_KAVENEGAR_SEND_ENABLED', false),
+    'kavenegar_hourly_limit' => (int) env('ARSAM_KAVENEGAR_HOURLY_LIMIT', 100),
     'flags' => [
         'webhook-delivery' => 'Allow signed outbound webhook deliveries',
         'scheduled-messages' => 'Allow publishing messages with a scheduled send time',
