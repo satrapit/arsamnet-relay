@@ -13,6 +13,7 @@ use App\Services\DeliveryLeaseManager;
 use App\Services\FakeDispatchCoordinator;
 use App\Services\FakeSignedCallbackReceipt;
 use App\Services\MessagePublisher;
+use App\Services\ProviderRouteSelector;
 use App\Support\MessagePublicationConflict;
 use App\Support\SchemaManifest;
 use Illuminate\Contracts\Console\Kernel;
@@ -377,7 +378,15 @@ try {
         );
         $acceptedDelivery = $acceptedMessage['delivery_ids'][0];
         (new StageDeliveryJob($acceptedDelivery))->handle();
+        $routeSelector = app(ProviderRouteSelector::class);
+        ensure($routeSelector->select($f['client'], $acceptedDelivery) === $providerAccountId,
+            'Could not select the eligible fake provider for a new staged delivery.');
+        ensure($routeSelector->select($f['client'] + 1000, $acceptedDelivery) === null,
+            'Cross-client provider selection succeeded.');
         $acceptedToken = $leases->claim($f['client'], $acceptedDelivery, 60);
+        ensure($routeSelector->select($f['client'], $acceptedDelivery) === null,
+            'A leased delivery was still eligible for first-attempt provider selection.');
+        echo "PASS: MySQL provider route selection is tenant-scoped, staged-only and read-only.\n";
         ensure(is_string($acceptedToken), 'Could not lease accepted-case delivery.');
         $acceptedAttemptId = $attempts->begin(
             $f['client'], $acceptedDelivery, $acceptedToken, $providerAccountId
