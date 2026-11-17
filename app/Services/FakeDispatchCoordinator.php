@@ -21,7 +21,24 @@ final class FakeDispatchCoordinator
     public function __construct(
         private readonly DeliveryLeaseManager $leases,
         private readonly DeliveryAttemptManager $attempts,
+        private readonly ProviderRouteSelector $routes,
     ) {}
+
+    /**
+     * Select one first-attempt provider only, without automatic failover.
+     *
+     * @return array{attempt_id: int, provider_ref: string}|null
+     */
+    public function dispatchFirstEligible(int $clientId, string $deliveryId): ?array
+    {
+        if (! app()->environment('local', 'testing') || $clientId < 1) {
+            return null;
+        }
+
+        $accountId = $this->routes->select($clientId, $deliveryId);
+
+        return $accountId === null ? null : $this->dispatch($clientId, $deliveryId, $accountId);
+    }
 
     /**
      * Use the no-network fake adapter to accept one staged delivery.
@@ -72,9 +89,10 @@ final class FakeDispatchCoordinator
         $message = DB::table('messages')
             ->where('id', $delivery->message_id)
             ->where('client_id', $clientId)
-            ->first(['payload_ciphertext']);
+            ->first(['payload_ciphertext', 'scheduled_at']);
 
-        if (! $message) {
+        if (! $message || ($message->scheduled_at !== null
+            && $message->scheduled_at > now()->utc()->toDateTimeString())) {
             return null;
         }
 
