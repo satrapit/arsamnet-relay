@@ -250,4 +250,136 @@ class FakeDispatchCoordinatorTest extends TestCase
         ]);
         $this->assertDatabaseCount('delivery_attempts', 0);
     }
+
+    /**
+     * A second explicitly configured account is only eligible BEFORE the
+     * first attempt; never considered as a retry/failover after dispatch.
+     */
+    private function extraAccount(array $fixture, int $priority, string $adapterCode = 'fake-only'): int
+    {
+        $now = now()->utc();
+        $accountId = DB::table('provider_accounts')->insertGetId([
+            'client_id' => $fixture['client'],
+            'adapter_code' => $adapterCode,
+            'channel' => 'email',
+            'display_name' => 'Additional fake routing account',
+            'credentials_ciphertext' => Crypt::encryptString(json_encode([
+                'callback_secret' => $fixture['secret'],
+            ], JSON_THROW_ON_ERROR)),
+            'enabled' => true,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]);
+
+        DB::table('client_provider_routes')->insert([
+            'client_id' => $fixture['client'],
+            'provider_account_id' => $accountId,
+            'channel' => 'email',
+            'priority' => $priority,
+            'enabled' => true,
+            'created_at' => $now,
+        ]);
+
+        return $accountId;
+    }
+
+    public function test_first_eligible_uses_highest_priority_fake_route_and_not_a_later_fallback(): void
+    {
+        $fixture = $this->fixture('fake-selected-first');
+        $preferred = $this->extraAccount($fixture, 0);
+        $coordinator = app(FakeDispatchCoordinator::class);
+
+        $result = $coordinator->dispatchFirstEligible($fixture['client'], $fixture['delivery']);
+
+        $this->assertIsArray($result);
+        $this->assertDatabaseHas('delivery_attempts', [
+            'id' => $result['attempt_id'],
+            'provider_account_id' => $preferred,
+            'outcome' => 'accepted',
+        ]);
+        $this->assertNull($coordinator->dispatchFirstEligible($fixture['client'], $fixture['delivery']));
+        $this->assertDatabaseCount('delivery_attempts', 1);
+    }
+
+    public function test_disabled_preferred_route_selects_another_eligible_route_before_any_attempt(): void
+    {
+        $fixture = $this->fixture('fake-first-disabled');
+        $preferred = $this->extraAccount($fixture, 0);
+        DB::table('client_provider_routes')->where('provider_account_id', $preferred)
+            ->update(['enabled' => false]);
+
+        $result = app(FakeDispatchCoordinator::class)
+            ->dispatchFirstEligible($fixture['client'], $fixture['delivery']);
+
+        $this->assertIsArray($result);
+        $this->assertDatabaseHas('delivery_attempts', [
+            'id' => $result['attempt_id'],
+            'provider_account_id' => $fixture['provider'],
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 1);
+    }
+
+    public function test_unusable_first_route_does_not_fall_through_to_lower_priority_provider(): void
+    {
+        $fixture = $this->fixture('fake-no-route-failover');
+        $this->extraAccount($fixture, 0, 'nonfake-adapter');
+
+        $this->assertNull(app(FakeDispatchCoordinator::class)
+            ->dispatchFirstEligible($fixture['client'], $fixture['delivery']));
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $fixture['delivery'],
+            'state' => 'awaiting_provider',
+            'attempt_count' => 0,
+            'lease_token' => null,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
+
+    public function test_scheduled_message_is_blocked_even_for_explicit_fake_account(): void
+    {
+        $fixture = $this->fixture('fake-scheduled-selection');
+        DB::table('messages')->where('id', $fixture['message'])
+            ->update(['scheduled_at' => now()->utc()->addMinutes(5)]);
+        $coordinator = app(FakeDispatchCoordinator::class);
+
+        $this->assertNull($coordinator->dispatchFirstEligible($fixture['client'], $fixture['delivery']));
+        $this->assertNull($coordinator->dispatch(
+            $fixture['client'], $fixture['delivery'], $fixture['provider']
+        ));
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $fixture['delivery'],
+            'state' => 'awaiting_provider',
+            'lease_token' => null,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+
+        DB::table('messages')->where('id', $fixture['message'])
+            ->update(['scheduled_at' => now()->utc()->subMinute()]);
+        $this->assertIsArray($coordinator->dispatchFirstEligible(
+            $fixture['client'], $fixture['delivery']
+        ));
+    }
+
+    public function test_first_route_selection_refuses_other_tenant_and_production(): void
+    {
+        $own = $this->fixture('fake-first-tenant-one');
+        $other = $this->fixture('fake-first-tenant-two');
+        $coordinator = app(FakeDispatchCoordinator::class);
+
+        $this->assertNull($coordinator->dispatchFirstEligible($other['client'], $own['delivery']));
+
+        app()->detectEnvironment(fn (): string => 'production');
+        try {
+            $this->assertNull($coordinator->dispatchFirstEligible($own['client'], $own['delivery']));
+        } finally {
+            app()->detectEnvironment(fn (): string => 'testing');
+        }
+
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $own['delivery'],
+            'state' => 'awaiting_provider',
+            'attempt_count' => 0,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
 }
