@@ -36,3 +36,14 @@ Only one attempt is permitted, and uncertain/retryable outcomes require
 manual review. This is NOT a complete ACK/NACK interface or a provider
 adapter; verified delivery callbacks, safe retry/DLQ and live sending
 remain outstanding.
+
+
+## Milestone 4 preparatory: fake callback authentication
+
+An internal-only `local/testing` fake provider signed-delivery receipt
+has been added to exercise HMAC, time skew, event replay, accepted-attempt
+correlation, tenant/provider ownership and a transactional delivered
+state update. Nine PHP feature tests and an isolated MySQL extension
+are pending execution. No public callback endpoint, real adapter or
+third-party signature protocol has been implemented; production receipt
+processing is **not ready**.

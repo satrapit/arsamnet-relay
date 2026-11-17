@@ -24,3 +24,15 @@ Failed-login, MFA-failure and throttling signals are now wired to redacted HMAC-
 - Edits are serialized under a client row lock, capped at 64 rules and recorded as redacted audit events (rule ID only, no raw network range in the audit payload). Route parameters for a rule are scoped to its owning client.
 - Removing the final enabled network opens client key access from any source IP; the UI and server require explicit confirmation. The same IP cannot be trusted behind arbitrary proxies; production `trustProxies` must specify controlled proxy ranges only.
 - In a normal installation, zero allowlist entries means optional IP controls are off. API keys remain the primary credential. Run negative runtime tests before relying on these restrictions in production.
+
+
+## Fake signed callback boundary (source only, not production)
+
+The internal `FakeSignedCallbackReceipt` prototype checks HMAC-SHA256,
+Unix timestamp skew, strict event fields, linked provider/account ownership,
+unique event HMAC and transactional `accepted -> delivered` transition.
+It is **not** an HTTP callback endpoint, is blocked outside `local/testing`,
+and does not establish a generic callback protocol for actual providers.
+Validation must be reviewed for every real provider's signature semantics,
+tenant account routing and replay behavior before enabling delivery updates.
+The new PHP/MySQL tests are pending.

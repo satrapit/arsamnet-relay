@@ -179,3 +179,18 @@ nonempty fixture database on the next run.
 ## Attempt lifecycle integration PASS on developer Mac — 2026-11-17
 
 The additional fake-only attempt scenarios have now executed successfully on the isolated MySQL 8 schema. The runner confirmed durable `started` records, accepted without asserting delivered, duplicate finish prevention, ambiguous results quarantined without retransmission and full fixture cleanup. The prior rollback, lease and two-process idempotency checkpoints also passed. No provider API was called. The ordinary `arsamnet_relay` schema was independently verified read-only. This is an integration result, not a live provider contract or load-test result.
+
+
+## Fake signed callback scenario — new code not yet run
+
+The already migrated, clean `arsamnet_relay_integration_test` schema is
+reused; do not create or migrate it again. The existing PHP runner now
+also tests a fake-only encrypted callback secret, a signed event marking
+an `accepted` delivery `delivered`, denial of the same replay/tampered
+payload, and deletion of dependent `callback_receipts` rows in the
+fixture cleanup. This uses no outbound network or real provider.
+
+After pulling the branch, run PHP lint and focused `FakeSignedCallbackReceiptTest`,
+the full Laravel suite, Pint and only then the guarded PHP MySQL runner.
+Any failure must be inspected before retrying; do not manually wipe the
+test schema.

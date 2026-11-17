@@ -225,3 +225,31 @@ before any next implementation.
 ## Actual provider-attempt milestone QA PASS — 2026-11-17
 
 Mac reports **10/10 DeliveryAttemptManager feature tests (50 assertions) PASS**, full **72/72 Laravel PHPUnit (257 assertions) PASS**, Pint **79 files PASS** and standalone isolated MySQL integration PASS with durable `started` attempts, accepted without delivered semantics, no duplicate finish, ambiguous quarantined without retransmission, two-process same-key race and fixture cleanup. Read-only main MySQL schema verify remains PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). A **single local Pint-only edit** to `scripts/mysql_publish_integration.php` remains uncommitted in the output; review/commit/push it from Mac. No DDL or external sends. Keep PR Draft and publish off. Next security boundary is verified receipt/callback authentication with anti-replay, ownership and correlation; do not mark delivered from an unverified provider claim.
+
+
+## Fake-only receipt contract added — NOT RUN on Mac (2026-11-17)
+
+Developer pushed `4a6f8fd` as a style-only import order change.
+Existing confirmed QA remains 72 Laravel tests/257 assertions, 79
+Pint files and expanded isolated MySQL attempt results PASS.
+
+New internal-only `FakeSignedCallbackReceipt` verifies a fake provider
+account's encrypted `callback_secret` (>=32 bytes), strict
+HMAC-SHA256 over account ID + ten-digit Unix timestamp + exact raw JSON
+body (300-second skew limit), one opaque provider ref correlated to
+exactly one accepted attempt, enabled authorized provider route,
+tenant ownership and active client. Exact signed event IDs are HMACed
+in `callback_receipts` under the existing unique
+(provider_account_id,event_id_hmac) index. It atomically inserts the
+receipt and changes `accepted -> delivered` only in `local/testing`.
+No public route or external adapter exists; never treat a real provider's
+arbitrary status claim as delivery proof without provider-specific
+signature/capability review.
+
+Nine new `FakeSignedCallbackReceiptTest` PHP Feature tests plus fake
+signed-receipt checks in the existing guarded MySQL integration CLI.
+MySQL cleanup was updated to delete callback_receipts before their FK
+delivery_attempts. **None of the newly added checks have run on developer
+Mac yet**. Run lint, focused/full PHPUnit, Pint, and isolated CLI; do
+not re-create or migrate the existing test schema. Keep Publish OFF
+and PR Draft.

@@ -256,3 +256,35 @@ No schema signoff, version tag or production readiness claim.
 - **PASS**: independent real MySQL 8 CLI integration on `arsamnet_relay_integration_test`: rollback of message/delivery/native queue job, sequential idempotency, request conflict rejection, inert StageDeliveryJob, lease claim/renew/quarantine, two-process same-key race, **durable attempt insertion**, accepted-not-delivered status and duplicate finish rejection, ambiguous-result quarantine without automatic retry, and final fixture cleanup to empty.
 - **PASS**: read-only `php artisan relay:db-verify --expect=arsamnet_relay`: 28 tables including migrations, 192 documented columns, 61 indexes, 32 restricted foreign keys, four migration records. `git diff --check` found no errors.
 - **NOT RUN / NOT IMPLEMENTED**: real outbound provider I/O, signed callback validation, ACK/delivered proof, automated retry/DLQ, concurrency load testing, cPanel production rehearsal. PR remains Draft and Publish defaults OFF.
+
+
+## Fake-only signed callback receipt groundwork (2026-11-17)
+
+- **LAST CONFIRMED from developer Mac**: isolated MySQL transaction, lease,
+  attempt persistence, fake provider accepted/ambiguous outcome and
+  two-process idempotency PASS; `72 PHP tests / 257 assertions` PASS;
+  Pint `79/79` PASS; local formatting commit `4a6f8fd` pushed with clean
+  Git worktree.
+- **NEW SOURCE, NOT YET VERIFIED ON MAC**:
+  `App\Services\FakeSignedCallbackReceipt` — an internal, no-route,
+  no-network fake-provider-only receipt processor restricted to
+  `APP_ENV=local/testing`. It uses HMAC-SHA256 over
+  `provider_id + timestamp + raw_body` with a >=32-byte fake-only
+  callback secret decrypted from that provider's credentials; requires
+  a +/-300 second timestamp; strict JSON event ID, provider_ref, status;
+  only `status=delivered` after matching exactly one accepted attempt
+  and tenant-authorized route. Event ID stored only as HMAC; receipt row
+  and `accepted -> delivered` update use a single DB transaction.
+  Replayed or tampered events must not modify delivery state.
+- **NEW PHP tests:** nine `tests/Feature/FakeSignedCallbackReceiptTest.php`
+  cases covering success, duplicate event/second delivery proof, bad
+  signature, time skew, unknown provider ref, cross-client provider
+  mismatch, disabled route and wrong adapter, nonaccepted attempt and
+  production refusal.
+- Expanded `scripts/mysql_publish_integration.php` to exercise one
+  properly signed fake receipt and replay/tamper rejection, with
+  FK-safe cleanup of receipt rows before attempt rows. **Not yet run.**
+- **NO new public callback route, real provider adapter, network send,
+  schema migration, generic provider verification, or production delivery
+  proof.** This fake contract must not be used as a signature algorithm for
+  arbitrary SMS/SMTP/third-party providers.

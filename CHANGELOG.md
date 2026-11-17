@@ -72,3 +72,9 @@ No version has been released.
   Actual execution on Mac remains pending; no provider adapter or sends.
 
 - Developer Mac verified internal provider-attempt accounting: ten new PHP feature tests/50 assertions, full suite 72/257, Pint 79 files and isolated real MySQL transaction/attempt/fencing/race checks all PASS. No provider calls. One local integration-test Pint formatting change awaits commit and push.
+
+- Added fake-only, local/test-only HMAC-signed callback receipt verification,
+  unique event-HMAC replay protection, strict provider/tenant/attempt
+  correlation and atomic accepted-to-delivered state update. Nine new
+  PHP Feature cases and expanded isolated MySQL assertions were authored
+  (Mac execution pending). No real provider callback route or send.

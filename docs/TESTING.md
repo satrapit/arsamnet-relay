@@ -148,3 +148,19 @@ on the developer Mac. No provider sends or schema alterations.
 ## Confirmed provider-attempt regression — developer Mac
 
 All ten `DeliveryAttemptManagerTest` cases passed (50 assertions), the full PHP test suite passed **72 tests/257 assertions**, and Pint scanned **79 PHP files** successfully. The extended MySQL integration CLI also passed on the isolated schema, including durable `started` attempts and normalized accepted/ambiguous results with no provider I/O. The test database was returned to an empty fixture state. One formatter-only change in the integration script awaits a local Git commit. Callback verification and end-recipient delivery state changes remain outside this verified milestone.
+
+
+## Signed fake callback tests — execution pending
+
+`php artisan test --filter=FakeSignedCallbackReceiptTest` contains nine
+PHP Feature cases: valid fake signed receipt (the sole permitted
+`accepted -> delivered` transition), event replay/second event denied,
+bad/tampered signature, stale/future timestamp, unmatched provider ref,
+cross-tenant account mismatch despite a misconfigured route,
+disabled route/non-fake adapter, nonaccepted attempt and
+`production` environment refusal.
+
+Existing guarded PHP MySQL runner now also verifies receipt persistence,
+delivery state, tamper/replay resistance and FK-safe cleanup. This new
+code **has not been run on Mac**. Existing 72-test/257-assertion suite
+and earlier MySQL acceptance remain the prior verified baseline.

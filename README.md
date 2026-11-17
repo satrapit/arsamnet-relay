@@ -142,3 +142,14 @@ outcomes into local delivery states, but **cannot mark `delivered`** and
 never sends any SMS, email or webhook. Automatic retry remains disabled.
 New PHP and isolated MySQL checks are authored but have **not yet run**
 on the developer Mac. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+
+
+## Fake-only callback signature/replay exercises (dev only)
+
+A local/test-only `FakeSignedCallbackReceipt` service demonstrates a
+strictly HMAC-authenticated receipt for a `fake-only` provider, event
+HMAC deduplication, tenant/attempt correlation and atomic
+`accepted -> delivered`. There is **no public callback route**, no
+real provider implementation and no new migration. New PHP/MySQL
+regressions have been authored but not yet executed on the developer Mac.
+See [docs/PROVIDERS.md](docs/PROVIDERS.md).

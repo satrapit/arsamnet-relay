@@ -49,3 +49,40 @@ lease is quarantined by the existing lease manager; operator reconciliation
 of the outstanding attempt is future scope. Automatic retries, callbacks,
 credential decryption, SSRF protection, quotas and provider routing selection
 require separate milestones. Until then, **publish remains OFF by default**.
+
+
+## Internal fake-only signed callback receipt (NOT a real provider adapter)
+
+`FakeSignedCallbackReceipt` is deliberately callable only inside
+`local/testing`, with **no HTTP endpoint**. It does not accept an
+untrusted "verified" flag or caller-supplied secret: it looks up an enabled
+`fake-only` provider account, decrypts a JSON `callback_secret`
+(length >= 32 bytes), and authenticates `sha256=<64 lowercase hex>` against
+HMAC-SHA256 over the exact UTF-8 string:
+
+```text
+<provider-account-id>\n<10-digit-UNIX-time>\n<raw-JSON-body>
+```
+
+The signature is checked in constant time, after strict time/size limits
+(300-second skew, 4 KiB raw body). The signed JSON object has exactly
+`event_id`, `provider_ref` and `status`; only a valid
+`status="delivered"` is accepted by this fake contract. The ref must
+resolve unambiguously to an `accepted` attempt for the same provider.
+The delivery must still be `accepted` and belong to an active client
+with an enabled matching provider route and channel, and no cross-tenant
+private-provider ownership mismatch.
+
+Persist only an HMAC of the event ID, opaque attempt relation and
+normalized status/timestamps in `callback_receipts`. The existing
+provider+event-HMAC unique index prevents duplicate recording; the
+delivery's row lock and state transition deny a second event.
+Both writes are atomic. No raw body/signature, provider secret, recipient
+or message text is persisted in callback_receipts.
+
+**Never reuse this fake signature protocol as a third-party provider
+protocol.** Each real provider requires its own documented signature/
+timestamp/replay and callback capability, URL/authentication/security
+review, delivery proof mapping and network tests before a public route
+can be considered. The new fake-only PHP tests and isolated MySQL
+runner extension have not yet been executed.
