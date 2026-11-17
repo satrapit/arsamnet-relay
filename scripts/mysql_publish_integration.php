@@ -7,6 +7,8 @@
  */
 
 use App\Jobs\StageDeliveryJob;
+use App\Enums\ProviderAttemptOutcome;
+use App\Services\DeliveryAttemptManager;
 use App\Services\DeliveryLeaseManager;
 use App\Services\MessagePublisher;
 use App\Support\MessagePublicationConflict;
@@ -232,12 +234,17 @@ function cleanup(?int $clientId): void
             }
         }
     }
-    DB::transaction(function () use ($clientId, $jobIds): void {
+    DB::transaction(function () use ($clientId, $jobIds, $deliveries): void {
         if ($jobIds !== []) {
             DB::table('jobs')->whereIn('id', $jobIds)->delete();
         }
+        if ($deliveries !== []) {
+            DB::table('delivery_attempts')->whereIn('delivery_id', $deliveries)->delete();
+        }
         DB::table('deliveries')->where('client_id', $clientId)->delete();
         DB::table('messages')->where('client_id', $clientId)->delete();
+        DB::table('client_provider_routes')->where('client_id', $clientId)->delete();
+        DB::table('provider_accounts')->where('client_id', $clientId)->delete();
         DB::table('delivery_targets')->where('client_id', $clientId)->delete();
         DB::table('api_keys')->where('client_id', $clientId)->delete();
         DB::table('clients')->where('id', $clientId)->delete();
@@ -341,6 +348,76 @@ try {
         runConcurrent($f);
         ensure(DB::table('messages')->count() === 2 && DB::table('deliveries')->count() === 2
             && DB::table('jobs')->count() === 2, 'Concurrent requests duplicated domain or queue rows.');
+
+        // This is a fake-only provider account, not a callable adapter.
+        $providerAccountId = DB::table('provider_accounts')->insertGetId([
+            'client_id' => $f['client'], 'adapter_code' => 'fake-only',
+            'channel' => 'email', 'display_name' => 'Integration-only fake provider',
+            'credentials_ciphertext' => Crypt::encryptString('inert-credentials'),
+            'enabled' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('client_provider_routes')->insert([
+            'client_id' => $f['client'], 'provider_account_id' => $providerAccountId,
+            'channel' => 'email', 'priority' => 1, 'enabled' => true, 'created_at' => now(),
+        ]);
+        $attempts = app(DeliveryAttemptManager::class);
+        $acceptedMessage = $publisher->publish(
+            $f['client'], $f['key'], 'attempt-accepted-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $acceptedDelivery = $acceptedMessage['delivery_ids'][0];
+        (new StageDeliveryJob($acceptedDelivery))->handle();
+        $acceptedToken = $leases->claim($f['client'], $acceptedDelivery, 60);
+        ensure(is_string($acceptedToken), 'Could not lease accepted-case delivery.');
+        $acceptedAttemptId = $attempts->begin(
+            $f['client'], $acceptedDelivery, $acceptedToken, $providerAccountId
+        );
+        ensure(is_int($acceptedAttemptId), 'Failed to persist started attempt.');
+        ensure(DB::table('delivery_attempts')->where('id', $acceptedAttemptId)
+            ->where('outcome', 'started')->exists(), 'Started attempt not durable.');
+
+        ensure($attempts->finish(
+            $f['client'], $acceptedDelivery, $acceptedToken,
+            $acceptedAttemptId, ProviderAttemptOutcome::Accepted, 202, 'opaque-test-ref-1'
+        ), 'Could not finish accepted attempt.');
+        ensure(DB::table('deliveries')->where('id', $acceptedDelivery)
+            ->where('state', 'accepted')->whereNull('lease_token')->exists(),
+            'Provider accepted was incorrectly marked delivered or retained a lease.');
+        ensure(DB::table('delivery_attempts')->where('id', $acceptedAttemptId)
+            ->where('outcome', 'accepted')->where('provider_ref', 'opaque-test-ref-1')->exists(),
+            'Accepted attempt missing normalized result.');
+        ensure(! $attempts->finish(
+            $f['client'], $acceptedDelivery, $acceptedToken,
+            $acceptedAttemptId, ProviderAttemptOutcome::Accepted
+        ), 'Duplicate completion of a provider attempt succeeded.');
+        echo "PASS: MySQL durable attempt start and accepted-not-delivered result; duplicate finish denied.\n";
+
+        $uncertainMessage = $publisher->publish(
+            $f['client'], $f['key'], 'attempt-ambiguous-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $uncertainDelivery = $uncertainMessage['delivery_ids'][0];
+        (new StageDeliveryJob($uncertainDelivery))->handle();
+        $uncertainToken = $leases->claim($f['client'], $uncertainDelivery, 60);
+        ensure(is_string($uncertainToken), 'Could not lease ambiguous-case delivery.');
+        $uncertainAttemptId = $attempts->begin(
+            $f['client'], $uncertainDelivery, $uncertainToken, $providerAccountId
+        );
+        ensure(is_int($uncertainAttemptId), 'Failed to persist ambiguous-case attempt.');
+        ensure($attempts->finish(
+            $f['client'], $uncertainDelivery, $uncertainToken,
+            $uncertainAttemptId, ProviderAttemptOutcome::Ambiguous
+        ), 'Could not record ambiguous attempt.');
+        ensure(DB::table('deliveries')->where('id', $uncertainDelivery)
+            ->where('state', 'review_required')
+            ->where('last_error_code', 'PROVIDER_AMBIGUOUS')->exists(),
+            'Ambiguous result did not require operator review.');
+        ensure($attempts->begin(
+            $f['client'], $uncertainDelivery, $uncertainToken, $providerAccountId
+        ) === null, 'Ambiguous attempt was automatically restarted.');
+        ensure(DB::table('delivery_attempts')->count() === 2,
+            'Unexpected additional provider attempt was created.');
+        echo "PASS: MySQL ambiguous result quarantined; no automatic retry or external send.\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
