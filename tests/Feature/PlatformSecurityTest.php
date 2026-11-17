@@ -53,6 +53,33 @@ class PlatformSecurityTest extends TestCase
             ->assertRedirect(route('security.setup'));
     }
 
+    public function test_failed_login_does_not_store_password_or_raw_ip(): void
+    {
+        $this->post('/login', [
+            'email' => 'missing@example.invalid',
+            'password' => 'example-private-password',
+        ])->assertSessionHasErrors('email');
+
+        $event = DB::table('security_events')->where('event_code', 'auth.login.failed')->first();
+        $this->assertNotNull($event);
+        $this->assertSame('{}', $event->context_json);
+        $this->assertSame(64, strlen($event->source_ip_hmac));
+        $this->assertStringNotContainsString('example-private-password', $event->context_json);
+    }
+
+    public function test_support_cannot_access_platform_security_monitor(): void
+    {
+        $user = $this->platformUser('support', true);
+        $this->actingAs($user)->get('/system/security')->assertForbidden();
+    }
+
+    public function test_security_monitor_reports_missing_scheduler_heartbeat(): void
+    {
+        $user = $this->platformUser('platform_admin', true);
+        $this->actingAs($user)->get('/system/security')
+            ->assertOk()->assertSee('Scheduler heartbeat is missing or stale');
+    }
+
     public function test_support_cannot_change_feature_flags(): void
     {
         $user = $this->platformUser('support', true);

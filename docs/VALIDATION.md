@@ -19,3 +19,11 @@
 | GitHub Actions workflows | NOT CREATED | Explicit requirement |
 
 Committed code is NOT equivalent to tested functionality. No production rollout occurred.
+
+## Follow-up implementation and narrow checks
+
+- PASS: design-pack offline Python validator executed in isolated environment (27 tables, 192 columns, 30 references, 27 CSV examples).
+- PASS: PHP `php -l` performed on the exact drafted source for SecurityAudit, SecurityEventRecorder and SecurityMonitorController. No Laravel runtime dependencies were used in those checks.
+- PASS: Node `node --check` run on the mobile drawer JavaScript before committing.
+- NOT RUN: PHP lint for the entire GitHub branch, PHPUnit, MySQL migrations, Composer and npm installs, Vite build and browser interaction tests.
+- Current security monitor is read-only and depends on the configured `ARSAM_AUDIT_HMAC_KEY` and migrated database.
