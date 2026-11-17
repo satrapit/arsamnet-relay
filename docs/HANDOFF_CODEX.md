@@ -4,9 +4,9 @@ Repository: https://github.com/satrapit/arsamnet-relay (PUBLIC). Branch: feat/la
 
 ## Current status
 
-- Original source specification is docs/MASTER_PROMPT.md. Proposed schema docs/ERD.dbml has 27 tables, 192 columns and 32 references. Four migration files are drafted, but not approved or tested.
+- Original specification is docs/MASTER_PROMPT.md. The current ERD has 27 tables, 192 columns and 32 references. All four initial migrations ran successfully on dedicated local MySQL 8.0.33; formal schema signoff remains pending.
 - Laravel 13 source, Fortify/Pennant configuration, admin MFA gate, protected CLI Super Admin, clients/key issuance/revocation, optional CIDR-bound machine API, global flags, responsive views and tests are committed.
-- Laravel dependencies, database tests, Vite build, official dbdiagram import, full TailAdmin Free integration, Graphify install, actual send adapters and cPanel deployment have NOT run.
+- Composer/npm dependency installation, Vite build and 35 Laravel tests (108 assertions, SQLite in-memory) succeeded on the developer Mac. Official dbdiagram import, full TailAdmin integration, Graphify install, live provider adapters and cPanel deployment remain untested/unimplemented.
 - Composer.lock and package-lock.json are absent until real dependency resolution. Do NOT manufacture them manually.
 
 ## Next work — ordered

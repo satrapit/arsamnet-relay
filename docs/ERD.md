@@ -2,7 +2,7 @@
 
 The canonical proposed diagram is docs/ERD.dbml (27 tables, 192 columns, 32 relationships). docs/ERD.csv is a column dictionary. docs/dbdiagram-csv contains one synthetic import CSV per table. Use DBML in dbdiagram.io for foreign keys and indexes; a single CSV is NOT a complete ERD interchange format.
 
-Four migration files currently mirror the proposed table inventory, but they have NOT been parsed against official DBML tooling, executed on MySQL 8 or approved by the owner.
+All four initial migration files have now been executed on dedicated local MySQL 8.0.33, and a read-only metadata inspection found two missing diagram references that have since been documented. Official DBML import, formal owner schema signoff and MySQL concurrency tests remain pending.
 
 ## Database vs application invariants
 
@@ -10,7 +10,7 @@ Composite tenant references protect subscriptions and deliveries. Application lo
 
 MySQL nullable unique keys do not guarantee uniqueness for shared templates with NULL client_id. Retention, encryption key rotation, payload hashes, provider result ambiguity, lease fencing, idempotency and quotas need application decisions/tests.
 
-Next gate: official DBML import, real MySQL migrations/rollback, Laravel Fortify/Pennant table parity and written owner signoff before non-disposable migrations.
+Next gate: rerun read-only `relay:db-verify` after correcting the ERD, verify MySQL tenant isolation on a **separate disposable test database**, complete official DBML import and written owner signoff before non-disposable schema changes.
 
 ## Repeatable field-name drift gate
 

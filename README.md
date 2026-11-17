@@ -14,7 +14,7 @@ Self-hosted, multi-client messaging and notification platform for Laravel 13, PH
 - Canonical proposed schema: docs/ERD.dbml; 27 tables, 192 columns, 32 relationships. Formal schema signoff is pending.
 - License decision and public security audit are pending. Never commit production secrets.
 
-## Code now present (not runtime-tested)
+## Code now present (initial tests passing; not production-ready)
 
 Official Laravel 13 scaffold; Fortify login/password reset/email verification; admin MFA gate; opt-in CLI Super Admin provisioning; initial roles/clients/API keys/audit table migrations; machine bearer key authorization and optional CIDR allowlist; Super Admin Pennant flags; responsive Tailwind 4 admin foundation with one TailAdmin Free MIT card component and a mobile drawer; local npm Font Awesome webfonts; bounded database queue Cron schedule; initial regression tests.
 
@@ -39,7 +39,7 @@ Configure .env DB credentials and APP_URL. Generate a separate audit key locally
 
 Put its output in ARSAM_AUDIT_HMAC_KEY in the PRIVATE .env. Do not commit it.
 
-**Only after ERD review and a disposable MySQL migration rehearsal:** run php artisan migrate. The draft migrations in this branch have not been applied or verified.
+The first four migrations were applied successfully to a dedicated local MySQL 8.0.33 database after an empty-schema preflight. **Do not rerun initialization or destructive migrations** on that populated database.
 
 For first Super Admin, temporarily enable ARSAM_PROVISION_ADMIN=true, clear any cached configuration and run:
 
@@ -51,7 +51,7 @@ The command prompts for the password securely. Disable provisioning immediately 
 
 Only public/ may be the web document root. Build public/build assets off-host; no Node runtime is required by cPanel. To use Scheduler, configure a verified every-minute Cron invoking php artisan schedule:run. No Redis/Supervisor/systemd/permanent process dependency.
 
-Dependency installation and Vite build succeeded on the developer Mac (Composer 133 packages, npm 102 packages). Unit tests passed (2), and 7 Feature tests passed before a stock example test failed because it expected HTTP 200 from the intentionally redirected root URL; the test expectation is fixed in the feature branch but awaits rerun. Database migrations have not been executed: the current configured MySQL name returned error 1049. The package lockfiles exist locally only, pending review/commit. See docs/VALIDATION.md and docs/LOCAL_DEVELOPMENT.md.
+Dependency installation and Vite build succeeded on the developer Mac (Composer 133 packages, npm 102 packages). The latest reported Laravel test run passed 35 tests / 108 assertions. All four migrations ran on local MySQL 8.0.33; the two initial schema verifier differences were **missing DBML annotations**, now corrected without SQL changes. Live verification after the correction is pending. The real package lockfiles exist locally but are not yet committed. See docs/VALIDATION.md and docs/LOCAL_DEVELOPMENT.md.
 
 No GitHub Actions workflows were created.
 
@@ -75,7 +75,7 @@ For first installation, `.env` creation, database-free Scheduler verification an
 
 ## Verified first test pass and migration rehearsal gate
 
-Mac developer output (2026-11-17): 26 Feature tests / 82 assertions and 2 Unit tests / 8 assertions passed using temporary SQLite. MySQL 8.0.33 connectivity to `arsamnet_relay` is confirmed, but the migrations have not yet been run. `php artisan relay:db-preflight --expect=arsamnet_relay` now safely verifies that the **selected local schema** (not every schema on the server) is empty before an optional first MySQL migration rehearsal. Do not run any reset/drop commands on shared databases.
+The initial preflight verified the dedicated local `arsamnet_relay` schema was empty **before** applying the four migrations. It is now populated; `relay:db-preflight` must no longer pass. Use `relay:db-verify` for read-only post-migration checks. Do not reset/drop shared or current databases.
 
  
 ## First successful MySQL migration
