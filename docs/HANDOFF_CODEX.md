@@ -57,7 +57,7 @@ Read the updated ClientApiKeyController and tests/Feature/ApiKeyLifecycleTest.ph
 - Added Platform Admin/Super Admin pages to add/remove per-client IP allowlist rules (max 64, tenant-scoped, recent password confirmation, HMAC-redacted audit); removing the last active rule requires exact `UNRESTRICT` input because an empty enabled list means any IP may authenticate with a valid key.
 - Review and run `tests/Feature/ClientIpAllowlistTest.php` and `tests/Feature/MachineApiTest.php` on a disposable MySQL 8 database. Test no-MFA, unauthorized role, concurrent network insert/delete, canceled last-rule deletion, cross-client IDOR, trusted proxy configuration, and revocation after changing rules.
 - Run `php scripts/offline/IpCidrSmoke.php` without Composer: 23 normalization/matching assertions passed in the authoring environment. `php -l` passed for IpCidr, its smoke script, ClientIpAllowlistController, and ClientIpAllowlistTest.
-- Run `python3 scripts/check_migration_parity.py` to detect table/column name drift; its parser passed good/bad **synthetic fixture** tests. An independent read-only GitHub source comparison showed 27/27 table names and 192/192 column names aligned across DBML and current migrations; official DBML parsing, types, defaults, indexes and MySQL execution remain NOT RUN.
+- Run `php scripts/check_migration_parity.php` to detect table/column name drift; its parser passed good/bad **synthetic fixture** tests. An independent read-only GitHub source comparison showed 27/27 table names and 192/192 column names aligned across DBML and current migrations; official DBML parsing, types, defaults, indexes and MySQL execution remain NOT RUN.
 - Corrected a broken Carbon namespace in the client API key expiry Blade expression.
 
 ## Developer Mac installation feedback and immediate next actions (2026-11-17)
@@ -98,10 +98,21 @@ See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/buil
 
 - Full Mac Laravel suite PASS: 35 tests, 108 assertions (SQLite :memory:).
 - `relay:db-verify` on MySQL initially FAIL with ONLY 2 unexpected direct client FKs, in `subscriptions` and `deliveries`. They already exist in migrations and actual MySQL. Added them to docs/ERD.dbml, which now declares 32 FKs; **no DDL needed**.
-- Added `scripts/check_migration_relationships.py` to detect DBML/migration FK drift. Static check found **32 matches / no differences** in current GitHub sources; run it on Mac and re-run `relay:db-verify`.
+- Added `scripts/check_migration_relationships.php` to detect DBML/migration FK drift. Static check found **32 matches / no differences** in current GitHub sources; run it on Mac and re-run `relay:db-verify`.
 - `./vendor/bin/pint --test` found 20 style issues among 61 files. On Mac run `./vendor/bin/pint`, then `./vendor/bin/pint --test`, then `php artisan test`. Commit formatting once tests pass; do not replace domain logic while doing a style-only cleanup.
 - Still uncommitted local lockfiles: composer.lock and package-lock.json. Add to feature branch after review, then push; keep PR #1 draft.
 
 ## Current CSV dictionary blocker fixed in source (2026-11-17)
 
-Developer Mac confirmed 35 tests/110 assertions, MySQL schema verifier full PASS (28 tables / 192 documented fields / 61 indexes / 32 FKs / 4 migration records), Pint --test PASS after 20 files reformatted, Composer strict validation PASS. `scripts/validate_design.py` failed because docs/ERD.csv had a literal two-line spreadsheet extraction preamble above its header. Source updated to remove just that preamble and improve strict dictionary/header checks; **await Mac re-run** before claiming PASS. Pint local edits and generated composer.lock/package-lock.json are uncommitted; commit reviewed changes on Mac once this passes.
+Developer Mac confirmed 35 tests/110 assertions, MySQL schema verifier full PASS (28 tables / 192 documented fields / 61 indexes / 32 FKs / 4 migration records), Pint --test PASS after 20 files reformatted, Composer strict validation PASS. `scripts/validate_design.php` failed because docs/ERD.csv had a literal two-line spreadsheet extraction preamble above its header. Source updated to remove just that preamble and improve strict dictionary/header checks; **await Mac re-run** before claiming PASS. Pint local edits and generated composer.lock/package-lock.json are uncommitted; commit reviewed changes on Mac once this passes.
+
+ 
+## PHP-only QA implementation (2026-11-17)
+
+The user explicitly requests PHP for all tests whenever practical. Replaced and removed the 3 Python schema test scripts, adding:
+
+- `app/Support/OfflineDesignChecks.php` (read-only, dependency-free), with methods to validate ERD/CSV samples, compare 27 migration tables/192 columns, and compare 32 FKs to DBML.
+- `scripts/validate_design.php`, `scripts/check_migration_parity.php`, `scripts/check_migration_relationships.php` as standalone PHP commands.
+- `tests/Unit/OfflineDesignChecksTest.php` containing five PHPUnit cases (await Mac execution).
+
+The validator was linted with PHP CLI and passed on an isolated representative PHP fixture (27 tables, 192 fields, 32 FKs, 27 sample CSVs), including negative mutation checks. This does **not** establish passing tests on the developer's real repository until the new PHP commands are run on Mac. Do not restore the retired .py files for QA. Node/npm remain necessary only for frontend asset builds. Existing 35 Laravel tests/110 assertions, real MySQL verifier and Pint were PASS before this change; local Pint/lockfile edits await review and user commit.

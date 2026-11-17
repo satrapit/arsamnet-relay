@@ -67,7 +67,7 @@ Platform admins can issue keys expiring after 7/30/90/365 days, revoke keys, or 
 
 Platform administrators can manage optional source-IP CIDR rules at **Clients → IP allowlist**. Rules are normalized (IPv4/IPv6), limited to 64 per client, require a recent password confirmation to edit and are audited without exposing raw network ranges in the audit payload. **An empty allowlist means no IP restriction**; removal of the final enabled rule requires typing `UNRESTRICT`. Never assume this replaces API-key authentication.
 
-Verification without Composer: `php scripts/offline/IpCidrSmoke.php` (23 assertions passed). For reproducible ERD/migration **name** comparison: `python3 scripts/check_migration_parity.py`. Run the real Laravel Feature suite and disposable MySQL checks before deploying.
+Verification without Composer: `php scripts/offline/IpCidrSmoke.php` (23 assertions passed). For reproducible ERD/migration **name** comparison: `php scripts/check_migration_parity.php`. Run the real Laravel Feature suite and disposable MySQL checks before deploying.
 
 ## Local development
 
@@ -85,4 +85,22 @@ On the developer Mac (2026-11-17), all four initial MySQL 8 migrations completed
  
 ## Current schema and quality gates (2026-11-17)
 
-The latest Mac run reports **35 passing PHPUnit tests / 108 assertions**, with all four migrations still `Ran`. The initial read-only MySQL verifier found two direct client foreign keys present in MySQL but missing from DBML. The DBML now documents **32 FK relationships**; no migration/schema change was needed. Run `python3 scripts/check_migration_relationships.py` and `php artisan relay:db-verify --expect=arsamnet_relay` to confirm the corrected source against the database. Pint reported 20 formatting issues; run `./vendor/bin/pint` locally, verify with `./vendor/bin/pint --test`, rerun PHPUnit and commit the resulting formatting changes plus the reviewed real Composer/npm lockfiles.
+The latest Mac run reports **35 passing PHPUnit tests / 108 assertions**, with all four migrations still `Ran`. The initial read-only MySQL verifier found two direct client foreign keys present in MySQL but missing from DBML. The DBML now documents **32 FK relationships**; no migration/schema change was needed. Run `php scripts/check_migration_relationships.php` and `php artisan relay:db-verify --expect=arsamnet_relay` to confirm the corrected source against the database. Pint reported 20 formatting issues; run `./vendor/bin/pint` locally, verify with `./vendor/bin/pint --test`, rerun PHPUnit and commit the resulting formatting changes plus the reviewed real Composer/npm lockfiles.
+
+
+## PHP-only QA checks
+
+All offline design/migration checks now run in **PHP**; no Python runtime or packages are required. Execute:
+
+```bash
+php scripts/validate_design.php
+php scripts/check_migration_parity.php
+php scripts/check_migration_relationships.php
+php scripts/offline/AuditIntegritySmoke.php
+php scripts/offline/IpCidrSmoke.php
+php artisan test
+php vendor/bin/pint --test
+php artisan relay:db-verify --expect=arsamnet_relay
+```
+
+The first five commands do not require Composer or a database. `php artisan test` runs configured SQLite in-memory tests; the last schema check queries a **local MySQL schema read-only** and expects `APP_ENV=local`. Use `php artisan config:clear` before Artisan verification. The older Python scripts are intentionally removed; the common `App\Support\OfflineDesignChecks` class is covered by PHPUnit negative/positive tests. Node/npm remain necessary for **building** frontend assets, not for these PHP checks.

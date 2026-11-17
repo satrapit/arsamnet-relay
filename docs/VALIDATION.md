@@ -42,7 +42,7 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 | IPv4/IPv6 normalization and CIDR matching | PASS | `php scripts/offline/IpCidrSmoke.php` — 23 assertions, no framework/database |
 | PHP syntax for newly authored CIDR/controller/tests | PASS | `php -l` on IpCidr, IpCidrSmoke, ClientIpAllowlistController, ClientIpAllowlistTest in local authoring container |
 | DBML vs draft migration table and column names | PASS (static comparison) | Live GitHub file content analysis found 27 matching tables, 192 matching columns; no extras |
-| Schema-parity CLI good and bad fixtures | PASS (synthetic) | `python3 scripts/check_migration_parity.py --root <fixture>`; correct schema passed; drift failed |
+| Schema-parity CLI good and bad fixtures | PASS (synthetic) | `php scripts/check_migration_parity.php --root <fixture>`; correct schema passed; drift failed |
 | Server Laravel Feature tests / MySQL migrations | NOT RUN | Composer and PHP extensions (mbstring, pdo_mysql, pdo_sqlite) absent; no MySQL test DB |
 | Dependency resolution / lockfiles / Vite build | NOT RUN | Registry access unavailable |
 | DBML official import, FK/type/default parity | NOT RUN | Only names were compared |
@@ -102,7 +102,7 @@ No schema signoff, version tag or production readiness claim.
 - PASS (developer Mac): `php artisan test` completed **35 tests, 108 assertions**. Four newly added schema-parser/verification-safety tests passed.
 - PASS: the four MySQL migration records remain in batch 1; no schema changes or reset were run.
 - `php artisan relay:db-verify --expect=arsamnet_relay` reported exactly two extra FKs: `subscriptions(client_id)->clients(id)` and `deliveries(client_id)->clients(id)`. These **already exist** in the deployed MySQL schema and in the initial migration code; the proposed DBML documentation omitted them.
-- FIXED IN SOURCE (not yet rerun on the developer Mac): Added both relationships to `docs/ERD.dbml`. The DBML now has **27 tables, 192 fields, 32 references**. Updated `SchemaManifest`, the unit test, and the offline design validator. Added `scripts/check_migration_relationships.py`, a source-level guard against ERD/Migration FK drift.
+- FIXED IN SOURCE (not yet rerun on the developer Mac): Added both relationships to `docs/ERD.dbml`. The DBML now has **27 tables, 192 fields, 32 references**. Updated `SchemaManifest`, the unit test, and the offline design validator. Added `scripts/check_migration_relationships.php`, a source-level guard against ERD/Migration FK drift.
 - PASS (read-only source inspection): all **32 DBML foreign keys correspond exactly to 32 FK declarations in the four migration files**. This is not the same as a passing MySQL verifier run after the fix.
 - `./vendor/bin/pint --test` found **20 style issues in 61 files**. These are code-formatting issues, not evidence of failing feature tests or database integrity. Run `./vendor/bin/pint` on the Mac, then rerun `./vendor/bin/pint --test` and `php artisan test` and commit the autoformatted changes.
 - UNTRACKED on Mac: real `composer.lock` and `package-lock.json`. Review and commit those, never invent them from logs.
@@ -114,5 +114,14 @@ No schema signoff, version tag or production readiness claim.
 - PASS (developer Mac): `relay:db-verify --expect=arsamnet_relay` — **28 tables including migrations**, **192 documented fields**, **61 indexes**, **32 restricted foreign keys**, and **four migration records**. No schema discrepancy remains.
 - PASS (developer Mac): `./vendor/bin/pint` corrected 20 formatting issues; subsequent `./vendor/bin/pint --test` scanned 61 PHP files with no violations; Composer strict validation also passed.
 - PASS: offline `check_migration_parity.py` (27/192) and `check_migration_relationships.py` (32 FKs).
-- FAIL at time of user run: `scripts/validate_design.py` because `docs/ERD.csv` contains two non-CSV sheet-description lines before its header. The content after those lines has **exactly 192 data records** and all table/column/type/index values match DBML; the source CSV preamble was removed in this commit, and validator header/identity/type checks improved. Run the script again on Mac; **not yet confirmed after source fix**.
+- FAIL at time of user run: `scripts/validate_design.php` because `docs/ERD.csv` contains two non-CSV sheet-description lines before its header. The content after those lines has **exactly 192 data records** and all table/column/type/index values match DBML; the source CSV preamble was removed in this commit, and validator header/identity/type checks improved. Run the script again on Mac; **not yet confirmed after source fix**.
 - PENDING: developer's local Pint changes (~20 tracked PHP files), composer.lock and package-lock.json remain uncommitted on Mac. Commit after review and passing validators; do not add .env.
+
+ 
+## QA tooling migrated to PHP (2026-11-17)
+
+- Developer's last reported pre-change results: **35 Laravel tests/110 assertions PASS**, real MySQL schema verifier **28 tables, 192 fields, 61 indexes, 32 restricted FKs, 4 migration records PASS**, Pint **61 files PASS**, strict Composer validation PASS, and all three legacy Python offline checks PASS.
+- Per user instruction, the **three Python scripts are now replaced** with dependency-free PHP scripts and one shared PHP validator. Tests are implemented in PHP by default. No dependency or MySQL table changes.
+- PASS (authoring environment): `php -l` on authored PHP validator and wrappers plus new PHPUnit test source. The PHP offline validation logic passed against a representative temporary 27-table / 192-field / 32-FK fixture with 27 CSV samples. Four intentionally invalid cases (unsupported schema alteration, unsupported FK deletion, duplicate migration columns and CSV type drift) were rejected.
+- NOT RUN YET (developer Mac): `php scripts/validate_design.php`, `php scripts/check_migration_parity.php`, `php scripts/check_migration_relationships.php`, new PHPUnit cases or Pint against these new files. The earlier Python output is historical only.
+- Local development checkout still has user-generated Pint changes and `composer.lock` / `package-lock.json` uncommitted. Review and push those in separate commits when current PHP checks pass.

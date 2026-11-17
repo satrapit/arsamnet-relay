@@ -52,7 +52,7 @@ After pulling, run the non-DB checks:
 ```bash
 php scripts/offline/AuditIntegritySmoke.php
 php scripts/offline/IpCidrSmoke.php
-python3 scripts/check_migration_parity.py
+php scripts/check_migration_parity.php
 php artisan route:list
 CACHE_STORE=array php artisan schedule:list
 ```
@@ -105,7 +105,7 @@ After pulling, run the non-DB checks:
 ```bash
 php scripts/offline/AuditIntegritySmoke.php
 php scripts/offline/IpCidrSmoke.php
-python3 scripts/check_migration_parity.py
+php scripts/check_migration_parity.php
 php artisan route:list
 CACHE_STORE=array php artisan schedule:list
 ```
@@ -198,9 +198,9 @@ The first `relay:db-verify` run found two relationships already enforced by MySQ
 ```bash
 git pull --ff-only origin feat/laravel13-foundation
 php artisan config:clear
-python3 scripts/validate_design.py
-python3 scripts/check_migration_parity.py
-python3 scripts/check_migration_relationships.py
+php scripts/validate_design.php
+php scripts/check_migration_parity.php
+php scripts/check_migration_relationships.php
 php artisan test
 php artisan relay:db-verify --expect=arsamnet_relay
 ```
@@ -217,3 +217,22 @@ composer validate --strict
 Pint changes the formatting of tracked PHP files; review the diff before committing. The already-generated local `composer.lock` and `package-lock.json` also need review and commit for reproducible builds. Do **not** stage `.env`, vendor or node_modules.
 
 If the database verifier still reports FK discrepancies, preserve the full output and stop before changing any MySQL constraints. The verifier is read-only and cannot repair a mismatch.
+
+ 
+## PHP-only validation commands (current)
+
+Use `php` for every application test and static schema check. The three former Python validation files were removed in favor of PHP equivalents:
+
+```bash
+php scripts/validate_design.php
+php scripts/check_migration_parity.php
+php scripts/check_migration_relationships.php
+php scripts/offline/AuditIntegritySmoke.php
+php scripts/offline/IpCidrSmoke.php
+php artisan config:clear
+php artisan test
+php vendor/bin/pint --test
+php artisan relay:db-verify --expect=arsamnet_relay
+```
+
+The offline `scripts/*.php` checks have no Composer, Node or DB dependency. The PHPUnit and Pint commands require local Composer installation. The MySQL verifier is read-only. For frontend compilation, `npm run build` is still required because Vite runs JavaScript tooling; it is not part of PHP validation.

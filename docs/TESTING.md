@@ -27,7 +27,7 @@ A separate `php -l` check passed for SecurityAudit, SecurityEventRecorder, Secur
 
 Run `php scripts/offline/IpCidrSmoke.php`: 23 checks passed offline on PHP 8.4.24 for valid/invalid IPv4/IPv6, canonicalization, /0 rejection, masks and mixed-family failures. This executes the actual `App\Support\IpCidr` class without a database. ClientIpAllowlistTest and MachineApiTest extend this coverage at HTTP/database level but have not been executed.
 
-Run `python3 scripts/check_migration_parity.py` for a **names-only** DBML/migration comparison. This script does not replace MySQL migration/rollback, FK/index checking or official DBML import. The parser itself was exercised with a correct and deliberately-drifted miniature fixture.
+Run `php scripts/check_migration_parity.php` for a **names-only** DBML/migration comparison. This script does not replace MySQL migration/rollback, FK/index checking or official DBML import. The parser itself was exercised with a correct and deliberately-drifted miniature fixture.
 
 ## First Composer installation smoke checks
 
@@ -38,6 +38,23 @@ User-reported macOS installation (2026-11-17): PHP 8.3.30, Composer 2.9.5, Node 
 
 The developer has reported **35 passing PHPUnit tests / 108 assertions** after the read-only DB schema verifier was added. The validator initially found two DBML-only omissions (the subscriptions/deliveries direct client foreign keys, already in MySQL); source documentation and verification expectations were updated to 32 total references.
 
-Use `python3 scripts/check_migration_relationships.py` to compare PHP migration FK declarations with DBML. A separate read-only MySQL check `php artisan relay:db-verify --expect=arsamnet_relay` must be rerun after pulling the updated DBML, before claiming full parity.
+Use `php scripts/check_migration_relationships.php` to compare PHP migration FK declarations with DBML. A separate read-only MySQL check `php artisan relay:db-verify --expect=arsamnet_relay` must be rerun after pulling the updated DBML, before claiming full parity.
 
 Pint `--test` reported 20 style issues across 61 scanned PHP files. Run `./vendor/bin/pint` on Mac for autofix, rerun `--test`, then PHPUnit. Formatting does not require or justify a database migration.
+
+ 
+## PHP-first test policy (2026-11-17)
+
+Use PHP for all testing and schema/ERD validation unless a non-PHP tool is technically indispensable. **No Python is required.** The former Python validation scripts were retired, and the PHP-only equivalents run without Composer:
+
+```bash
+php scripts/validate_design.php
+php scripts/check_migration_parity.php
+php scripts/check_migration_relationships.php
+php scripts/offline/AuditIntegritySmoke.php
+php scripts/offline/IpCidrSmoke.php
+```
+
+When Composer dependencies exist, use `php artisan test` for PHPUnit and `php vendor/bin/pint --test` to check PHP formatting. `php artisan relay:db-verify --expect=arsamnet_relay` is a separate read-only inspection of the configured local MySQL database. A new `tests/Unit/OfflineDesignChecksTest.php` covers positive schema matches and fail-closed behavior on unsupported migration declarations; test results from the developer Mac are still pending.
+
+**External runtime exception:** building Tailwind/Vite assets requires Node/npm. This does not require Python for tests.

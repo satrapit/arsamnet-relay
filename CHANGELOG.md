@@ -37,3 +37,5 @@ No version has been released.
 
 - Verified 35 Mac Laravel tests / 108 assertions. Reconciled two existing subscriptions/deliveries owner FKs missing from the ERD; documented 32 total relationships, no MySQL DDL changes.
 - Added a strict offline migration-to-ERD foreign-key parity checker. Awaiting new MySQL schema-verifier result and Pint autofix (20 reported style issues).
+
+- Replaced three Python QA tools with dependency-free PHP implementations and five PHPUnit cases; all future schema/design validation uses PHP as the default. No DB migrations or runtime changes.
