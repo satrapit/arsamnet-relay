@@ -43,3 +43,5 @@ No version has been released.
 - Fixed PHP-only FK validator handling of `foreign('delivery_id')->references('id')` alongside composite arrays, after Mac feedback; added three regression tests. MySQL schema unchanged. Pint rerun pending.
 
 - Drafted opt-in `POST /api/v1/messages` with encrypted transactional persistence, idempotency conflict detection, tenant-scoped targets and native database queue staging jobs containing only opaque IDs. No provider sending; off by default. Nine feature tests added (unexecuted on Mac).
+
+- First Mac runtime verification of the safe direct-publish stage: 9 feature tests/48 assertions PASS; all 52 Laravel tests/166 assertions PASS. MySQL metadata inspection PASS. Fixed new-file Pint formatting complaints (follow-up Mac run pending).

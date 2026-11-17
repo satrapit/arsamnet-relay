@@ -147,3 +147,14 @@ No schema signoff, version tag or production readiness claim.
 - DB design reused: encrypted messages, tenant-verified delivery targets, same-transaction per-delivery rows and native database queue records; database queue must use same DB connection. Stage worker does not contact any provider. No new migration/DDL.
 - **NOT RUN YET**: new Laravel feature tests, Pint, actual database job insert/worker handling after this commit, MySQL transactional concurrency/rollback behavior or production traffic. Do not claim live publish availability or delivery success.
 - Local developer still needs to push reviewed Pint formatting and real Composer/npm lockfiles. The new changes touch new PHP paths, routes/api.php, config/relay.php and .env.example, not the old Pint-modified files.
+
+
+## Publish staging QA — Mac output (2026-11-17)
+
+- PASS (developer Mac): `php artisan test --filter=PublishMessagesTest`: **9/9 tests, 48 assertions**. These cover encrypted persisted payloads, ID-only jobs, idempotency replay and conflicts, tenant ownership, scope gate and inert StageDeliveryJob.
+- PASS (developer Mac): complete `php artisan test`: **52/52 tests, 166 assertions**, SQLite in-memory.
+- PASS: `php -l` on MessagePublisher, StageDeliveryJob and PublishMessageController.
+- PASS (read-only Mac verification): `relay:db-verify --expect=arsamnet_relay` — 28 tables including migrations, 192 fields, 61 indexes, 32 restrict FKs and four migration records.
+- PENDING: `php vendor/bin/pint --test` found three style issues across 72 scanned files: `MessagePublisher.php`, `InvalidPublishTargets.php`, and `MessagePublicationConflict.php`. The new code changes align the publisher docblock and compact empty exception bodies; run Pint locally to finish all whitespace/spacing fixes and verify; not yet re-executed against new commit on Mac.
+- Git status at time of reported test included ~22 modified PHP source/test files from earlier Pint formatting and untracked local `composer.lock`, `package-lock.json`. Do not lose these changes; review, commit only tracked PHP formatting and the two lockfiles separately, and push before declaring the feature branch reproducible.
+- NOT YET RUN: real MySQL concurrency and domain transactional tests on a separate disposable MySQL DB, provider adapters/sends, production deployment and cPanel Cron.

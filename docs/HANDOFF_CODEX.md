@@ -135,3 +135,10 @@ Following 43 PASS / 118 assertions on developer Mac, a small, opt-in portion of 
 - `tests/Feature/PublishMessagesTest.php` has 9 new feature test cases (NOT EXECUTED YET). Run on developer Mac; do not merge if failures.
 - No new migration, no SQL changes, no prod send. Quotas, concurrent MySQL idempotency stress, topic fanout, provider adapters, lease claims, retry/ACK/DLQ, monitoring all remain future scope.
 - User's local Pint changes and actual lockfiles remain to be committed; this repo branch has not yet received them. Avoid overwriting those files. Keep PR #1 draft.
+
+
+## Latest Publish staging validation (2026-11-17)
+
+- Mac reported 9 Publish Feature tests PASS (48 assertions), total Laravel tests **52 PASS (166 assertions)** on SQLite :memory:. `php -l` for new PHP files PASS. Separate read-only real MySQL schema inspection PASS (28 tables, 192 documented fields, 61 indexes, 32 restricted FKs, four migrations).
+- Pint found three style-only issues on 72 PHP files: `app/Services/MessagePublisher.php`, `app/Support/InvalidPublishTargets.php`, and `app/Support/MessagePublicationConflict.php`. GitHub source now contains docblock alignment/empty-body formatting fix, but full Mac Pint rerun remains pending. Local `php vendor/bin/pint` may still be required for whitespace/unary-operator fixes. No application behavior change or migrations.
+- Existing local developer Pint changes and generated lockfiles remain uncommitted; push those in separate commits after final suite passes. Keep draft, feature OFF by default.

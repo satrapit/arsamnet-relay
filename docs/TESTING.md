@@ -70,3 +70,8 @@ After pulling, run `php scripts/check_migration_relationships.php`, `php artisan
 ## Publish staging feature tests — pending on developer Mac
 
 `php artisan test --filter=PublishMessagesTest` covers: disabled-by-default gate, encrypted local persistence, ID-only database queue job payloads, exact idempotency replay without duplicate jobs, conflicting replay, tenant/target isolation, scope restrictions, invalid headers and duplicate targets, deliberately inert job handling, and client-separated idempotency. These tests do not deliver SMS or email. Run `php artisan test` for the full regression suite and `php vendor/bin/pint --test` for formatting. For MySQL concurrency and worker failure handling use a **separate disposable MySQL integration database**, not the already migrated development schema.
+
+
+## First Publish runtime result
+
+The first Mac execution of `tests/Feature/PublishMessagesTest.php` passed all nine tests (48 assertions). Full SQLite PHPUnit result was 52 tests/166 assertions. A separate read-only MySQL schema check also passed. No real dispatch/provider or concurrent MySQL publishing was tested. The next QA gate is `php vendor/bin/pint --test` and a full regression rerun after formatting; then commit and push the developer's local Pint edits and actual generated Composer/npm lockfiles.
