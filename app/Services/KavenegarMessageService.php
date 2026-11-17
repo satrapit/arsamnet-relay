@@ -120,9 +120,9 @@ final class KavenegarMessageService
     {
         $phone = trim($raw);
         if (preg_match('/\A\+989[0-9]{9}\z/D', $phone)) {
-            $phone = '0'.substr($phone, 3);
+            $phone = '09'.substr($phone, 4);
         } elseif (preg_match('/\A989[0-9]{9}\z/D', $phone)) {
-            $phone = '0'.substr($phone, 2);
+            $phone = '09'.substr($phone, 3);
         }
 
         if (! preg_match('/\A09[0-9]{9}\z/D', $phone)) {
