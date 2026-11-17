@@ -85,3 +85,14 @@ The first Mac execution of `tests/Feature/PublishMessagesTest.php` passed all ni
 - Strict Composer validation and Git whitespace check: PASS.
 
 These results cover in-memory SQLite runtime and MySQL metadata, **not** MySQL concurrent publish durability. Lockfile/formatting Git commits are still pending.
+
+ 
+## Independent PHP-on-MySQL integration gate (pending)
+
+Unlike normal `php artisan test`, which deliberately forces ephemeral
+SQLite, `php scripts/mysql_publish_integration.php
+--expect=arsamnet_relay_integration_test` runs actual MySQL
+transaction/rollback and simultaneous PHP-process idempotency checks. It
+refuses anything but the explicitly prepared and empty isolated schema.
+It never runs migrations or reset commands. See `docs/MYSQL_INTEGRATION.md`
+for safe setup and command examples. **Not yet executed on the developer Mac.**

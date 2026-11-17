@@ -14,3 +14,14 @@ There is no active delivery job, message publishing route or DLQ processor in th
 The opt-in `POST /api/v1/messages` implementation creates an encrypted `messages` record, per-client `deliveries` records and native `jobs` queue records **inside one Laravel DB transaction**. It requires the database queue to use the same default connection; an explicitly different `DB_QUEUE_CONNECTION` is rejected rather than silently breaking atomicity. The job's serialized application data is only an opaque delivery ID. A 202 response represents durable local storage, not provider delivery or receipt.
 
 The `StageDeliveryJob` is deliberately inert with respect to providers: `queued → awaiting_provider`, or `queued → expired`. No provider account is contacted, no delivery attempt is generated, and no retries/failover/acknowledgements are claimed. Any future processing loop must recognize and re-drive `awaiting_provider` deliveries after the provider pipeline exists, with proper lease/fencing and poison message handling. Publish enablement defaults to false.
+
+ 
+## Real MySQL staging transaction verification (unexecuted)
+
+Two new PHP-only integration scripts independently check nested transaction
+rollback of message+delivery+native database job records and competing
+idempotent submissions from two PHP processes. They require an empty,
+separately migrated `arsamnet_relay_integration_test` schema and cannot run
+against the ordinary `arsamnet_relay` development database.
+Read `docs/MYSQL_INTEGRATION.md`. No provider calls, no sender/consumer
+loop and no destructive DB reset have been added.

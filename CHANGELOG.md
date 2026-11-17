@@ -47,3 +47,8 @@ No version has been released.
 - First Mac runtime verification of the safe direct-publish stage: 9 feature tests/48 assertions PASS; all 52 Laravel tests/166 assertions PASS. MySQL metadata inspection PASS. Fixed new-file Pint formatting complaints (follow-up Mac run pending).
 
 - Developer Mac confirmed 52/52 PHP tests (166 assertions), Pint 72/72 files, strict Composer validation and read-only MySQL metadata verifier all PASS after formatting. Local formatter diffs and two generated lockfiles remain uncommitted; concurrency/production tests still pending.
+
+- User committed/pushed the two genuine formatting/lockfile commits; Composer
+  and npm vulnerability audits reported zero advisories. Added safe PHP-only
+  MySQL integration schema setup and rollback/concurrent idempotency test
+  harness, not yet executed on the developer Mac.

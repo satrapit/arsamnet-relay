@@ -168,3 +168,27 @@ No schema signoff, version tag or production readiness claim.
 - **PASS:** `composer validate --strict`; `git diff --check` produced no errors.
 - Developer Mac `git status --short`: **25 tracked PHP files modified by Pint**, with untracked `composer.lock` and `package-lock.json`. Latest local diff reports 137 insertions and 75 deletions from formatting. These changes exist locally, **have not been pushed** and must be reviewed and committed on the Mac. No secret environment file appeared in reported status.
 - **NOT YET RUN:** PHP publish transaction/concurrency integration on separate disposable MySQL; cPanel host verification; provider sending. PR #1 remains Draft, publish default OFF.
+
+ 
+## Verified lockfile push / prepared MySQL integration (2026-11-17)
+
+- **PASS user Mac**: `bf5e94f` Pint formatting commit (25 files,
+  137 additions/75 deletions) and `c007f22` generated
+  `composer.lock` (10,148 lines) and `package-lock.json` (2,294 lines)
+  were successfully pushed to `origin/feat/laravel13-foundation`.
+  `git status --short` showed no output, confirming clean tracked/untracked
+  worktree at the time of the user command.
+- **PASS user Mac**: `composer validate --strict`, `composer audit --locked`,
+  `npm audit --audit-level=high`: no vulnerability advisories reported by
+  either audit at that time.
+- Prior full PHP regression: **52 passed / 166 assertions**, Pint all 72
+  files PASS, MySQL metadata verifier 28 tables, 192 fields, 61 indexes,
+  32 foreign keys PASS.
+- **SOURCE ADDED**: isolated integration schema creation and real MySQL
+  publish verification scripts, with exact environment/schema protection,
+  transaction rollback, idempotency replay/conflict, and two PHP processes
+  for concurrent requests. PHP CLI syntax checked in the isolated authoring
+  environment; **not executed on Mac or against an actual MySQL server**.
+- **NOT RUN:** integration database creation and migrations, real MySQL
+  concurrency/rollback assertions, provider deliveries, host production QA.
+  No database was created/altered from this authoring environment.

@@ -109,3 +109,14 @@ The first five commands do not require Composer or a database. `php artisan test
 ## Opt-in publish staging (development only)
 
 A first Milestone 3 draft adds `POST /api/v1/messages` with tenant-scoped target IDs, `messages.publish` scope, HMAC idempotency, encrypted message storage and native DB jobs carrying delivery IDs only. **Disabled by default**: `ARSAM_PUBLISH_ENABLED=false`. No live SMS/email/webhook dispatch, ACK, retries, provider receipt or actual delivery exists. New PHP feature tests have been authored but **not yet run on the developer Mac**. See [docs/API.md](docs/API.md) and [docs/QUEUE.md](docs/QUEUE.md).
+
+ 
+## Isolated MySQL integration QA
+
+The real MySQL transaction and two-process idempotency test harness is now
+available in PHP at `scripts/mysql_publish_integration.php` with a protected
+one-time schema creator `scripts/mysql_publish_prepare.php`. It uses the
+dedicated schema `arsamnet_relay_integration_test` and refuses to touch
+`arsamnet_relay`. No destructive reset or actual provider send is involved.
+**The Mac MySQL integration run is still pending.** See
+[docs/MYSQL_INTEGRATION.md](docs/MYSQL_INTEGRATION.md) for safe one-time setup.

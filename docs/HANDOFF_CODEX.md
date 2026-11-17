@@ -151,3 +151,28 @@ The developer Mac now reports **52/52 PHPUnit tests (166 assertions) PASS**, `pi
 The remaining source-control task is local: review and commit **25 modified tracked PHP files from Pint** (137 insertions/75 deletions), then review and commit the actual locally generated `composer.lock` and `package-lock.json` as a separate build commit, and `git push origin feat/laravel13-foundation`. These exact local files are inaccessible to the GitHub connector until pushed; never fabricate them. Check clean status and stash inventory after push. Do not merge PR yet.
 
 Next technical QA gate: concurrent idempotent publish and transaction rollback on a **separate, explicitly disposable** MySQL integration database, with PHP test harness. Do not run destructive refresh/rollback/migration tests against `arsamnet_relay`. Provider sending stays disabled.
+
+ 
+## Locks pushed; new MySQL integration test scripts (2026-11-17)
+
+Developer Mac completed the two local Git commits and push:
+- `bf5e94f` Laravel Pint formatting across 25 files.
+- `c007f22` genuine `composer.lock` and `package-lock.json`.
+- Composer validate/audit and npm high-severity audit all passed. Mac
+  `git status --short` was clean.
+- The baseline remains 52 PHPUnit PASS / 166 assertions and read-only
+  MySQL metadata verification PASS.
+
+Added `scripts/mysql_publish_prepare.php` (creates only a brand-new exact
+`arsamnet_relay_integration_test` schema) and
+`scripts/mysql_publish_integration.php` (guards local MySQL schema and empty
+tables; checks transactional rollback, sequential replay/conflict, staging-only
+state change, two-process idempotency race; cleans only its own fixtures).
+The code is in the feature branch, but MySQL execution on Mac is **NOT RUN**.
+Setup and execution details: `docs/MYSQL_INTEGRATION.md`.
+
+Important: the normal PHPUnit harness is **SQLite-only by force in
+phpunit.xml**, so run this integration CLI separately. Never use
+`migrate:fresh` or `db:wipe` on the current development schema. New
+integration schema creation requires real user action and is not assumed done.
+PR remains Draft; sending remains disabled by default.
