@@ -40,12 +40,12 @@ class AppServiceProvider extends ServiceProvider
             $id = $event->user?->getAuthIdentifier();
             SecurityEventRecorder::authenticationFailure('auth.login.failed', $id === null ? null : (int) $id);
         });
-        Event::listen(Lockout::class, fn (): void =>
-            SecurityEventRecorder::authenticationFailure('auth.login.locked')
-        );
-        Event::listen(TwoFactorAuthenticationFailed::class, fn (TwoFactorAuthenticationFailed $event): void =>
-            SecurityEventRecorder::authenticationFailure('auth.mfa.failed', (int) $event->user->getAuthIdentifier())
-        );
+        Event::listen(Lockout::class, function (Lockout $event): void {
+            SecurityEventRecorder::authenticationFailure('auth.login.locked');
+        });
+        Event::listen(TwoFactorAuthenticationFailed::class, function (TwoFactorAuthenticationFailed $event): void {
+            SecurityEventRecorder::authenticationFailure('auth.mfa.failed', (int) $event->user->getAuthIdentifier());
+        });
 
         RateLimiter::for('relay-machine', fn (Request $request) => [
             Limit::perMinute(120)->by(hash('sha256', (string) $request->ip())),
