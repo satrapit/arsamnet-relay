@@ -62,3 +62,9 @@ Run `php tests/offline/AuditIntegritySmoke.php` without Composer for the narrow 
 ## Machine API key lifecycle
 
 Platform admins can issue keys expiring after 7/30/90/365 days, revoke keys, or rotate keys. Rotation replaces the token in one database transaction (the old token is revoked immediately, and the replacement is shown once); the new token expires after 90 days. Operations require recent password confirmation and log a redacted HMAC-tagged audit event. Runtime integration tests are NOT RUN.
+
+## Client machine IP allowlist
+
+Platform administrators can manage optional source-IP CIDR rules at **Clients → IP allowlist**. Rules are normalized (IPv4/IPv6), limited to 64 per client, require a recent password confirmation to edit and are audited without exposing raw network ranges in the audit payload. **An empty allowlist means no IP restriction**; removal of the final enabled rule requires typing `UNRESTRICT`. Never assume this replaces API-key authentication.
+
+Verification without Composer: `php tests/offline/IpCidrSmoke.php` (23 assertions passed). For reproducible ERD/migration **name** comparison: `python3 scripts/check_migration_parity.py`. Run the real Laravel Feature suite and disposable MySQL checks before deploying.

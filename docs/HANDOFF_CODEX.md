@@ -50,3 +50,12 @@ This authoring environment lacks Composer, required PHP extensions and network a
 ## Key rotation continuation
 
 Read the updated ClientApiKeyController and tests/Feature/ApiKeyLifecycleTest.php. Confirm that the database transaction and lockForUpdate prevent concurrent rotation and prevent key ID crossing tenant boundaries. Verify expiry rejection and immediate revocation using MySQL 8, and confirm token display never leaks to logs/cache. Tests are authored, NOT executed in Laravel yet.
+
+## CIDR and tenant admin continuation (2026-11-17)
+
+- Added `app/Support/IpCidr.php` to normalize/match IPv4/IPv6 CIDRs; invalid masks and /0 are rejected. Machine bearer authentication now uses this shared parser.
+- Added Platform Admin/Super Admin pages to add/remove per-client IP allowlist rules (max 64, tenant-scoped, recent password confirmation, HMAC-redacted audit); removing the last active rule requires exact `UNRESTRICT` input because an empty enabled list means any IP may authenticate with a valid key.
+- Review and run `tests/Feature/ClientIpAllowlistTest.php` and `tests/Feature/MachineApiTest.php` on a disposable MySQL 8 database. Test no-MFA, unauthorized role, concurrent network insert/delete, canceled last-rule deletion, cross-client IDOR, trusted proxy configuration, and revocation after changing rules.
+- Run `php tests/offline/IpCidrSmoke.php` without Composer: 23 normalization/matching assertions passed in the authoring environment. `php -l` passed for IpCidr, its smoke script, ClientIpAllowlistController, and ClientIpAllowlistTest.
+- Run `python3 scripts/check_migration_parity.py` to detect table/column name drift; its parser passed good/bad **synthetic fixture** tests. An independent read-only GitHub source comparison showed 27/27 table names and 192/192 column names aligned across DBML and current migrations; official DBML parsing, types, defaults, indexes and MySQL execution remain NOT RUN.
+- Corrected a broken Carbon namespace in the client API key expiry Blade expression.

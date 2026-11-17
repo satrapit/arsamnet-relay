@@ -25,3 +25,6 @@ No version has been released.
 ### Additional foundation changes (unreleased)
 
 - Added expiring API keys with configurable TTL and transactional key rotation, including a cross-client negative regression test. Not validated against live MySQL.
+
+- Added normalized IPv4/IPv6 client source-IP allowlists, guarded admin CRUD, explicit last-rule opt-out, tenant scoping, audit event tags and 23 passing offline matcher checks.
+- Added an offline schema/table/column parity guard and fixed the key-expiration view's Carbon namespace. Runtime migrations and HTTP tests still pending.

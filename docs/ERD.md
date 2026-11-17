@@ -11,3 +11,7 @@ Composite tenant references protect subscriptions and deliveries. Application lo
 MySQL nullable unique keys do not guarantee uniqueness for shared templates with NULL client_id. Retention, encryption key rotation, payload hashes, provider result ambiguity, lease fencing, idempotency and quotas need application decisions/tests.
 
 Next gate: official DBML import, real MySQL migrations/rollback, Laravel Fortify/Pennant table parity and written owner signoff before non-disposable migrations.
+
+## Repeatable field-name drift gate
+
+The new `python3 scripts/check_migration_parity.py` checks table and column **names** between this DBML and PHP Schema::create declarations. An independent read-only comparison of actual GitHub sources found 27/27 matching table names and 192/192 field names. This provides no assurance about types, nullability, defaults, composite FKs, indexes, MySQL foreign-key compatibility, transaction behavior, or rollback. Signoff and real MySQL execution remain pending.

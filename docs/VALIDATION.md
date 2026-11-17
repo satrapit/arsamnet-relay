@@ -34,3 +34,18 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 
 - PASS: PHP syntax check (php -l) on the newly authored ClientApiKeyController and ApiKeyLifecycleTest, using an exact local source copy before the GitHub write.
 - NOT RUN: Laravel feature tests for API key lifecycle or concurrency on MySQL 8; these remain release blockers.
+
+## Continued foundation hardening — 2026-11-17
+
+| Check | Status | Evidence/limits |
+| --- | --- | --- |
+| IPv4/IPv6 normalization and CIDR matching | PASS | `php tests/offline/IpCidrSmoke.php` — 23 assertions, no framework/database |
+| PHP syntax for newly authored CIDR/controller/tests | PASS | `php -l` on IpCidr, IpCidrSmoke, ClientIpAllowlistController, ClientIpAllowlistTest in local authoring container |
+| DBML vs draft migration table and column names | PASS (static comparison) | Live GitHub file content analysis found 27 matching tables, 192 matching columns; no extras |
+| Schema-parity CLI good and bad fixtures | PASS (synthetic) | `python3 scripts/check_migration_parity.py --root <fixture>`; correct schema passed; drift failed |
+| Server Laravel Feature tests / MySQL migrations | NOT RUN | Composer and PHP extensions (mbstring, pdo_mysql, pdo_sqlite) absent; no MySQL test DB |
+| Dependency resolution / lockfiles / Vite build | NOT RUN | Registry access unavailable |
+| DBML official import, FK/type/default parity | NOT RUN | Only names were compared |
+| cPanel/CloudLinux live network/Cron/TLS | NOT RUN | No host access |
+
+No schema signoff, version tag or production readiness claim.
