@@ -19,6 +19,9 @@
             @can('clients.manage')
             <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('clients.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('clients.index') }}"><i class="fa-solid fa-users mr-2" aria-hidden="true"></i>Clients</a>
             @endcan
+            @can('security.monitor')
+            <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('security-monitor.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('security-monitor.index') }}"><i class="fa-solid fa-shield-halved mr-2" aria-hidden="true"></i>Security monitor</a>
+            @endcan
             @can('feature-flags.view')
             <a class="rounded-xl px-4 py-3 hover:bg-blue-50 {{ request()->routeIs('feature-flags.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('feature-flags.index') }}"><i class="fa-solid fa-toggle-on mr-2" aria-hidden="true"></i>Feature flags</a>
             @endcan
