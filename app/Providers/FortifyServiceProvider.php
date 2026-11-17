@@ -28,10 +28,15 @@ class FortifyServiceProvider extends ServiceProvider
             $email = Str::lower(trim((string) $request->input('email', '')));
             $user = User::query()->where('email', $email)->first();
 
-            return $user && $user->status === 'active'
-                && $user->password && Hash::check((string) $request->input('password'), $user->password)
-                    ? $user
-                    : null;
+            // Perform one password verification even when the user is absent or suspended.
+            // This dummy value is a public sentinel hash, never an account credential.
+            $dummyHash = '$2y$12$O0Lxs5GcV5AAw/l.Bi1unu9L8pTtpT0keBGT6dnbqVyJhleGafIpW';
+            $hash = $user?->password ?: $dummyHash;
+            $validPassword = Hash::check((string) $request->input('password'), $hash);
+
+            return $user && $user->status === 'active' && $user->password && $validPassword
+                ? $user
+                : null;
         });
 
         RateLimiter::for('login', fn (Request $request) => [

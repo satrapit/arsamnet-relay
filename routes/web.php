@@ -11,6 +11,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::view('/security/setup', 'security.setup')->name('security.setup');
     Route::middleware(['platform.mfa'])->group(function (): void {
         Route::view('/dashboard', 'dashboard.index')->name('dashboard');
+        Route::view('/security/recovery-codes', 'security.recovery-codes')
+            ->middleware('password.confirm')->name('security.recovery-codes');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
         Route::post('/clients', [ClientController::class, 'store'])
             ->middleware('password.confirm')->name('clients.store');

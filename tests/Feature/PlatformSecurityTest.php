@@ -62,6 +62,13 @@ class PlatformSecurityTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_recovery_codes_require_recent_password_confirmation(): void
+    {
+        $user = $this->platformUser('super_admin', true);
+        $this->actingAs($user)->get('/security/recovery-codes')
+            ->assertRedirect('/user/confirm-password');
+    }
+
     public function test_super_admin_can_change_optional_flag_with_audit(): void
     {
         $user = $this->platformUser('super_admin', true);

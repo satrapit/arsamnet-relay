@@ -19,8 +19,10 @@
     </form>
 @else
     <p class="my-4 text-sm text-green-700">Two-factor authentication is active.</p>
-    <p class="text-sm">Store your recovery codes in a secure password manager.</p>
-    <ul class="my-3 space-y-1 break-all font-mono text-xs">@foreach(auth()->user()->recoveryCodes() as $code)<li>{{ $code }}</li>@endforeach</ul>
-    <a class="text-sm font-semibold text-blue-700" href="{{ route('dashboard') }}">Continue to dashboard</a>
+    <p class="my-4 text-sm">Store your recovery codes in a secure password manager. Confirm your password to view them.</p>
+    <div class="flex flex-wrap gap-4">
+        <a class="font-semibold text-blue-700" href="{{ route('security.recovery-codes') }}">View recovery codes</a>
+        <a class="font-semibold text-blue-700" href="{{ route('dashboard') }}">Continue to dashboard</a>
+    </div>
 @endif
 @endsection
