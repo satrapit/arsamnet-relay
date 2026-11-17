@@ -84,6 +84,18 @@ class MachineApiTest extends TestCase
             ->withToken($token)->getJson('/api/v1/me')->assertUnauthorized();
     }
 
+    public function test_noncanonical_ip_rule_still_matches_using_network_prefix(): void
+    {
+        $client = $this->client('canonicalized');
+        $token = $this->issue($client);
+        DB::table('client_ip_allowlist')->insert([
+            'client_id' => $client, 'cidr' => '192.0.2.17/24',
+            'enabled' => true, 'created_at' => now(),
+        ]);
+        $this->withServerVariables(['REMOTE_ADDR' => '192.0.2.25'])
+            ->withToken($token)->getJson('/api/v1/me')->assertOk();
+    }
+
     public function test_revoked_token_is_denied(): void
     {
         $client = $this->client('revoked');

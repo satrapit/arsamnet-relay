@@ -32,7 +32,7 @@
         @foreach($keys->get($client->id, collect()) as $key)
         <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 text-xs">
             <span class="break-all">{{ $key->label }} · {{ $key->key_prefix }}… ·
-                {{ $key->revoked_at ? 'Revoked' : (($key->expires_at && IlluminateSupportCarbon::parse($key->expires_at)->isPast()) ? 'Expired' : 'Active') }}
+                {{ $key->revoked_at ? 'Revoked' : (($key->expires_at && \Illuminate\Support\Carbon::parse($key->expires_at)->isPast()) ? 'Expired' : 'Active') }}
                 · Expires: {{ $key->expires_at ?? 'Never' }} UTC</span>
             @unless($key->revoked_at)
                 <div class="flex flex-wrap items-center gap-3">
