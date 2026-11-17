@@ -169,3 +169,18 @@ and earlier MySQL acceptance remain the prior verified baseline.
 ## Fake signed receipt verified (Mac, 2026-11-17)
 
 Full PHP regression: **81 tests / 292 assertions PASS**. Independent PHP on real MySQL PASS for fake HMAC callback delivery proof, event replay rejection and tamper resistance, plus all previous transaction, lease and attempt checkpoints. Integration fixture cleaned to empty, primary schema read-only verification PASS. No public callback endpoint, real provider cryptographic contract or production call was tested.
+
+
+## Full fake-only publish-to-verified-receipt path — execution pending
+
+`php artisan test --filter=FakeDispatchCoordinatorTest` tests seven
+cases: publish/stage/lease/durable fake acceptance then separately signed
+callback; repeat dispatch refusal; cross-tenant isolation; disabled route
+and non-fake provider; invalid encrypted callback secret; expired message;
+and production-environment refusal before any lease/attempt.
+
+The existing isolated `scripts/mysql_publish_integration.php` now
+has an extra fake-only end-to-end message, validated for accepted-before-
+delivered, no duplicate dispatch, signed receipt correlation, one
+attempt/receipt and FK-safe cleanup. No new schema or migrations required.
+Both the new PHPUnit cases and the updated MySQL runner are **NOT RUN**.

@@ -86,3 +86,30 @@ timestamp/replay and callback capability, URL/authentication/security
 review, delivery proof mapping and network tests before a public route
 can be considered. The new fake-only PHP tests and isolated MySQL
 runner extension have not yet been executed.
+
+
+## Local fake-only dispatch coordination — internal and unverified
+
+`FakeDispatchCoordinator` composes the existing stages without a real
+provider adapter or network transport. It is **local/testing-only**,
+is **never registered as a queue worker**, and has no HTTP route. A single
+manual internal call is allowed for an already staged delivery only when:
+
+- The client is active and owns that delivery/target.
+- An enabled `fake-only` provider account matches the channel, belongs
+  to the same client (or is platform-shared), and has an enabled matching
+  route.
+- Its encrypted JSON credentials contain a fake `callback_secret` of
+  at least 32 bytes.
+
+It takes a fenced lease, durably records the first and only attempt, and
+immediately simulates `accepted` with a random opaque `fake-...`
+provider reference. It **never marks delivered**, performs network I/O,
+handles external credentials, or schedules retries. The separate local fake
+HMAC receipt service must authenticate a correctly signed `delivered`
+event before the delivery becomes `delivered`.
+
+Failure after obtaining a lease conservatively leaves the lease/attempt
+for later expiry review rather than silently resetting it to sendable.
+This is a test seam, **not a production provider or dispatch engine**.
+No PHP/real MySQL tests of the new coordinator have run on the developer Mac.

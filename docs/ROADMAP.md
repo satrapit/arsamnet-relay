@@ -47,3 +47,14 @@ state update. Nine PHP feature tests and an isolated MySQL extension
 are pending execution. No public callback endpoint, real adapter or
 third-party signature protocol has been implemented; production receipt
 processing is **not ready**.
+
+
+## Full fake-only dispatch lifecycle (source, awaiting QA)
+
+A local/testing-only coordinator connects the existing publish, stage,
+lease, durable attempt and verified fake callback primitives. This
+rehearses an end-to-end lifecycle without any actual SMS, SMTP or
+webhook transport, and without enabling queue consumption. Tests
+have been authored but are not yet executed on the developer Mac.
+Real provider selection, adapter integration, callbacks, quotas,
+automated retries and production release remain separate milestones.

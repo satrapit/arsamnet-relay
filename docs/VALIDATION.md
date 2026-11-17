@@ -297,3 +297,24 @@ No schema signoff, version tag or production readiness claim.
 - **PASS:** Read-only `php artisan relay:db-verify --expect=arsamnet_relay`: 28 tables (including migrations), 192 documented columns, 61 indexes, 32 restricted FKs and four migration records.
 - **PASS:** `git diff --check` reported no whitespace errors and `git status --short` reported no local changes in the submitted output.
 - This evidence **does not** validate a live provider signature, a network callback endpoint, multi-process replay races, production cPanel deployment or guaranteed external delivery. The fake callback service is local/testing-only.
+
+
+## New fake-only dispatch coordinator source — Mac QA PENDING
+
+- **Last verified before this change:** 81/81 PHP tests, 292 assertions,
+  MySQL 8 isolated signature/replay/attempt/lease/idempotency integration
+  PASS, original schema metadata verifier PASS, and clean local worktree.
+- **New unverified source:** `app/Services/FakeDispatchCoordinator.php`,
+  manually callable only in local/testing. Composes `DeliveryLeaseManager`,
+  `DeliveryAttemptManager` and a random fake provider reference to
+  simulate a durable accepted response without any network call.
+  Separate existing `FakeSignedCallbackReceipt` handles authenticated
+  delivery proof; coordinator NEVER marks delivered.
+- **New unverified tests:** seven cases in
+  `tests/Feature/FakeDispatchCoordinatorTest.php`; the existing
+  isolated MySQL integration runner now exercises the fake-only
+  publish→stage→lease→attempt→accepted→verified callback→delivered path.
+- **Not yet executed:** PHP lint, new tests, full suite, Pint, updated
+  MySQL integration runner. Do not claim these checks passed.
+- No provider or callback HTTP endpoint, no real sender, no migrations
+  and no change to production Cron/queue worker. Publish remains OFF.

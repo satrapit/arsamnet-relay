@@ -70,3 +70,17 @@ coordinator and ACK/callback validation remain unimplemented.
 
 The PHP-only regression and expanded isolated MySQL tests have been
 written but **NOT RUN YET** on developer Mac.
+
+
+## Fake-only end-to-end dispatch rehearsal (new source, unverified)
+
+The internal `FakeDispatchCoordinator` joins publish/stage with the
+already implemented lease/attempt/fake-receipt primitives. It is a
+**manual local/testing-only entrypoint**, not added to Cron, the native
+queue worker, a public API, or any outbound client. It requires the
+explicit fake provider and route, persists one attempt under a fenced
+lease, and simulates `accepted` but not `delivered`. Verified fake
+HMAC receipt remains a separate step. No automatic retry is added.
+
+Seven PHP Feature cases and additional isolated real MySQL integration
+assertions have been written, but have **NOT YET BEEN RUN ON MAC**.

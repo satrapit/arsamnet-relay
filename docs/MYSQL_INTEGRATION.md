@@ -199,3 +199,21 @@ test schema.
 ## Confirmed fake callback result (2026-11-17)
 
 Developer Mac execution confirmed the extended PHP MySQL runner passed signed fake callback acceptance, state change to delivered once, replay rejection, payload-tampering rejection and full FK-safe fixture cleanup. All prior transaction/idempotency/attempt/lease checks also passed. Do not confuse this with a third-party provider's real webhook authentication or load-test.
+
+
+## Fake-only full message lifecycle (new, not yet executed)
+
+The existing isolated PHP MySQL runner now adds one independently
+published message, runs `StageDeliveryJob`, calls the internal
+`FakeDispatchCoordinator` and verifies it durably produces exactly
+one `accepted` attempt (not delivered). It denies a duplicate
+coordinator call, signs a separate fake callback with the local fake
+account's secret, verifies the delivery becomes `delivered`, and
+checks precisely one attempt and one receipt. Its existing cleanup
+deletes the new fixture's dependent rows.
+
+The previous signed-receipt and concurrency integration had **PASSED**;
+this new coordinator section has **NOT YET RUN**. Use the already
+migrated, clean `arsamnet_relay_integration_test` schema only.
+Do **not** recreate it, rerun migrations, reset tables, or run a
+separate queue worker against it.

@@ -80,3 +80,10 @@ No version has been released.
   (Mac execution pending). No real provider callback route or send.
 
 - Verified full fake signed callback stage on developer Mac: 81 PHP tests and 292 assertions PASS; isolated real MySQL receipt verification, replay rejection and cleanup PASS; primary MySQL schema verification and clean Git worktree confirmed. No public callback endpoint or real provider sending.
+
+- Added an internal local/testing-only fake dispatch coordinator that
+  composes staged delivery, fenced lease, durable attempt and
+  simulated provider acceptance; a separately signed fake receipt
+  remains required for delivered state. Seven PHP Feature cases and
+  isolated MySQL full-lifecycle checks added; Mac execution pending.
+  No real adapter or network sends.

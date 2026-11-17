@@ -153,3 +153,14 @@ HMAC deduplication, tenant/attempt correlation and atomic
 real provider implementation and no new migration. New PHP/MySQL
 regressions have been authored but not yet executed on the developer Mac.
 See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+
+
+## Fake-only end-to-end dispatch verification (development)
+
+An internal `FakeDispatchCoordinator` provides a deliberately
+local/testing-only path for simulating a provider acceptance after
+publish/stage/lease/durable attempt. The previously added signed
+fake callback independently verifies delivery before marking
+`delivered`. Neither component exposes a public route or does
+outbound network I/O. Seven new PHP Feature tests and an isolated
+MySQL test extension have been written but await the next Mac run.

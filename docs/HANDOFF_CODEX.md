@@ -258,3 +258,24 @@ and PR Draft.
 ## Fake-only signed receipt QA PASSED (Mac, 2026-11-17)
 
 Developer reports 81 Laravel PHP tests/292 assertions all PASS. Isolated MySQL integration PASS including authenticated fake receipt accepted->delivered, duplicate/replayed and tampered receipt denied, plus prior rollback/idempotency/lease/attempt checks; test fixture cleanup succeeded. Primary schema verifier PASS (28 tables, 192 fields, 61 indexes, 32 restrict FKs, 4 migrations), and Git status clean. No public callback route, no external network or real adapter. PR Draft, Publish OFF. Next phase can integrate *internal fake-only* coordinator for a full local lifecycle test; never connect production worker to it.
+
+
+## FakeDispatchCoordinator (new unverified source) — 2026-11-17
+
+Previous Mac baseline: 81/81 PHP tests with 292 assertions PASS,
+independent MySQL fake HMAC receipt/replay and transaction/lease/race
+PASS, main schema verifier PASS, Git worktree clean.
+
+New `FakeDispatchCoordinator` provides manual **local/testing-only**
+fake dispatch, never a real adapter or queue worker. It checks a
+tenant-owned, staged delivery, enabled `fake-only` provider and
+channel-specific route, encrypted JSON fake callback secret, then
+claims a fenced lease, persists one started attempt and simulates
+accepted with a random fake provider reference; it never sends or
+marks delivered. A separately authenticated fake HMAC receipt is
+still necessary. Seven new `FakeDispatchCoordinatorTest` PHP Feature
+cases and an isolated MySQL end-to-end integration case are authored
+but NOT RUN on developer Mac. No DDL or migration modifications.
+Next run focused/full PHP tests, Pint, isolated real MySQL CLI, and
+inspect `git status --short` before any further implementation.
+No public callback or provider transport; keep PR Draft/publish OFF.
