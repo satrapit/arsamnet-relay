@@ -28,7 +28,7 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 - NOT RUN: PHP lint for the entire GitHub branch, PHPUnit, MySQL migrations, Composer and npm installs, Vite build and browser interaction tests.
 - Current security monitor is read-only and depends on the configured `ARSAM_AUDIT_HMAC_KEY` and migrated database.
 
-- PASS: `php tests/offline/AuditIntegritySmoke.php` executed against a temporary local source mirror using minimal stubs: six audit assertions passed. No Composer/Laravel or MySQL code was executed.
+- PASS: `php scripts/offline/AuditIntegritySmoke.php` executed against a temporary local source mirror using minimal stubs: six audit assertions passed. No Composer/Laravel or MySQL code was executed.
 - PASS: `php -l` on security audit implementation, event recorder, monitor controller, verification command and offline smoke test.
 - NOT RUN: Official DBML parser; MySQL schema/migrations; complete PHP lint and Laravel/PHPUnit suite; Vite production build and cPanel smoke checks.
 
@@ -39,7 +39,7 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 
 | Check | Status | Evidence/limits |
 | --- | --- | --- |
-| IPv4/IPv6 normalization and CIDR matching | PASS | `php tests/offline/IpCidrSmoke.php` — 23 assertions, no framework/database |
+| IPv4/IPv6 normalization and CIDR matching | PASS | `php scripts/offline/IpCidrSmoke.php` — 23 assertions, no framework/database |
 | PHP syntax for newly authored CIDR/controller/tests | PASS | `php -l` on IpCidr, IpCidrSmoke, ClientIpAllowlistController, ClientIpAllowlistTest in local authoring container |
 | DBML vs draft migration table and column names | PASS (static comparison) | Live GitHub file content analysis found 27 matching tables, 192 matching columns; no extras |
 | Schema-parity CLI good and bad fixtures | PASS (synthetic) | `python3 scripts/check_migration_parity.py --root <fixture>`; correct schema passed; drift failed |
