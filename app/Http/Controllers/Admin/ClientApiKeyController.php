@@ -37,7 +37,7 @@ class ClientApiKeyController extends Controller
             ]);
             SecurityAudit::record('api.key.issued', 'high', (int) $request->user()->getKey(), [
                 'client_id' => $client, 'key_id' => $id,
-            ], $client);
+            ], $client, $request->ip());
         });
 
         return response()->view('admin.api-key-created', ['owner' => $owner, 'token' => $token])
@@ -54,7 +54,7 @@ class ClientApiKeyController extends Controller
             abort_unless($updated === 1, 404);
             SecurityAudit::record('api.key.revoked', 'high', (int) $request->user()->getKey(), [
                 'client_id' => $client, 'key_id' => $key,
-            ], $client);
+            ], $client, $request->ip());
         });
 
         return back()->with('status', 'API key revoked.');

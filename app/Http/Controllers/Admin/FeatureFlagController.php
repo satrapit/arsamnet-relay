@@ -50,7 +50,7 @@ class FeatureFlagController extends Controller
                 'old_state' => $previous,
                 'new_state' => $enabled,
                 'scope' => 'global',
-            ]);
+            ], null, $request->ip());
         });
 
         return back()->with('status', 'Feature flag updated.');

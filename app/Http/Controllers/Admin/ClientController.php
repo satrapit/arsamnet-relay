@@ -45,7 +45,7 @@ class ClientController extends Controller
             ]);
             SecurityAudit::record('client.created', 'high', (int) $request->user()->getKey(), [
                 'client_id' => $id,
-            ], $id);
+            ], $id, $request->ip());
         });
 
         return back()->with('status', 'Client created.');
