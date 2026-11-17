@@ -23,8 +23,25 @@ final class KavenegarMessageService
     public function publish(int $clientId, int $apiKeyId, string $idempotencyKey, string $mode, array $items, array $meta): array
     {
         if (! in_array($mode, ['single', 'bulk', 'otp'], true)
-            || count($items) < 1 || count($items) > 25) {
+            || ! array_is_list($items) || count($items) < 1 || count($items) > 25
+            || ($mode !== 'bulk' && count($items) !== 1)) {
             throw new InvalidPublishTargets('Invalid SMS operation or batch size.');
+        }
+
+        if ($mode === 'otp') {
+            if (! is_string($meta['template'] ?? null)
+                || ! preg_match('/\A[A-Za-z][A-Za-z0-9_-]{0,63}\z/D', $meta['template'])
+                || ! is_string($meta['token'] ?? null)
+                || ! preg_match('/\A[A-Za-z0-9_-]{4,32}\z/D', $meta['token'])) {
+                throw ValidationException::withMessages(['token' => 'Invalid OTP template or token.']);
+            }
+        } else {
+            foreach ($items as $item) {
+                $content = $item['message'] ?? null;
+                if (! is_string($content) || $content === '' || strlen($content) > 4096) {
+                    throw ValidationException::withMessages(['message' => 'Invalid or oversized SMS text.']);
+                }
+            }
         }
 
         $phones = [];
