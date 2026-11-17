@@ -47,6 +47,6 @@ for name, columns in tables.items():
     assert len(rows) == 2 and rows[0] == columns
     assert len(rows[1]) == len(columns)
 
-assert len(tables) == 27 and len(dictionary) == 192 and len(refs) == 30
+assert len(tables) == 27 and len(dictionary) == 192 and len(refs) == 32
 print(f"PASS: {len(tables)} tables, {len(dictionary)} columns, {len(refs)} relationships, {len(samples)} CSV samples")
 print("NOT TESTED: DBML official parser, MySQL migration parity, Laravel/Fortify/Pennant runtime")

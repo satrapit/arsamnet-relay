@@ -90,8 +90,8 @@ final class SchemaManifest
             $references[] = self::referenceKey($match[1], $childCols, $match[3], $parentCols);
         }
 
-        if (count($tables) !== 27 || array_sum(array_map('count', $tables)) !== 192 || count($references) !== 30) {
-            throw new InvalidArgumentException('ERD manifest must contain 27 tables, 192 fields and 30 references.');
+        if (count($tables) !== 27 || array_sum(array_map('count', $tables)) !== 192 || count($references) !== 32) {
+            throw new InvalidArgumentException('ERD manifest must contain 27 tables, 192 fields and 32 references.');
         }
 
         return [

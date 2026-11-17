@@ -11,7 +11,7 @@ Self-hosted, multi-client messaging and notification platform for Laravel 13, PH
 - Planned hostname: arsamrelay.arsamnet.com (**not deployed or DNS-verified**).
 - Target version: 0.1.0-alpha.1 (**no tag published**).
 - Original requirements: docs/MASTER_PROMPT.md. Its older proposed repository address is superseded by this user's actual GitHub URL.
-- Canonical proposed schema: docs/ERD.dbml; 27 tables, 192 columns, 30 relationships. Formal schema signoff is pending.
+- Canonical proposed schema: docs/ERD.dbml; 27 tables, 192 columns, 32 relationships. Formal schema signoff is pending.
 - License decision and public security audit are pending. Never commit production secrets.
 
 ## Code now present (not runtime-tested)

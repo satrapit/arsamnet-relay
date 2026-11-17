@@ -1,6 +1,6 @@
 # ERD — review required
 
-The canonical proposed diagram is docs/ERD.dbml (27 tables, 192 columns, 30 relationships). docs/ERD.csv is a column dictionary. docs/dbdiagram-csv contains one synthetic import CSV per table. Use DBML in dbdiagram.io for foreign keys and indexes; a single CSV is NOT a complete ERD interchange format.
+The canonical proposed diagram is docs/ERD.dbml (27 tables, 192 columns, 32 relationships). docs/ERD.csv is a column dictionary. docs/dbdiagram-csv contains one synthetic import CSV per table. Use DBML in dbdiagram.io for foreign keys and indexes; a single CSV is NOT a complete ERD interchange format.
 
 Four migration files currently mirror the proposed table inventory, but they have NOT been parsed against official DBML tooling, executed on MySQL 8 or approved by the owner.
 
@@ -21,4 +21,4 @@ The new `python3 scripts/check_migration_parity.py` checks table and column **na
 
 The developer's Mac has successfully applied all four initial migration files to an empty local MySQL 8 database. This confirms the DDL executes but not that every column, foreign key and index matches the proposed ERD.
 
-A new read-only metadata verifier is available: `php artisan relay:db-verify --expect=arsamnet_relay`. It uses a restricted local parser to extract 27 tables, 192 fields and 30 relationships from this DBML and compares them with `information_schema`; declared indexes are checked too. The verifier remains unexecuted on the real database until the user runs it. No schema drop, rollback or destructive reset is part of this check.
+A new read-only metadata verifier is available: `php artisan relay:db-verify --expect=arsamnet_relay`. It uses a restricted local parser to extract 27 tables, 192 fields and 32 relationships from this DBML and compares them with `information_schema`; declared indexes are checked too. The verifier remains unexecuted on the real database until the user runs it. No schema drop, rollback or destructive reset is part of this check.

@@ -14,7 +14,9 @@ class SchemaManifestTest extends TestCase
 
         $this->assertCount(27, $design['tables']);
         $this->assertSame(192, array_sum(array_map('count', $design['tables'])));
-        $this->assertCount(30, $design['references']);
+        $this->assertCount(32, $design['references']);
+        $this->assertContains('subscriptions(client_id)->clients(id)', $design['references']);
+        $this->assertContains('deliveries(client_id)->clients(id)', $design['references']);
         $this->assertContains(
             'deliveries(message_id,client_id)->messages(id,client_id)',
             $design['references']
