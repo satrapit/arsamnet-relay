@@ -473,9 +473,26 @@ try {
         );
         $endToEndDelivery = $endToEnd['delivery_ids'][0];
         (new StageDeliveryJob($endToEndDelivery))->handle();
-        $fakeDispatch = app(FakeDispatchCoordinator::class)->dispatch(
+
+        // Scheduled messages must not dispatch early, even when the
+        // caller supplies a fake provider account explicitly.
+        DB::table('messages')->where('id', $endToEnd['message_id'])
+            ->update(['scheduled_at' => now()->utc()->addMinutes(10)]);
+        ensure(app(FakeDispatchCoordinator::class)->dispatchFirstEligible(
+            $f['client'], $endToEndDelivery
+        ) === null, 'Scheduled message selected a provider before due time.');
+        ensure(app(FakeDispatchCoordinator::class)->dispatch(
             $f['client'], $endToEndDelivery, $providerAccountId
+        ) === null, 'Explicit fake provider bypassed the future schedule.');
+        ensure(DB::table('delivery_attempts')->where('delivery_id', $endToEndDelivery)->count() === 0,
+            'An early scheduled fake dispatch created an attempt.');
+        DB::table('messages')->where('id', $endToEnd['message_id'])
+            ->update(['scheduled_at' => now()->utc()->subMinute()]);
+
+        $fakeDispatch = app(FakeDispatchCoordinator::class)->dispatchFirstEligible(
+            $f['client'], $endToEndDelivery
         );
+        echo "PASS: MySQL first eligible fake route respects message schedule before dispatch.\n";
         ensure(is_array($fakeDispatch)
             && is_int($fakeDispatch['attempt_id'])
             && is_string($fakeDispatch['provider_ref']),
@@ -483,9 +500,9 @@ try {
         ensure(DB::table('deliveries')->where('id', $endToEndDelivery)
             ->where('state', 'accepted')->exists(),
             'Fake dispatch incorrectly claimed completed delivery.');
-        ensure(app(FakeDispatchCoordinator::class)->dispatch(
-            $f['client'], $endToEndDelivery, $providerAccountId
-        ) === null, 'A second fake dispatch was incorrectly accepted.');
+        ensure(app(FakeDispatchCoordinator::class)->dispatchFirstEligible(
+            $f['client'], $endToEndDelivery
+        ) === null, 'A second first-route fake dispatch was incorrectly accepted.');
 
         $fakeTime = (string) time();
         $fakeBody = json_encode([
