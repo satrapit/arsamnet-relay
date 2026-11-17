@@ -72,3 +72,7 @@ Verification without Composer: `php scripts/offline/IpCidrSmoke.php` (23 asserti
 ## Local development
 
 For first installation, `.env` creation, database-free Scheduler verification and test/lockfile rules, follow [docs/LOCAL_DEVELOPMENT.md](docs/LOCAL_DEVELOPMENT.md). Do not run migrations on an unverified database.
+
+## Verified first test pass and migration rehearsal gate
+
+Mac developer output (2026-11-17): 26 Feature tests / 82 assertions and 2 Unit tests / 8 assertions passed using temporary SQLite. MySQL 8.0.33 connectivity to `arsamnet_relay` is confirmed, but the migrations have not yet been run. `php artisan relay:db-preflight --expect=arsamnet_relay` now safely verifies that the **selected local schema** (not every schema on the server) is empty before an optional first MySQL migration rehearsal. Do not run any reset/drop commands on shared databases.

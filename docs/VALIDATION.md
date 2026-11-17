@@ -73,3 +73,14 @@ No schema signoff, version tag or production readiness claim.
 - BLOCKED: `php artisan db:show` and `migrate:status` returned MySQL error 1049 for `arsamnet_relay` at 127.0.0.1:3306. Developer reports a database exists and is configured; host/port/name must be reconciled read-only before any migrations.
 - SOURCE FIX: stop tracking `public/build/.gitignore`, which Vite had removed locally; root .gitignore already excludes generated build assets.
 - NOT RUN: Full successful Feature suite, actual MySQL migrations/rollback, package lockfile commits, deploy. Draft PR remains unmerged.
+
+
+## Full Mac Feature pass and real MySQL connection (2026-11-17)
+
+- **PASS (user log):** PHPUnit Feature **26 tests / 82 assertions** with no failures; Unit **2 tests / 8 assertions**. Together **28 tests / 90 assertions**. These tests use SQLite `:memory:`, NOT MySQL 8.
+- **PASS (user log):** MySQL 8.0.33 available at 127.0.0.1:3306 and `DB_DATABASE=arsamnet_relay`. The previous 1049 error was resolved by replacing a hyphen with an underscore in the actual database name. `php artisan db:show` now connects.
+- The **393 tables / 510.86 MB** displayed by `db:show` span **other schemas visible to the root user** (e.g. other unrelated projects); they do NOT establish the table count of `arsamnet_relay`.
+- `php artisan migrate:status` reports `Migration table not found`, expected before first migration; it does not establish whether the target schema contains unrelated tables.
+- **Fix in new branch commit:** Removed Laravel scaffold DatabaseSeeder example user, eliminating a known/default account created by `db:seed`. Added fail-closed, read-only `php artisan relay:db-preflight --expect=arsamnet_relay` command to check local env, no config cache, MySQL 8, exact database and **zero** tables/views.
+- **Fix in new branch commit:** `composer setup` no longer overwrites an already set `APP_KEY`; changing it would invalidate encrypted database values.
+- **NOT YET RUN:** Three newly written bootstrap-safety Feature tests, actual database preflight, migrations against MySQL 8.0.33, foreign-key constraints on MySQL, rollback, final schema approval.

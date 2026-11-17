@@ -73,3 +73,13 @@ See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/buil
 - MySQL `db:show` and `migrate:status` fail 1049 "Unknown database arsamnet_relay", host 127.0.0.1, port 3306. User says a database exists. Inspect real host/port/schema and private .env; do not create or migrate until reconciled, and do not ask user for DB_PASSWORD.
 - Vite deleted tracked public/build/.gitignore. Removed from Git; generated /public/build/ is already ignored by root .gitignore.
 - Local Composer and npm lockfiles have not yet been committed. They need review and commit on dev machine; do not forge a lockfile from a log.
+
+
+## Full Mac Feature suite and migration safety gate (2026-11-17)
+
+- Mac Feature suite PASS: 26 tests/82 assertions. Unit suite PASS: 2 tests/8 assertions. Combined 28 tests/90 assertions, executed with in-memory SQLite; not validation of MySQL FKs.
+- MySQL 8.0.33 connection confirmed as `arsamnet_relay` on localhost:3306. Old 1049 name mismatch resolved (hyphen to underscore); `migrate:status` says migration tracking table not yet present.
+- Warning: `db:show` reported 393 tables in all visible schemas because current local MySQL user is root; **do not mistake these for Arsam Relay tables**. Read-only preflight now queries `information_schema.tables WHERE table_schema = DATABASE()` only.
+- Added `app/Console/Commands/MigrationTargetPreflight.php`, `php artisan relay:db-preflight --expect=arsamnet_relay` (read-only and refuse non-local/nonempty/mismatched databases), removed scaffold's predictable example seeded user, added `tests/Feature/DatabaseBootstrapSafetyTest.php` (3 tests unexecuted), fixed composer setup to preserve existing APP_KEY.
+- Only after `php artisan config:clear`, full test rerun and preflight PASS on an explicitly disposable local empty schema should the initial `php artisan migrate --database=mysql` rehearsal be attempted. If migration fails, STOP; MySQL DDL may have partially committed. Do not use `migrate:fresh` against shared data.
+- Local `composer.lock`/`package-lock.json` exist but still await review and push. Keep PR draft.

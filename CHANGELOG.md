@@ -28,3 +28,6 @@ No version has been released.
 
 - Added normalized IPv4/IPv6 client source-IP allowlists, guarded admin CRUD, explicit last-rule opt-out, tenant scoping, audit event tags and 23 passing offline matcher checks.
 - Added an offline schema/table/column parity guard and fixed the key-expiration view's Carbon namespace. Runtime migrations and HTTP tests still pending.
+
+- Confirmed macOS Laravel test run: 26 Feature tests (82 assertions) + 2 Unit tests (8 assertions) all pass on in-memory SQLite; MySQL DDL still untested.
+- Removed predictable default sample account from DatabaseSeeder; introduced read-only MySQL target/emptiness preflight for the first local migration; adjusted Composer setup to avoid rotating existing APP_KEY.

@@ -148,3 +148,24 @@ php artisan test --testsuite=Feature
 ```
 
 `composer audit --locked` reported no known advisories for the then-installed locks; it does not establish that every dependency or application is vulnerability-free. A Vite build deletes `public/build/.gitignore` because it replaces the entire build directory; the nested placeholder has now been removed from version control since the root `.gitignore` already ignores `/public/build/`.
+
+
+## Initial migration rehearsal — exact-schema preflight
+
+The developer has confirmed local PHP Unit/Feature suites pass (2+26 tests, 90 assertions), and MySQL 8.0.33 connects to the corrected `arsamnet_relay` schema. `db:show` may list hundreds of tables belonging to **other schemas** visible to the `root` user; do not treat the server-wide total as tables in the current schema.
+
+The project now includes a read-only guard designed for the **first migration** of a dedicated, empty, disposable local development database. Pull the latest feature branch and run:
+
+```bash
+php artisan config:clear
+php artisan test
+php artisan relay:db-preflight --expect=arsamnet_relay
+```
+
+This command uses the actual selected MySQL connection to validate all of: APP_ENV=local; configuration is not cached; driver=MySQL; MySQL 8.x server, not MariaDB; exact schema name matches `--expect`; and count of tables and views in **that schema only** equals zero. It performs **no writes** and does not print credentials.
+
+If preflight PASS and this database is exclusively for the project and can be discarded, you may test the initial migrations using `php artisan migrate --database=mysql`, then `php artisan migrate:status`. Migrations are MySQL DDL and a failing migration may have already created some tables: **STOP on any error; do not use `migrate:fresh`/reset/drop on this or another schema unless verified disposable**. Do not use the root MySQL user in production: create a dedicated least-privilege application DB user before deployment.
+
+The preflight only protects **the check at the time it runs**; always ensure no one edits the .env/selected connection between preflight and migration. Migration status being missing does not by itself imply the database is empty.
+
+The default `DatabaseSeeder` no longer inserts a predictable sample account. Real platform administrators must be provisioned via the explicit protected CLI. Composer `setup` no longer generates a replacement APP_KEY if the existing .env already has one.
