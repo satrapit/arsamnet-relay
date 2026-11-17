@@ -125,3 +125,15 @@ No schema signoff, version tag or production readiness claim.
 - PASS (authoring environment): `php -l` on authored PHP validator and wrappers plus new PHPUnit test source. The PHP offline validation logic passed against a representative temporary 27-table / 192-field / 32-FK fixture with 27 CSV samples. Four intentionally invalid cases (unsupported schema alteration, unsupported FK deletion, duplicate migration columns and CSV type drift) were rejected.
 - NOT RUN YET (developer Mac): `php scripts/validate_design.php`, `php scripts/check_migration_parity.php`, `php scripts/check_migration_relationships.php`, new PHPUnit cases or Pint against these new files. The earlier Python output is historical only.
 - Local development checkout still has user-generated Pint changes and `composer.lock` / `package-lock.json` uncommitted. Review and push those in separate commits when current PHP checks pass.
+
+ 
+## PHP-only QA first real run and scalar FK parser fix (2026-11-17)
+
+- Mac full Laravel test run: **39 passed / 1 failed, 114 assertions**, with only `OfflineDesignChecksTest::test_all_migration_foreign_keys_match_the_design` failing.
+- Mac `php scripts/validate_design.php`: PASS 27 tables, 192 fields, 32 relationships, 27 sample CSVs. `php scripts/check_migration_parity.php`: PASS 27/192.
+- Mac `php scripts/check_migration_relationships.php`: FAIL `Unsupported FK columns: 'delivery_id'`. Root cause: new PHP validator's `phpColumns()` recognized only composite PHP array syntax, not the valid single-column `foreign('delivery_id')->references('id')` form already used in migration files.
+- Source FIX: recognize both strictly quoted single-column names and bracketed arrays. Added regression tests for scalar/composite FKs and rejecting dynamically constructed column expressions. The underlying migrations, DBML and MySQL schema are **unchanged**.
+- PASS (authoring environment): standalone PHP 8.4 syntax check and offline 27-table/192-field/32-FK fixture checks, including scalar/composite FK positive checks and a negative dynamic-expression check. Mac rerun of new commit is **pending**; do not mark the entire suite PASS yet.
+- PASS (developer Mac): `relay:db-verify` independently confirmed 28 tables including migrations, 192 fields, 61 indexes, 32 restricted FKs and four migration records. `composer validate --strict` PASS.
+- Pint on Mac reports **1 formatting issue** in `app/Support/OfflineDesignChecks.php` (66 files scanned); run `php vendor/bin/pint` after retrieving fix, then check `php vendor/bin/pint --test` and rerun full PHPUnit.
+- User's local worktree still contains prior Pint changes (including this one PHP class) plus untracked generated `composer.lock` and `package-lock.json`. Preserve that work when pulling a source edit to the overlapping class; stage/review/commit later.

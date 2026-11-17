@@ -58,3 +58,10 @@ php scripts/offline/IpCidrSmoke.php
 When Composer dependencies exist, use `php artisan test` for PHPUnit and `php vendor/bin/pint --test` to check PHP formatting. `php artisan relay:db-verify --expect=arsamnet_relay` is a separate read-only inspection of the configured local MySQL database. A new `tests/Unit/OfflineDesignChecksTest.php` covers positive schema matches and fail-closed behavior on unsupported migration declarations; test results from the developer Mac are still pending.
 
 **External runtime exception:** building Tailwind/Vite assets requires Node/npm. This does not require Python for tests.
+
+ 
+## Scalar versus composite foreign-key checks
+
+The PHP-only migration relation checker accepts both `$table->foreign('delivery_id')->references('id')` and `$table->foreign(['message_id', 'client_id'])->references(['id', 'client_id'])`, with `restrictOnDelete()` required. The first Mac run failed on a valid scalar declaration; this parsing bug has been fixed and targeted PHPUnit regression tests added.
+
+After pulling, run `php scripts/check_migration_relationships.php`, `php artisan test`, and `php vendor/bin/pint --test`. The Mac's independent read-only MySQL structure verification already passed and requires no migration changes. Report the new result rather than assuming the fix is verified on Mac.

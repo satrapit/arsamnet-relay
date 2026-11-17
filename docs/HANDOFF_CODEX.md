@@ -116,3 +116,10 @@ The user explicitly requests PHP for all tests whenever practical. Replaced and 
 - `tests/Unit/OfflineDesignChecksTest.php` containing five PHPUnit cases (await Mac execution).
 
 The validator was linted with PHP CLI and passed on an isolated representative PHP fixture (27 tables, 192 fields, 32 FKs, 27 sample CSVs), including negative mutation checks. This does **not** establish passing tests on the developer's real repository until the new PHP commands are run on Mac. Do not restore the retired .py files for QA. Node/npm remain necessary only for frontend asset builds. Existing 35 Laravel tests/110 assertions, real MySQL verifier and Pint were PASS before this change; local Pint/lockfile edits await review and user commit.
+
+ 
+## PHP migration-FK checker fix — current Mac feedback (2026-11-17)
+
+The first developer Mac run of PHP-only QA passed design CSV checks (27/192/32/27) and column parity (27/192) but failed on `Unsupported FK columns: 'delivery_id'`. One PHPUnit case failed; total **39 PASS / 1 FAIL (114 assertions)**. This was a parser limitation, not invalid MySQL migration structure. Real MySQL metadata inspection separately passed 28 tables, 192 fields, 61 indexes, 32 restricted FKs, four migrations. Added support for both scalar and array syntax to `OfflineDesignChecks::phpColumns()` and regression tests for scalar, composite and malformed expressions. Offline PHP fixture tests passed in authoring environment, Mac rerun pending. Pint reported 1 new class styling issue among 66 files; apply Pint on Mac after updating the source.
+
+**WORKTREE MERGE SAFETY:** Developer Mac still holds uncommitted Pint formatting changes to 20+ PHP files, including `app/Support/OfflineDesignChecks.php`, and untracked composer.lock/package-lock.json. Pulling may fail because the new branch commit touches that same class. Back up/stash that file's formatting changes before fast-forward, then reapply Pint. Do not force-reset the whole working tree or lose generated lockfiles.

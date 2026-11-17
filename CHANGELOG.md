@@ -39,3 +39,5 @@ No version has been released.
 - Added a strict offline migration-to-ERD foreign-key parity checker. Awaiting new MySQL schema-verifier result and Pint autofix (20 reported style issues).
 
 - Replaced three Python QA tools with dependency-free PHP implementations and five PHPUnit cases; all future schema/design validation uses PHP as the default. No DB migrations or runtime changes.
+
+- Fixed PHP-only FK validator handling of `foreign('delivery_id')->references('id')` alongside composite arrays, after Mac feedback; added three regression tests. MySQL schema unchanged. Pint rerun pending.
