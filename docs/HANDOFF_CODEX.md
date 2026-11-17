@@ -220,3 +220,8 @@ no sender, no callback and no provider I/O. See `docs/PROVIDERS.md`,
 `docs/MYSQL_INTEGRATION.md`, and `docs/TESTING.md`.
 Keep feature OFF, PR Draft, and run Mac PHP tests/Pint/MySQL integration
 before any next implementation.
+
+
+## Actual provider-attempt milestone QA PASS — 2026-11-17
+
+Mac reports **10/10 DeliveryAttemptManager feature tests (50 assertions) PASS**, full **72/72 Laravel PHPUnit (257 assertions) PASS**, Pint **79 files PASS** and standalone isolated MySQL integration PASS with durable `started` attempts, accepted without delivered semantics, no duplicate finish, ambiguous quarantined without retransmission, two-process same-key race and fixture cleanup. Read-only main MySQL schema verify remains PASS (28 tables/192 fields/61 indexes/32 FKs/4 migrations). A **single local Pint-only edit** to `scripts/mysql_publish_integration.php` remains uncommitted in the output; review/commit/push it from Mac. No DDL or external sends. Keep PR Draft and publish off. Next security boundary is verified receipt/callback authentication with anti-replay, ownership and correlation; do not mark delivered from an unverified provider claim.

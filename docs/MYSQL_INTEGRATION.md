@@ -174,3 +174,8 @@ git status --short
 On a failure, **stop** before any manual cleanup or retry. Send the full
 error output for review. The integration runner itself will refuse a
 nonempty fixture database on the next run.
+
+
+## Attempt lifecycle integration PASS on developer Mac — 2026-11-17
+
+The additional fake-only attempt scenarios have now executed successfully on the isolated MySQL 8 schema. The runner confirmed durable `started` records, accepted without asserting delivered, duplicate finish prevention, ambiguous results quarantined without retransmission and full fixture cleanup. The prior rollback, lease and two-process idempotency checkpoints also passed. No provider API was called. The ordinary `arsamnet_relay` schema was independently verified read-only. This is an integration result, not a live provider contract or load-test result.

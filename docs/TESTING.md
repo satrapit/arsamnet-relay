@@ -143,3 +143,8 @@ rejects duplicate completion and automatic retries, then deletes only those
 fixtures. It still executes only on the dedicated pre-migrated, empty MySQL
 integration schema. The expanded runner's **new attempt checks are NOT RUN**
 on the developer Mac. No provider sends or schema alterations.
+
+
+## Confirmed provider-attempt regression — developer Mac
+
+All ten `DeliveryAttemptManagerTest` cases passed (50 assertions), the full PHP test suite passed **72 tests/257 assertions**, and Pint scanned **79 PHP files** successfully. The extended MySQL integration CLI also passed on the isolated schema, including durable `started` attempts and normalized accepted/ambiguous results with no provider I/O. The test database was returned to an empty fixture state. One formatter-only change in the integration script awaits a local Git commit. Callback verification and end-recipient delivery state changes remain outside this verified milestone.

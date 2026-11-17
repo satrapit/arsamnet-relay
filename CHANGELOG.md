@@ -70,3 +70,5 @@ No version has been released.
   ambiguous outcomes, strict fencing and sanitized status/ref values.
   Added ten PHP Feature cases and new fake-only MySQL integration checks.
   Actual execution on Mac remains pending; no provider adapter or sends.
+
+- Developer Mac verified internal provider-attempt accounting: ten new PHP feature tests/50 assertions, full suite 72/257, Pint 79 files and isolated real MySQL transaction/attempt/fencing/race checks all PASS. No provider calls. One local integration-test Pint formatting change awaits commit and push.

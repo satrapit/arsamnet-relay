@@ -245,3 +245,14 @@ No schema signoff, version tag or production readiness claim.
   status queries, safe auto-retry, production hosting tests.
 - No migration or database schema changes, no new route or sender job.
   Publish remains disabled by default. PR #1 remains Draft.
+
+
+## Provider attempt Mac verification — 2026-11-17 (confirmed)
+
+- **PASS**: all four new PHP files syntax checked: ProviderAttemptOutcome, DeliveryAttemptManager, DeliveryAttemptManagerTest, and mysql_publish_integration.
+- **PASS**: `php artisan test --filter=DeliveryAttemptManagerTest`: **10 tests, 50 assertions**.
+- **PASS**: full `php artisan test`: **72 tests, 257 assertions**; regular PHPUnit uses SQLite in memory.
+- **PASS**: `php vendor/bin/pint --test`: **79 PHP files**. The immediately preceding Pint fix applied one local style-only change in `scripts/mysql_publish_integration.php`; this local difference was **not yet committed or pushed** in the reported terminal output.
+- **PASS**: independent real MySQL 8 CLI integration on `arsamnet_relay_integration_test`: rollback of message/delivery/native queue job, sequential idempotency, request conflict rejection, inert StageDeliveryJob, lease claim/renew/quarantine, two-process same-key race, **durable attempt insertion**, accepted-not-delivered status and duplicate finish rejection, ambiguous-result quarantine without automatic retry, and final fixture cleanup to empty.
+- **PASS**: read-only `php artisan relay:db-verify --expect=arsamnet_relay`: 28 tables including migrations, 192 documented columns, 61 indexes, 32 restricted foreign keys, four migration records. `git diff --check` found no errors.
+- **NOT RUN / NOT IMPLEMENTED**: real outbound provider I/O, signed callback validation, ACK/delivered proof, automated retry/DLQ, concurrency load testing, cPanel production rehearsal. PR remains Draft and Publish defaults OFF.
