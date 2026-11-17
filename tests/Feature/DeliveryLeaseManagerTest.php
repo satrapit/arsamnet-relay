@@ -169,4 +169,32 @@ class DeliveryLeaseManagerTest extends TestCase
         $this->expectException(InvalidArgumentException::class);
         $leases->claim($fixture['client'], $fixture['delivery'], 0);
     }
+    public function test_lease_deadline_never_extends_past_message_expiration(): void
+    {
+        $fixture = $this->fixture('lease-deadline', 'awaiting_provider', 25);
+        $leases = app(DeliveryLeaseManager::class);
+        $token = $leases->claim($fixture['client'], $fixture['delivery'], 120);
+
+        $this->assertIsString($token);
+        $messageExpiry = DB::table('messages')->where('id', $fixture['message'])->value('expires_at');
+        $firstDeadline = DB::table('deliveries')->where('id', $fixture['delivery'])->value('lease_expires_at');
+        $this->assertLessThanOrEqual(strtotime((string) $messageExpiry), strtotime((string) $firstDeadline));
+
+        $this->assertTrue($leases->renew($fixture['client'], $fixture['delivery'], $token, 120));
+        $renewed = DB::table('deliveries')->where('id', $fixture['delivery'])->value('lease_expires_at');
+        $this->assertLessThanOrEqual(strtotime((string) $messageExpiry), strtotime((string) $renewed));
+    }
+
+    public function test_lease_renewal_stops_if_client_is_suspended(): void
+    {
+        $fixture = $this->fixture('lease-suspend-while-running');
+        $leases = app(DeliveryLeaseManager::class);
+        $token = $leases->claim($fixture['client'], $fixture['delivery']);
+        $this->assertIsString($token);
+
+        DB::table('clients')->where('id', $fixture['client'])->update(['status' => 'suspended']);
+
+        $this->assertFalse($leases->renew($fixture['client'], $fixture['delivery'], $token));
+    }
+
 }

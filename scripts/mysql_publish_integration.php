@@ -7,6 +7,7 @@
  */
 
 use App\Jobs\StageDeliveryJob;
+use App\Services\DeliveryLeaseManager;
 use App\Services\MessagePublisher;
 use App\Support\MessagePublicationConflict;
 use App\Support\SchemaManifest;
@@ -308,6 +309,34 @@ try {
             ->where('state', 'awaiting_provider')->exists(), 'Staging state transition failed.');
         ensure(DB::table('delivery_attempts')->count() === 0, 'Provider attempt created unexpectedly.');
         echo "PASS: stage worker changed only local state; no provider attempts.\n";
+
+        $leases = app(DeliveryLeaseManager::class);
+        $deliveryId = $first['delivery_ids'][0];
+        $token = $leases->claim($f['client'], $deliveryId, 30);
+        ensure(is_string($token) && strlen($token) === 36, 'Failed to claim fenced delivery lease.');
+        ensure($leases->claim($f['client'], $deliveryId) === null, 'Active lease was incorrectly reclaimed.');
+        ensure(! $leases->renew($f['client'], $deliveryId, 'wrong-worker-token'),
+            'Wrong fencing token was able to renew.');
+        ensure($leases->renew($f['client'], $deliveryId, $token, 60),
+            'The current fencing token could not renew its lease.');
+        ensure(! $leases->quarantineExpired($f['client'], $deliveryId),
+            'An unexpired lease was quarantined.');
+
+        DB::table('deliveries')->where('client_id', $f['client'])->where('id', $deliveryId)
+            ->update(['lease_expires_at' => now()->utc()->subSecond()]);
+        ensure(! $leases->renew($f['client'], $deliveryId, $token),
+            'An expired fencing token was allowed to renew.');
+        ensure($leases->quarantineExpired($f['client'], $deliveryId),
+            'Expired lease was not quarantined.');
+        ensure(DB::table('deliveries')->where('id', $deliveryId)
+            ->where('state', 'review_required')->whereNull('lease_token')
+            ->where('last_error_code', 'LEASE_EXPIRED_UNCERTAIN')->exists(),
+            'Quarantined lease retained a token or unexpected state.');
+        ensure($leases->claim($f['client'], $deliveryId) === null,
+            'A quarantined delivery was reclaimed without review.');
+        ensure(DB::table('delivery_attempts')->count() === 0,
+            'Lease-only test unexpectedly created a provider attempt.');
+        echo "PASS: real MySQL lease fencing, guarded renewal and ambiguous-expiry quarantine.\n";
 
         runConcurrent($f);
         ensure(DB::table('messages')->count() === 2 && DB::table('deliveries')->count() === 2
