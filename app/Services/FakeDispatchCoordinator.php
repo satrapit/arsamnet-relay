@@ -2,10 +2,12 @@
 
 namespace App\Services;
 
+use App\DTO\OutboundProviderRequest;
 use App\Enums\ProviderAttemptOutcome;
+use App\Enums\ProviderCapability;
+use App\Providers\Adapters\FakeOutboundProviderAdapter;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 use Throwable;
 
 /**
@@ -22,7 +24,7 @@ final class FakeDispatchCoordinator
     ) {}
 
     /**
-     * Simulate a provider accepting one staged delivery.
+     * Use the no-network fake adapter to accept one staged delivery.
      *
      * @return array{attempt_id: int, provider_ref: string}|null
      */
@@ -44,7 +46,7 @@ final class FakeDispatchCoordinator
             ->where('id', $deliveryId)
             ->where('client_id', $clientId)
             ->where('state', 'awaiting_provider')
-            ->first(['target_id']);
+            ->first(['target_id', 'message_id']);
 
         if (! $provider || ! $delivery
             || ($provider->client_id !== null && (int) $provider->client_id !== $clientId)
@@ -56,7 +58,7 @@ final class FakeDispatchCoordinator
             ->where('id', $delivery->target_id)
             ->where('client_id', $clientId)
             ->where('enabled', true)
-            ->first(['channel']);
+            ->first(['channel', 'address_ciphertext']);
 
         if (! $target || $target->channel !== $provider->channel
             || ! DB::table('client_provider_routes')
@@ -67,15 +69,34 @@ final class FakeDispatchCoordinator
             return null;
         }
 
+        $message = DB::table('messages')
+            ->where('id', $delivery->message_id)
+            ->where('client_id', $clientId)
+            ->first(['payload_ciphertext']);
+
+        if (! $message) {
+            return null;
+        }
+
+        // Keep decrypted destination/content in process memory only.
+        // This fake adapter performs no transport and no logging.
         try {
             $config = json_decode(Crypt::decryptString((string) $provider->credentials_ciphertext),
                 true, 512, JSON_THROW_ON_ERROR);
+            $destination = Crypt::decryptString((string) $target->address_ciphertext);
+            $content = Crypt::decryptString((string) $message->payload_ciphertext);
+            $request = new OutboundProviderRequest(
+                $deliveryId, (string) $target->channel, $destination, $content,
+            );
+            $adapter = new FakeOutboundProviderAdapter((string) $target->channel);
         } catch (Throwable) {
             return null;
         }
 
         if (! is_array($config) || ! is_string($config['callback_secret'] ?? null)
-            || strlen($config['callback_secret']) < 32) {
+            || strlen($config['callback_secret']) < 32
+            || $adapter->code() !== $provider->adapter_code
+            || ! in_array(ProviderCapability::Send, $adapter->capabilities(), true)) {
             return null;
         }
 
@@ -91,16 +112,43 @@ final class FakeDispatchCoordinator
             return null;
         }
 
-        $providerRef = 'fake-'.(string) Str::ulid();
+        // Provider calls happen only AFTER the durable attempt begins.
+        // A fake adapter never uses network I/O. If a future fault occurs,
+        // quarantine the attempt rather than blindly retrying.
+        try {
+            $result = $adapter->send($request);
+        } catch (Throwable) {
+            $this->attempts->finish(
+                $clientId, $deliveryId, $token, $attemptId,
+                ProviderAttemptOutcome::Ambiguous,
+            );
+
+            return null;
+        }
+
+        if ($result->outcome === ProviderAttemptOutcome::Accepted
+            && $result->providerReference === null) {
+            $this->attempts->finish(
+                $clientId, $deliveryId, $token, $attemptId,
+                ProviderAttemptOutcome::Ambiguous,
+            );
+
+            return null;
+        }
+
         if (! $this->attempts->finish(
             $clientId, $deliveryId, $token, $attemptId,
-            ProviderAttemptOutcome::Accepted, 202, $providerRef,
+            $result->outcome, $result->httpStatus, $result->providerReference,
         )) {
             return null;
         }
 
         // Accepted is not delivered; only a separately verified fake receipt
         // may transition this delivery to delivered.
-        return ['attempt_id' => $attemptId, 'provider_ref' => $providerRef];
+        if ($result->outcome !== ProviderAttemptOutcome::Accepted) {
+            return null;
+        }
+
+        return ['attempt_id' => $attemptId, 'provider_ref' => $result->providerReference];
     }
 }
