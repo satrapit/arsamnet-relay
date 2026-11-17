@@ -29,7 +29,7 @@ class SecurityMonitorController extends Controller
         return view('admin.security-monitor', [
             'events' => $events,
             'lastRun' => $lastRun,
-            'schedulerStale' => !$lastRun || Carbon::parse($lastRun, 'UTC')->lt(now()->utc()->subMinutes(3)),
+            'schedulerStale' => ! $lastRun || Carbon::parse($lastRun, 'UTC')->lt(now()->utc()->subMinutes(3)),
             'timeWindow' => '15 minutes',
         ]);
     }

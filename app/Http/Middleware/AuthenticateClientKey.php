@@ -2,8 +2,8 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
 use App\Support\IpCidr;
+use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -13,7 +13,7 @@ class AuthenticateClientKey
     public function handle(Request $request, Closure $next): Response
     {
         $raw = (string) $request->bearerToken();
-        if (!preg_match('/\Arelay_[a-f0-9]{64}\z/D', $raw)) {
+        if (! preg_match('/\Arelay_[a-f0-9]{64}\z/D', $raw)) {
             return $this->deny();
         }
 
@@ -28,12 +28,12 @@ class AuthenticateClientKey
             ->select('api_keys.*', 'clients.slug as client_slug')
             ->first();
 
-        if (!$key || !$this->allowedIp((int) $key->client_id, $request->ip())) {
+        if (! $key || ! $this->allowedIp((int) $key->client_id, $request->ip())) {
             return $this->deny();
         }
 
         $scopes = json_decode((string) $key->scopes, true);
-        if (!is_array($scopes)) {
+        if (! is_array($scopes)) {
             return $this->deny();
         }
 
@@ -53,7 +53,7 @@ class AuthenticateClientKey
             return true;
         }
 
-        if (!$ip) {
+        if (! $ip) {
             return false;
         }
 

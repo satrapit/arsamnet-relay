@@ -43,8 +43,7 @@ class FortifyServiceProvider extends ServiceProvider
             Limit::perMinute(5)->by(hash('sha256', Str::lower((string) $request->input('email', '')).'|'.$request->ip())),
             Limit::perMinute(30)->by(hash('sha256', (string) $request->ip())),
         ]);
-        RateLimiter::for('two-factor', fn (Request $request) =>
-            Limit::perMinute(5)->by(hash('sha256', (string) $request->session()->get('login.id').'|'.$request->ip()))
+        RateLimiter::for('two-factor', fn (Request $request) => Limit::perMinute(5)->by(hash('sha256', (string) $request->session()->get('login.id').'|'.$request->ip()))
         );
     }
 }

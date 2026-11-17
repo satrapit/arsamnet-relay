@@ -11,7 +11,7 @@ final class IpCidr
     public static function normalize(string $cidr): ?string
     {
         $parts = explode('/', trim($cidr));
-        if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '' || !ctype_digit($parts[1])) {
+        if (count($parts) !== 2 || $parts[0] === '' || $parts[1] === '' || ! ctype_digit($parts[1])) {
             return null;
         }
 
@@ -32,7 +32,7 @@ final class IpCidr
         for ($index = $fullBytes; $index < strlen($address); $index++) {
             $address[$index] = chr(
                 $index === $fullBytes && $partialBits > 0
-                    ? ord($address[$index]) & ((0xff << (8 - $partialBits)) & 0xff)
+                    ? ord($address[$index]) & ((0xFF << (8 - $partialBits)) & 0xFF)
                     : 0
             );
         }
@@ -65,7 +65,8 @@ final class IpCidr
             return true;
         }
 
-        $mask = (0xff << (8 - $partialBits)) & 0xff;
+        $mask = (0xFF << (8 - $partialBits)) & 0xFF;
+
         return (ord($remote[$fullBytes]) & $mask) === (ord($network[$fullBytes]) & $mask);
     }
 }

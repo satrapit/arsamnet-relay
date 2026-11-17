@@ -55,7 +55,7 @@ class ClientApiKeyController extends Controller
         DB::transaction(function () use ($request, $client, $key, $token): void {
             $old = DB::table('api_keys')->where('id', $key)->where('client_id', $client)
                 ->lockForUpdate()->first();
-            abort_unless($old && !$old->revoked_at, 404);
+            abort_unless($old && ! $old->revoked_at, 404);
 
             DB::table('api_keys')->where('id', $key)->where('client_id', $client)
                 ->update(['revoked_at' => now()->utc()]);

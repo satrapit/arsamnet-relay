@@ -21,16 +21,19 @@ final class VerifyDatabaseSchema extends Command
     public function handle(): int
     {
         $expectedName = (string) $this->option('expect');
-        if (!preg_match('/\A[a-zA-Z][a-zA-Z0-9_]{0,63}\z/D', $expectedName)) {
+        if (! preg_match('/\A[a-zA-Z][a-zA-Z0-9_]{0,63}\z/D', $expectedName)) {
             $this->error('Specify an exact database name with --expect=database_name.');
+
             return self::FAILURE;
         }
-        if (!app()->environment('local') || app()->configurationIsCached()) {
+        if (! app()->environment('local') || app()->configurationIsCached()) {
             $this->error('Verification requires a local environment and uncached configuration.');
+
             return self::FAILURE;
         }
         if (DB::connection()->getDriverName() !== 'mysql') {
             $this->error('This verification requires MySQL, not SQLite or MariaDB.');
+
             return self::FAILURE;
         }
 
@@ -39,14 +42,16 @@ final class VerifyDatabaseSchema extends Command
             $version = (string) (DB::selectOne('SELECT VERSION() AS server_version')?->server_version ?? '');
             if ($name !== $expectedName
                 || str_contains(strtolower($version), 'mariadb')
-                || !preg_match('/\A8\.\d+\.\d+(?:\D|$)/', $version)) {
+                || ! preg_match('/\A8\.\d+\.\d+(?:\D|$)/', $version)) {
                 $this->error('Target schema or MySQL 8 server version does not match.');
+
                 return self::FAILURE;
             }
 
             $source = file_get_contents(base_path('docs/ERD.dbml'));
             if ($source === false) {
                 $this->error('ERD.dbml could not be read.');
+
                 return self::FAILURE;
             }
             $design = SchemaManifest::parse($source);
@@ -79,6 +84,7 @@ final class VerifyDatabaseSchema extends Command
             $migrations = DB::table('migrations')->pluck('migration')->all();
         } catch (Throwable $exception) {
             $this->error('Cannot inspect local schema or parse the ERD: '.$exception->getMessage());
+
             return self::FAILURE;
         }
 
@@ -101,8 +107,9 @@ final class VerifyDatabaseSchema extends Command
         foreach ($design['tables'] as $table => $fields) {
             foreach ($fields as $field => $spec) {
                 $actual = $columns[$table][$field] ?? null;
-                if (!$actual) {
+                if (! $actual) {
                     $issues[] = 'Missing field: '.$table.'.'.$field;
+
                     continue;
                 }
 
@@ -135,12 +142,12 @@ final class VerifyDatabaseSchema extends Command
                     $found = false;
                     foreach ($realIndexes as $index) {
                         if ($index['table'] === $table && $index['fields'] === $expectedFields
-                            && (!$uniqueRequired || $index['unique'])) {
+                            && (! $uniqueRequired || $index['unique'])) {
                             $found = true;
                             break;
                         }
                     }
-                    if (!$found) {
+                    if (! $found) {
                         $issues[] = 'Missing '.($uniqueRequired ? 'unique/primary' : 'ordinary').
                             ' index: '.$table.'('.implode(',', $expectedFields).')';
                     }
@@ -189,6 +196,7 @@ final class VerifyDatabaseSchema extends Command
                 $this->error($issue);
             }
             $this->error('FAIL: '.count($issues).' schema discrepancies. Read-only; no changes made.');
+
             return self::FAILURE;
         }
 
@@ -199,6 +207,7 @@ final class VerifyDatabaseSchema extends Command
             $fieldCount.' documented fields, '.$indexCount.' declared indexes (including unique/primary), '.
             count($design['references']).' restricted FKs and 4 migration records.');
         $this->warn('Read-only verification. Does not prove runtime tenant isolation, column defaults, concurrent transactions or safe rollback.');
+
         return self::SUCCESS;
     }
 }

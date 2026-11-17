@@ -42,6 +42,7 @@ MIGRATION;
         $this->expectException(InvalidArgumentException::class);
         OfflineDesignChecks::parseMigrationReferences($source);
     }
+
     public function test_parser_accepts_scalar_explicit_foreign_key_columns(): void
     {
         $source = <<<'MIGRATION'
@@ -81,5 +82,4 @@ MIGRATION;
         $this->expectException(InvalidArgumentException::class);
         OfflineDesignChecks::parseMigrationReferences($source);
     }
-
 }

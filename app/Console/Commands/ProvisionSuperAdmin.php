@@ -8,16 +8,16 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rules\Password;
-use RuntimeException;
 
 class ProvisionSuperAdmin extends Command
 {
     protected $signature = 'relay:provision-admin {email : Verified email under your control} {--name= : Display name}';
+
     protected $description = 'Provision the first Super Admin from an explicitly enabled secure CLI session';
 
     public function handle(): int
     {
-        if (!config('relay.provision_admin')) {
+        if (! config('relay.provision_admin')) {
             $this->error('Admin provisioning disabled. Explicitly set ARSAM_PROVISION_ADMIN=true for this operation only.');
 
             return self::FAILURE;
@@ -54,7 +54,7 @@ class ProvisionSuperAdmin extends Command
 
         DB::transaction(function () use ($email, $name, $password): void {
             $roleId = DB::table('roles')->where('scope', 'platform')->where('code', 'super_admin')->value('id');
-            if (!$roleId) {
+            if (! $roleId) {
                 $roleId = DB::table('roles')->insertGetId([
                     'scope' => 'platform', 'code' => 'super_admin', 'created_at' => now()->utc(),
                 ]);

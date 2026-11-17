@@ -9,7 +9,7 @@ class CidrMatcherTest extends TestCase
 {
     public function test_matching_ipv4_and_ipv6_ranges(): void
     {
-        $guard = new AuthenticateClientKey();
+        $guard = new AuthenticateClientKey;
         $this->assertTrue($guard->matchesCidr('192.0.2.1', '192.0.2.0/24'));
         $this->assertFalse($guard->matchesCidr('192.0.3.1', '192.0.2.0/24'));
         $this->assertTrue($guard->matchesCidr('2001:db8::1', '2001:db8::/32'));

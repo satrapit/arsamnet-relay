@@ -29,7 +29,7 @@ final class OfflineDesignChecks
                 throw new InvalidArgumentException('Malformed ERD.csv row/index: '.($rowNumber + 1));
             }
             [, $table, $field, $type] = $row;
-            if (!isset($tables[$table][$field])) {
+            if (! isset($tables[$table][$field])) {
                 throw new InvalidArgumentException("Unexpected ERD.csv field: {$table}.{$field}");
             }
             $spec = $tables[$table][$field];
@@ -72,9 +72,9 @@ final class OfflineDesignChecks
         $found = self::parseMigrationTables(self::migrationSource($root));
         $issues = [];
         foreach (array_unique(array_merge(array_keys($expected), array_keys($found))) as $table) {
-            if (!isset($expected[$table])) {
+            if (! isset($expected[$table])) {
                 $issues[] = 'Migration-only table: '.$table;
-            } elseif (!isset($found[$table])) {
+            } elseif (! isset($found[$table])) {
                 $issues[] = 'DBML-only table: '.$table;
             } else {
                 foreach (array_diff(array_keys($expected[$table]), $found[$table]) as $field) {
@@ -137,6 +137,7 @@ final class OfflineDesignChecks
             }
             $tables[$table] = $fields;
         }
+
         return $tables;
     }
 
@@ -146,16 +147,18 @@ final class OfflineDesignChecks
         $references = [];
         foreach (self::migrationBlocks($source) as [$table, $body]) {
             foreach (preg_split('/\R/', $body) as $line) {
-                if (!str_contains($line, '->constrained(') && !str_contains($line, '$table->foreign(')) {
+                if (! str_contains($line, '->constrained(') && ! str_contains($line, '$table->foreign(')) {
                     continue;
                 }
                 if (preg_match('/\$table->foreignId\(\'([a-z_]+)\'\)(?:->nullable\(\))?->constrained\(\'([a-z_]+)\'\)->restrictOnDelete\(\)/', $line, $match)) {
                     $references[] = SchemaManifest::referenceKey($table, [$match[1]], $match[2], ['id']);
+
                     continue;
                 }
                 if (preg_match('/\$table->foreign\((.*?)\)->references\((.*?)\)->on\(\'([a-z_]+)\'\)->restrictOnDelete\(\)/', $line, $match)) {
                     $references[] = SchemaManifest::referenceKey($table, self::phpColumns($match[1]),
                         $match[3], self::phpColumns($match[2]));
+
                     continue;
                 }
                 throw new InvalidArgumentException('Unsupported FK declaration in '.$table.': '.trim($line));
@@ -164,6 +167,7 @@ final class OfflineDesignChecks
         if (count($references) !== count(array_unique($references))) {
             throw new InvalidArgumentException('Duplicate migration foreign-key declaration.');
         }
+
         return $references;
     }
 
@@ -174,6 +178,7 @@ final class OfflineDesignChecks
         if ($source === false) {
             throw new RuntimeException('Cannot read docs/ERD.dbml.');
         }
+
         return SchemaManifest::parse($source);
     }
 
@@ -192,6 +197,7 @@ final class OfflineDesignChecks
             }
             $all[] = $source;
         }
+
         return implode("\n", $all);
     }
 
@@ -215,6 +221,7 @@ final class OfflineDesignChecks
             $names[$match[1]] = true;
             $blocks[] = [$match[1], $match[2]];
         }
+
         return $blocks;
     }
 
@@ -251,6 +258,7 @@ final class OfflineDesignChecks
         } finally {
             fclose($handle);
         }
+
         return $rows;
     }
 

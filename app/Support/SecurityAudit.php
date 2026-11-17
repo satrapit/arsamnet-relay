@@ -28,7 +28,7 @@ final class SecurityAudit
         ];
         $safe = array_intersect_key($context, array_flip($allowed));
         foreach ($safe as $value) {
-            if (!is_scalar($value) && $value !== null) {
+            if (! is_scalar($value) && $value !== null) {
                 throw new RuntimeException('Unsupported security audit metadata.');
             }
         }
@@ -60,7 +60,7 @@ final class SecurityAudit
     {
         try {
             $decoded = json_decode((string) $row->context_json, true, 512, JSON_THROW_ON_ERROR);
-            if (!is_array($decoded)) {
+            if (! is_array($decoded)) {
                 return false;
             }
             ksort($decoded, SORT_STRING);
@@ -73,6 +73,7 @@ final class SecurityAudit
                 $row->source_ip_hmac === null ? null : (string) $row->source_ip_hmac,
                 $contextJson, $timestamp,
             );
+
             return is_string($row->record_hmac) && hash_equals($expected, $row->record_hmac);
         } catch (JsonException) {
             return false;
@@ -82,7 +83,7 @@ final class SecurityAudit
     private static function signingKey(): string
     {
         $key = config('relay.audit_hmac_key');
-        if (!is_string($key) || strlen($key) < 32) {
+        if (! is_string($key) || strlen($key) < 32) {
             throw new RuntimeException('Security audit signing key is not configured.');
         }
 

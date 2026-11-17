@@ -55,16 +55,18 @@ final class SchemaManifest
                     if ($isPrimary || $isUnique) {
                         $indexes[$table][] = [$name];
                     }
+
                     continue;
                 }
 
                 if (preg_match('/^    (?:\(([a-z_, ]+)\)|([a-z_]+))(?: \[(pk|unique)\])?\s*$/', $line, $index)) {
                     $columns = array_map('trim', explode(',', $index[1] !== '' ? $index[1] : $index[2]));
-                    if (!empty($index[3])) {
+                    if (! empty($index[3])) {
                         $indexes[$table][] = $columns;
                     } else {
                         $ordinaryIndexes[$table][] = $columns;
                     }
+
                     continue;
                 }
 
@@ -76,10 +78,10 @@ final class SchemaManifest
         }
 
         foreach (preg_split('/\R/', $dbml) as $line) {
-            if (!str_starts_with($line, 'Ref:')) {
+            if (! str_starts_with($line, 'Ref:')) {
                 continue;
             }
-            if (!preg_match('/^Ref:\s*([a-z_]+)\.(\([a-z_, ]+\)|[a-z_]+)\s*>\s*([a-z_]+)\.(\([a-z_, ]+\)|[a-z_]+)\s*\[delete:\s*restrict\]\s*$/', $line, $match)) {
+            if (! preg_match('/^Ref:\s*([a-z_]+)\.(\([a-z_, ]+\)|[a-z_]+)\s*>\s*([a-z_]+)\.(\([a-z_, ]+\)|[a-z_]+)\s*\[delete:\s*restrict\]\s*$/', $line, $match)) {
                 throw new InvalidArgumentException('Unsupported ERD foreign key: '.$line);
             }
             $childCols = self::columns($match[2]);

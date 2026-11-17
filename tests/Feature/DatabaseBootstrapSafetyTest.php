@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Database\Seeders\DatabaseSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -12,7 +13,7 @@ class DatabaseBootstrapSafetyTest extends TestCase
     public function test_default_seeder_does_not_install_a_predictable_user(): void
     {
         $this->artisan('db:seed', [
-            '--class' => \Database\Seeders\DatabaseSeeder::class,
+            '--class' => DatabaseSeeder::class,
             '--force' => true,
         ])->assertExitCode(0);
 
