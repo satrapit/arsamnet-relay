@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\PublishMessageController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -10,6 +11,8 @@ Route::get('/v1/status', fn () => response()->json([
 ]));
 
 Route::middleware(['throttle:relay-machine', 'relay.machine'])->group(function (): void {
+    Route::post('/v1/messages', PublishMessageController::class);
+
     Route::get('/v1/me', function (Request $request) {
         return response()->json([
             'data' => [
