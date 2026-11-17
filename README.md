@@ -58,3 +58,7 @@ No GitHub Actions workflows were created.
 ## Isolated smoke tests
 
 Run `php tests/offline/AuditIntegritySmoke.php` without Composer for the narrow Audit HMAC/redaction test. Run `php artisan relay:verify-audit --limit=1000` after installing dependencies and migrating the approved schema; it detects edits to rows under review but not deletions. See docs/VALIDATION.md for exact test evidence.
+
+## Machine API key lifecycle
+
+Platform admins can issue keys expiring after 7/30/90/365 days, revoke keys, or rotate keys. Rotation replaces the token in one database transaction (the old token is revoked immediately, and the replacement is shown once); the new token expires after 90 days. Operations require recent password confirmation and log a redacted HMAC-tagged audit event. Runtime integration tests are NOT RUN.

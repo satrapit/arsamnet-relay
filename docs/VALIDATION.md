@@ -31,3 +31,6 @@ Committed code is NOT equivalent to tested functionality. No production rollout 
 - PASS: `php tests/offline/AuditIntegritySmoke.php` executed against a temporary local source mirror using minimal stubs: six audit assertions passed. No Composer/Laravel or MySQL code was executed.
 - PASS: `php -l` on security audit implementation, event recorder, monitor controller, verification command and offline smoke test.
 - NOT RUN: Official DBML parser; MySQL schema/migrations; complete PHP lint and Laravel/PHPUnit suite; Vite production build and cPanel smoke checks.
+
+- PASS: PHP syntax check (php -l) on the newly authored ClientApiKeyController and ApiKeyLifecycleTest, using an exact local source copy before the GitHub write.
+- NOT RUN: Laravel feature tests for API key lifecycle or concurrency on MySQL 8; these remain release blockers.

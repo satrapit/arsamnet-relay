@@ -7,3 +7,7 @@ GET /api/v1/me: requires Authorization: Bearer relay_ followed by 64 lowercase h
 Admin web routes (Fortify sessions, not machine API) include /dashboard, /clients, /system/feature-flags and TOTP setup.
 
 Future /api/v1/messages, provider callbacks, topic management, delivery states, OpenAPI 3.1 and Postman/HTTPie imports are NOT implemented. Do not claim accepted/delivered responses until the dispatch pipeline exists.
+
+## API key expiration and rotation
+
+In the session-authenticated Clients screen, staff with clients.manage permission can issue an API key with 7/30/90/365-day TTL, rotate an existing active key to a new 90-day key, and revoke existing keys. Rotation uses a row lock plus transaction; never reuse an old token. No token appears in audit metadata. Source-only until integrated tests run.

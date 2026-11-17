@@ -21,3 +21,7 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 - Formal schema approval, cPanel deployment rehearsal and version tag.
 
 No version has been released.
+
+### Additional foundation changes (unreleased)
+
+- Added expiring API keys with configurable TTL and transactional key rotation, including a cross-client negative regression test. Not validated against live MySQL.
