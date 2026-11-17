@@ -50,10 +50,10 @@ for index, row in enumerate(dictionary):
     if row["index"] != str(index):
         raise AssertionError(f"ERD.csv index mismatch at data row {index + 1}")
     match = re.search(
-        rf"^  {re.escape(row['column'])} ((?:bigint|int|tinyint|smallint|boolean|datetime|char\\(\\d+\\)|varchar\\(\\d+\\)|longtext|text|json))(?: |$)",
+        rf"^  {re.escape(row['column'])} ((?:bigint|int|tinyint|smallint|boolean|datetime|char\(\d+\)|varchar\(\d+\)|longtext|text|json))(?: |$)",
         next(
             block.group(2)
-            for block in re.finditer(r"^Table ([a-z][a-z0-9_]*) \\{([\\s\\S]*?)^\\}", dbml, re.M)
+            for block in re.finditer(r"^Table ([a-z][a-z0-9_]*) \{([\s\S]*?)^\}", dbml, re.M)
             if block.group(1) == row["table"]
         ),
         re.M,
