@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->append(SecurityHeaders::class);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
+        // Never flash provider credentials, OTPs or plaintext SMS into sessions.
+        $exceptions->dontFlash(['api_key', 'token', 'token2', 'token3', 'sender', 'message']);
         $exceptions->render(function (ThrottleRequestsException $exception, Request $request): void {
             if ($request->isMethod('post') && $request->is('login', 'two-factor-challenge')) {
                 SecurityEventRecorder::authenticationFailure('auth.login.throttled');
