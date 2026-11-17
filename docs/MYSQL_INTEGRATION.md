@@ -222,3 +222,15 @@ separate queue worker against it.
 ## Full fake-only coordinator lifecycle executed on Mac
 
 Existing isolated real MySQL 8 script PASS for all baseline checkpoints and the new end-to-end fake dispatch plus separate authenticated fake receipt. Data returned to empty project tables; no new migrations, schema creation, drops, SMTP, SMS or outbound HTTP calls. This does not authorize a real provider send.
+
+
+## Adapter-wired fake coordinator regression — pending rerun
+
+The last developer run of the existing MySQL script passed every
+transaction/idempotency/lease/attempt/signed fake receipt/complete fake
+dispatch check. The internal fake coordinator has since been refactored
+to invoke the typed `FakeOutboundProviderAdapter` with a transient
+decrypted/validated request rather than inventing an accepted response.
+The MySQL runner itself is unchanged; **run it again to validate the new
+coordinator on the already migrated, empty integration schema**.
+No schema creation or migration rerun is necessary.

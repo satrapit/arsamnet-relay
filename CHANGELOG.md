@@ -94,3 +94,9 @@ No version has been released.
   transient/redacted/nonserializable outbound request, normalized result,
   and fake-only local/testing adapter with nine PHP contract tests
   (not yet executed on Mac). No real transports, worker connection or sends.
+
+- Mac validated provider contract (9 tests/37 assertions), full 97 PHP
+  tests/368 assertions, Pint 89 files, and isolated MySQL fake lifecycle.
+  Then connected the internal local-only fake coordinator to the new
+  typed provider adapter and added three encrypted-data/payload negative
+  PHP tests (new implementation pending Mac QA). No sends or migrations.

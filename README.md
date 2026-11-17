@@ -176,3 +176,12 @@ and performs no external I/O. Sensitive request objects reject
 serialization and redact debug output. New unit tests are written
 but have not run on Mac. No real provider delivery is enabled.
 See [docs/PROVIDERS.md](docs/PROVIDERS.md).
+
+
+## Fake transport contract integration
+
+The internal local/testing-only coordinator now actually uses the typed
+`FakeOutboundProviderAdapter` after persisting a delivery attempt. Its
+request contains the authorized target and message content only in memory
+and cannot be serialized to queue jobs. No real network traffic or
+production sender is enabled. New PHP/MySQL regression validation pending.

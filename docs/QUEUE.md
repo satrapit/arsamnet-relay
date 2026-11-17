@@ -84,3 +84,14 @@ HMAC receipt remains a separate step. No automatic retry is added.
 
 Seven PHP Feature cases and additional isolated real MySQL integration
 assertions have been written, but have **NOT YET BEEN RUN ON MAC**.
+
+
+## In-memory transport boundary for local fake flow
+
+Fake-only manual coordination now passes a nonserializable, short-lived
+`OutboundProviderRequest` to the typed no-network adapter only **after**
+the durable attempt begins. This request is never put on the Laravel
+database queue or logged. Corrupt encrypted targets/messages and excessive
+payloads stop the fake flow before its lease. Accepted is not delivered;
+ambiguous attempts do not automatically retry. This refactor is not
+wired to Cron or any production worker; QA is pending.

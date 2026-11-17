@@ -205,3 +205,8 @@ Expected total after the nine new tests: **97 tests** if all pass.
 These new tests are source-authored **NOT RUN**; the previously verified
 Mac baseline was 88 PHP tests/331 assertions, 83 Pint files and isolated
 real MySQL fake-only dispatch PASS.
+
+
+## Fake adapter to coordinator integration (new, pending verification)
+
+The previously isolated fake transport contract is now used in `FakeDispatchCoordinator`: encrypted destination and payload are decrypted in memory **only for the authorized local/testing fake path**, wrapped in a nonserializable `OutboundProviderRequest`, and supplied to `FakeOutboundProviderAdapter::send` after the durable attempt row is created. No real transmission is attempted. Added three failure-before-lease checks to `FakeDispatchCoordinatorTest` (corrupt target, corrupt message and >16 KiB plaintext). Focused fake coordinator cases total **10**; whole PHP test suite should total **100** if they pass. These added tests and the updated coordinator have **NOT RUN** on Mac. Prior verified baseline is 97/368 and full MySQL PASS.

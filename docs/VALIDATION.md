@@ -350,3 +350,14 @@ No schema signoff, version tag or production readiness claim.
   SMS/SMTP/webhook transports, provider credential selection, real
   callbacks, SSRF-safe outbound HTTP, automatic retries or production
   delivery guarantees. No schema changes or real I/O.
+
+
+## Provider adapter contract Mac QA PASS; fake coordinator integration pending
+
+- **PASS (developer Mac, 2026-11-17)**: PHP lint on all six contract-related files; `php artisan test --filter=ProviderAdapterContractTest`: **9 tests / 37 assertions**; full `php artisan test`: **97 tests / 368 assertions**.
+- **PASS**: `php vendor/bin/pint` and `php vendor/bin/pint --test`, all **89 PHP files** without formatting changes.
+- **PASS**: guarded isolated real MySQL 8 script against existing `arsamnet_relay_integration_test`, including rollback, idempotency race, lease fencing, durable attempts, fake signed receipt, fake-only complete end-to-end lifecycle and fixture cleanup to empty.
+- **PASS**: read-only original `arsamnet_relay` verifier: 28 tables including migrations, 192 documented fields, 61 indexes, 32 restricted foreign keys and four migration records. `git diff --check`, `git diff --stat`, and `git status --short` reported no changes.
+- **NEW SOURCE (NOT YET RUN ON MAC)**: `FakeDispatchCoordinator` now uses `OutboundProviderRequest` and `FakeOutboundProviderAdapter` directly for the simulated provider result, instead of constructing a fake reference itself. It validates existing authorized client/provider/route and decrypts address/payload in memory, rejecting invalid/oversized data before claiming a delivery lease. Only after a durable attempt exists does it call the **no-network** fake adapter and normalize the outcome through `DeliveryAttemptManager`; failures never auto-retry.
+- Added three negative PHP cases to the existing `FakeDispatchCoordinatorTest` (now **10 tests**). Expected full suite **100 PHP tests** if all pass. Existing MySQL script remains unchanged by this latest refactor and should be rerun as a regression; new code and test results remain **NOT RUN**.
+- No real SMS/SMTP/webhook sends, endpoint, migration, production queue change or provider access. Publish OFF and PR DRAFT.

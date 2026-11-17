@@ -154,3 +154,27 @@ guard, redacted debug output and serialization protection, invalid request
 inputs and normalized response metadata. **New code has NOT run on Mac**.
 Real adapters, selected providers, SSRF-safe webhook transports and
 callback authentication remain future implementation phases.
+
+
+## Fake coordinator wired to the adapter contract (source draft)
+
+`FakeDispatchCoordinator` now creates the transient
+`OutboundProviderRequest` using the tenant-owned delivery's encrypted
+target address and message payload. It validates and decrypts these only
+inside local/testing, after checking the active client, enabled target,
+fake provider and enabled same-channel route. Invalid ciphertext, bad
+channel or excessive plaintext is rejected **before** leasing and attempt
+creation.
+
+After taking a fenced lease and persisting one started attempt, the
+coordinator calls the no-network `FakeOutboundProviderAdapter::send`
+and applies only the normalized `OutboundProviderResult`. Simulated
+`accepted` remains **not delivered**; a separately authenticated fake
+signed callback is required. If the adapter throws or returns accepted
+without a provider reference, the attempt is conservatively treated as
+ambiguous rather than blindly requeued.
+
+This is an intentionally scoped fake-only transport integration. It does
+not register the fake adapter as a global provider, add a worker, decrypt
+real provider credentials for sending, or implement real SMS, SMTP and
+webhook networking. Code is **awaiting new Mac PHP/MySQL regression**.
