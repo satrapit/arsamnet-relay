@@ -12,6 +12,7 @@ Repository: satrapit/arsamnet-relay. Source requirements: docs/MASTER_PROMPT.md.
 - Do not store raw keys, OTP, provider credentials, recipient plaintext or sensitive exceptions in logs/jobs. No public admin registration or default passwords.
 - No GitHub Actions, no remote runtime assets, no committed secrets. Use local Font Awesome, Tailwind 4, and TailAdmin Free selectively after compatibility/CSP checks.
 - Explain to user in Persian. Source code/UI/docs/comments are English. Keep docs and tests in sync.
+- PHP-first QA is required: implement tests and offline schema/ERD/CSV/migration checks in PHP unless a task is technically impossible in PHP. Do not introduce Python scripts for routine tests. Run `php scripts/validate_design.php`, `php scripts/check_migration_parity.php`, `php scripts/check_migration_relationships.php` and `php artisan test`; the offline scripts do not need Composer.
 - Run actual commands before reporting PASS: Composer, artisan test, Pint, Vite, Composer audit, migration rollback, security and isolation tests. Otherwise mark NOT RUN.
 - Graphify is optional dev tooling; install verified graphifyy, run graphify codex install --project, query and update graph after meaningful structure changes. Ignore generated graphify-out.
 
