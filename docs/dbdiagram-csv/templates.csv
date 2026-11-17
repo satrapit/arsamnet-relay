@@ -1,0 +1,2 @@
+"id","client_id","code","channel","subject_template_ciphertext","body_template_ciphertext","enabled","created_at"
+"1","1","example","sms","ENCRYPTED_SAMPLE_ONLY","ENCRYPTED_SAMPLE_ONLY","1","2026-01-01 00:00:00"

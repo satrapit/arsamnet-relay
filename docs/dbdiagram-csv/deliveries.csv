@@ -1,0 +1,2 @@
+"id","client_id","message_id","target_id","subscription_id","state","attempt_count","next_attempt_at","lease_token","lease_expires_at","last_error_code","created_at","updated_at"
+"01ARZ3NDEKTSV4RRFFQ69G5FAV","1","example","1","1","example","1","2026-01-01 00:00:00","example","2026-01-01 00:00:00","example","2026-01-01 00:00:00","2026-01-01 00:00:00"
