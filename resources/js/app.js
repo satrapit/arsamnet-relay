@@ -30,8 +30,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     desktop.addEventListener('change', () => setOpen(false));
 
+    document.querySelectorAll('form[data-confirm]').forEach((form) => {
+        form.addEventListener('submit', (event) => {
+            if (!window.confirm(form.dataset.confirm)) event.preventDefault();
+        });
+    });
+
     document.querySelectorAll('[data-submit-once]').forEach((form) => {
         form.addEventListener('submit', (event) => {
+            if (event.defaultPrevented) return;
             if (form.dataset.submitted === 'true') {
                 event.preventDefault();
                 return;

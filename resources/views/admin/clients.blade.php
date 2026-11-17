@@ -21,15 +21,32 @@
             <input name="label" required maxlength="100" aria-label="Key label" placeholder="Key label" class="min-w-0 flex-1 rounded-lg border border-slate-300 p-2 text-sm">
             <label class="flex items-center gap-2 text-xs"><input name="scopes[]" type="checkbox" value="messages.publish" checked>Publish</label>
             <label class="flex items-center gap-2 text-xs"><input name="scopes[]" type="checkbox" value="messages.read">Read</label>
+            <label class="flex items-center gap-2 text-xs">Expires
+                <select name="ttl_days" aria-label="Key expiration" class="rounded-lg border border-slate-300 bg-white p-2">
+                    <option value="7">7 days</option><option value="30">30 days</option>
+                    <option value="90" selected>90 days</option><option value="365">365 days</option>
+                </select>
+            </label>
             <button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold">Issue API key</button>
         </form>
         @foreach($keys->get($client->id, collect()) as $key)
         <div class="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-lg bg-slate-50 p-3 text-xs">
-            <span>{{ $key->label }} · {{ $key->key_prefix }}… · {{ $key->revoked_at ? 'Revoked' : 'Active' }}</span>
+            <span class="break-all">{{ $key->label }} · {{ $key->key_prefix }}… ·
+                {{ $key->revoked_at ? 'Revoked' : (($key->expires_at && IlluminateSupportCarbon::parse($key->expires_at)->isPast()) ? 'Expired' : 'Active') }}
+                · Expires: {{ $key->expires_at ?? 'Never' }} UTC</span>
             @unless($key->revoked_at)
-            <form method="POST" action="{{ route('clients.keys.revoke', [$client->id, $key->id]) }}">@csrf
-                <button type="submit" class="font-semibold text-red-700">Revoke key</button>
-            </form>
+                <div class="flex flex-wrap items-center gap-3">
+                    <form method="POST" action="{{ route('clients.keys.rotate', [$client->id, $key->id]) }}"
+                          data-confirm="Rotate this key? The previous token will become invalid immediately." data-submit-once>
+                        @csrf
+                        <button type="submit" class="font-semibold text-blue-700">Rotate (90 days)</button>
+                    </form>
+                    <form method="POST" action="{{ route('clients.keys.revoke', [$client->id, $key->id]) }}"
+                          data-confirm="Permanently revoke this API key?" data-submit-once>
+                        @csrf
+                        <button type="submit" class="font-semibold text-red-700">Revoke key</button>
+                    </form>
+                </div>
             @endunless
         </div>
         @endforeach
