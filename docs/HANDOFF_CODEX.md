@@ -83,3 +83,12 @@ See docs/LOCAL_DEVELOPMENT.md. Composer (133 packages) and npm/Vite install/buil
 - Added `app/Console/Commands/MigrationTargetPreflight.php`, `php artisan relay:db-preflight --expect=arsamnet_relay` (read-only and refuse non-local/nonempty/mismatched databases), removed scaffold's predictable example seeded user, added `tests/Feature/DatabaseBootstrapSafetyTest.php` (3 tests unexecuted), fixed composer setup to preserve existing APP_KEY.
 - Only after `php artisan config:clear`, full test rerun and preflight PASS on an explicitly disposable local empty schema should the initial `php artisan migrate --database=mysql` rehearsal be attempted. If migration fails, STOP; MySQL DDL may have partially committed. Do not use `migrate:fresh` against shared data.
 - Local `composer.lock`/`package-lock.json` exist but still await review and push. Keep PR draft.
+
+ 
+## Milestone 1 first real MySQL migration completed — 2026-11-17
+
+- The user ran `php artisan test` with **31 PASS / 96 assertions** on SQLite :memory:. All initial MySQL 8.0.33 migrations ran without error on fresh, dedicated local `arsamnet_relay`. Preflight confirmed exactly zero tables before migrating; `migrate:status` reports the four project migrations in batch 1.
+- Added `app/Support/SchemaManifest.php` and read-only `app/Console/Commands/VerifyDatabaseSchema.php`: `php artisan relay:db-verify --expect=arsamnet_relay`. Checks 27 declared tables + migrations ledger, 192 documented column definitions, declared indexes and 30 restricted FK relationships (including tenant composites). No writes or drops; test results pending.
+- Added 4 new PHPUnit checks: tests/Unit/SchemaManifestTest.php (2) and tests/Feature/DatabaseSchemaVerificationSafetyTest.php (2). Must run on Mac.
+- **Do not run migrate:fresh, refresh, rollback, db:wipe, or any DROP on this migrated project database.** If verifier fails, identify metadata mismatch and review schema before change.
+- Lockfiles `composer.lock` and `package-lock.json` are still local user files, not yet committed. On Mac, validate/commit/push them explicitly and only from the project branch, without touching .env.

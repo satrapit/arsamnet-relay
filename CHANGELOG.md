@@ -31,3 +31,6 @@ No version has been released.
 
 - Confirmed macOS Laravel test run: 26 Feature tests (82 assertions) + 2 Unit tests (8 assertions) all pass on in-memory SQLite; MySQL DDL still untested.
 - Removed predictable default sample account from DatabaseSeeder; introduced read-only MySQL target/emptiness preflight for the first local migration; adjusted Composer setup to avoid rotating existing APP_KEY.
+
+- First real local MySQL 8 migration completed: four initial migrations applied in batch 1 after zero-table preflight; 31 PHPUnit tests / 96 assertions now pass on SQLite :memory:.
+- Added a read-only DBML-to-MySQL schema verifier checking field types/lengths, required flags, 30 restricted foreign-key relationships and declared indexes. Added four unexecuted safety/parser tests. No schema reset or rollback executed.

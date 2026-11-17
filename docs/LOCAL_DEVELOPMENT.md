@@ -169,3 +169,23 @@ If preflight PASS and this database is exclusively for the project and can be di
 The preflight only protects **the check at the time it runs**; always ensure no one edits the .env/selected connection between preflight and migration. Migration status being missing does not by itself imply the database is empty.
 
 The default `DatabaseSeeder` no longer inserts a predictable sample account. Real platform administrators must be provisioned via the explicit protected CLI. Composer `setup` no longer generates a replacement APP_KEY if the existing .env already has one.
+
+ 
+## After the first successful MySQL migration
+
+The first user-reported migration (2026-11-17) ran **all four project migrations successfully**, after read-only preflight confirmed an empty local MySQL 8 schema. This is now a **populated database**, so `relay:db-preflight` must refuse it; do not run that preflight expecting PASS again.
+
+Check the current schema without modifying it:
+
+```bash
+php artisan config:clear
+php artisan test
+php artisan relay:db-verify --expect=arsamnet_relay
+php artisan migrate:status
+```
+
+`relay:db-verify` reads the local `docs/ERD.dbml` and checks the selected MySQL 8 schema using `information_schema` only (plus read-only migration history). It compares documented field names/types/declared string lengths/required columns, unique and ordinary indexes and foreign keys, including composite tenant references. Missing or unexpected schema elements produce failure descriptions. Its parser is deliberately limited to the DBML constructs used by this project, **not** an official DBML validation library.
+
+The verifier cannot prove safe delivery, tenant boundary enforcement under real concurrent writes, default values, DDL rollback safety or race-free migrations. MySQL `ALTER`/`CREATE` DDL may commit independently; on any future migration failure inspect state before making changes. For MySQL transactional/runtime behavior, use a **separate disposable test database**, never the current schema for `migrate:fresh` or rollback.
+
+The initial full PHPUnit result: **31 passed (96 assertions)**. The new schema-parser and verifier tests introduced after that result have not yet been run.

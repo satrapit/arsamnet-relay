@@ -84,3 +84,14 @@ No schema signoff, version tag or production readiness claim.
 - **Fix in new branch commit:** Removed Laravel scaffold DatabaseSeeder example user, eliminating a known/default account created by `db:seed`. Added fail-closed, read-only `php artisan relay:db-preflight --expect=arsamnet_relay` command to check local env, no config cache, MySQL 8, exact database and **zero** tables/views.
 - **Fix in new branch commit:** `composer setup` no longer overwrites an already set `APP_KEY`; changing it would invalidate encrypted database values.
 - **NOT YET RUN:** Three newly written bootstrap-safety Feature tests, actual database preflight, migrations against MySQL 8.0.33, foreign-key constraints on MySQL, rollback, final schema approval.
+
+ 
+## First real MySQL migration PASS and metadata verification pending — 2026-11-17
+
+- PASS (user Mac log): `php artisan test` completed **31 tests and 96 assertions**, with zero failures. These still use SQLite in memory, not MySQL.
+- PASS (user Mac log): `relay:db-preflight --expect=arsamnet_relay` verified a fresh MySQL 8 schema with **0 tables/views** before any migration.
+- PASS (user Mac log): `php artisan migrate --database=mysql` created the Laravel `migrations` table and ran **all four project migrations** successfully in batch 1. `php artisan migrate:status` confirms all four are `Ran`.
+- The four migrations are designed to create 27 project tables plus 1 Laravel migration ledger; **the exact actual database table/FK/index counts have not yet been independently inspected**.
+- SOURCE ADDED (unexecuted on Mac): `SchemaManifest` parser for the supported local DBML subset and read-only `php artisan relay:db-verify --expect=arsamnet_relay` checking exact table names, documented column types/lengths/required fields, declared unique/primary and ordinary indexes, 30 FK definitions and restrict-on-delete behavior, and four migration entries.
+- SOURCE ADDED (unexecuted on Mac): `SchemaManifestTest` (2 Unit cases) and `DatabaseSchemaVerificationSafetyTest` (2 Feature cases) protect manifest parsing and verifier failure in non-local/test environments.
+- NOT RUN: the newly authored four tests, read-only MySQL schema verifier, MySQL rollback, concurrent inserts/rotations against MySQL, production/cPanel rehearsal. **Do not perform destructive reset on the now-populated schema.**

@@ -76,3 +76,8 @@ For first installation, `.env` creation, database-free Scheduler verification an
 ## Verified first test pass and migration rehearsal gate
 
 Mac developer output (2026-11-17): 26 Feature tests / 82 assertions and 2 Unit tests / 8 assertions passed using temporary SQLite. MySQL 8.0.33 connectivity to `arsamnet_relay` is confirmed, but the migrations have not yet been run. `php artisan relay:db-preflight --expect=arsamnet_relay` now safely verifies that the **selected local schema** (not every schema on the server) is empty before an optional first MySQL migration rehearsal. Do not run any reset/drop commands on shared databases.
+
+ 
+## First successful MySQL migration
+
+On the developer Mac (2026-11-17), all four initial MySQL 8 migrations completed successfully on an initially empty `arsamnet_relay` schema and `migrate:status` reported batch 1 for each. PHPUnit results improved to **31 passing tests / 96 assertions** (on SQLite in-memory). Run the new **read-only** `php artisan relay:db-verify --expect=arsamnet_relay` for a follow-up check of tables/columns, key indexes and foreign keys. This has not been run yet, and the overall product remains pre-release. Do not reset the migrated database.
