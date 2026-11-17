@@ -13,11 +13,10 @@ return [
     'domain' => null,
     'middleware' => ['web'],
     'views' => true,
+    'limiters' => ['login' => 'login', 'two-factor' => 'two-factor'],
     'features' => [
         Features::resetPasswords(),
         Features::emailVerification(),
-        Features::updateProfileInformation(),
-        Features::updatePasswords(),
         Features::twoFactorAuthentication([
             'confirm' => true,
             'confirmPassword' => true,

@@ -15,7 +15,7 @@ class SecurityHeaders
             'Content-Security-Policy',
             "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'; "
             ."script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; "
-            ."connect-src 'self'; object-src 'none'; upgrade-insecure-requests"
+            ."connect-src 'self'; object-src 'none'"
         );
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
