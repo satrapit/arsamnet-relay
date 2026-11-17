@@ -6,8 +6,8 @@
  * Does not migrate, truncate, drop, or call any message provider.
  */
 
-use App\Jobs\StageDeliveryJob;
 use App\Enums\ProviderAttemptOutcome;
+use App\Jobs\StageDeliveryJob;
 use App\Services\DeliveryAttemptManager;
 use App\Services\DeliveryLeaseManager;
 use App\Services\MessagePublisher;
