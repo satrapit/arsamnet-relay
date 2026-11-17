@@ -10,6 +10,7 @@ use App\Enums\ProviderAttemptOutcome;
 use App\Jobs\StageDeliveryJob;
 use App\Services\DeliveryAttemptManager;
 use App\Services\DeliveryLeaseManager;
+use App\Services\FakeDispatchCoordinator;
 use App\Services\FakeSignedCallbackReceipt;
 use App\Services\MessagePublisher;
 use App\Support\MessagePublicationConflict;
@@ -454,6 +455,50 @@ try {
         ensure(DB::table('delivery_attempts')->count() === 2,
             'Unexpected additional provider attempt was created.');
         echo "PASS: MySQL ambiguous result quarantined; no automatic retry or external send.\n";
+
+        // End-to-end fake-only dispatch. It must remain a direct call in this
+        // local test, never a production queue or network transport.
+        $endToEnd = $publisher->publish(
+            $f['client'], $f['key'], 'fake-dispatch-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $endToEndDelivery = $endToEnd['delivery_ids'][0];
+        (new StageDeliveryJob($endToEndDelivery))->handle();
+        $fakeDispatch = app(FakeDispatchCoordinator::class)->dispatch(
+            $f['client'], $endToEndDelivery, $providerAccountId
+        );
+        ensure(is_array($fakeDispatch)
+            && is_int($fakeDispatch['attempt_id'])
+            && is_string($fakeDispatch['provider_ref']),
+            'The internal fake-only coordinator did not persist a simulated acceptance.');
+        ensure(DB::table('deliveries')->where('id', $endToEndDelivery)
+            ->where('state', 'accepted')->exists(),
+            'Fake dispatch incorrectly claimed completed delivery.');
+        ensure(app(FakeDispatchCoordinator::class)->dispatch(
+            $f['client'], $endToEndDelivery, $providerAccountId
+        ) === null, 'A second fake dispatch was incorrectly accepted.');
+
+        $fakeTime = (string) time();
+        $fakeBody = json_encode([
+            'event_id' => 'event-'.bin2hex(random_bytes(12)),
+            'provider_ref' => $fakeDispatch['provider_ref'],
+            'status' => 'delivered',
+        ], JSON_THROW_ON_ERROR);
+        $fakeSignature = 'sha256='.hash_hmac('sha256',
+            $providerAccountId."\n".$fakeTime."\n".$fakeBody, $callbackSecret);
+        ensure($receipts->receive($providerAccountId, $fakeTime, $fakeBody, $fakeSignature),
+            'Signed fake-only end-to-end receipt was rejected.');
+        ensure(DB::table('deliveries')->where('id', $endToEndDelivery)
+            ->where('state', 'delivered')->where('attempt_count', 1)->exists(),
+            'The fake-only end-to-end message was not completed exactly once.');
+        ensure(DB::table('delivery_attempts')->where('delivery_id', $endToEndDelivery)
+            ->where('outcome', 'accepted')->count() === 1,
+            'The fake-only end-to-end dispatch did not produce exactly one accepted attempt.');
+        ensure(DB::table('callback_receipts')->where('provider_account_id', $providerAccountId)
+            ->where('delivery_attempt_id', $fakeDispatch['attempt_id'])
+            ->where('status', 'delivered')->count() === 1,
+            'The fake-only end-to-end delivery did not produce exactly one receipt.');
+        echo "PASS: MySQL fake-only end-to-end publish/stage/lease/attempt/receipt; no network sends.\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
