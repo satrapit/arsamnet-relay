@@ -14,6 +14,12 @@ class DeliveryLeaseManagerTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+    }
+
     /** @return array{client: int, target: int, message: string, delivery: string} */
     private function fixture(string $slug, string $state = 'awaiting_provider', int $ttl = 3600): array
     {
