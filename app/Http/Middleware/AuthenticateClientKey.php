@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use Closure;
+use App\Support\IpCidr;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpFoundation\Response;
@@ -67,31 +68,7 @@ class AuthenticateClientKey
 
     public function matchesCidr(string $ip, string $cidr): bool
     {
-        $parts = explode('/', $cidr, 2);
-        if (count($parts) !== 2 || !ctype_digit($parts[1])) {
-            return false;
-        }
-
-        $remote = @inet_pton($ip);
-        $network = @inet_pton($parts[0]);
-        if ($remote === false || $network === false || strlen($remote) !== strlen($network)) {
-            return false;
-        }
-
-        $mask = (int) $parts[1];
-        $maxBits = strlen($remote) * 8;
-        if ($mask < 0 || $mask > $maxBits) {
-            return false;
-        }
-
-        $fullBytes = intdiv($mask, 8);
-        $remaining = $mask % 8;
-        if (substr($remote, 0, $fullBytes) !== substr($network, 0, $fullBytes)) {
-            return false;
-        }
-
-        return $remaining === 0
-            || ((ord($remote[$fullBytes]) ^ ord($network[$fullBytes])) & (0xff << (8 - $remaining))) === 0;
+        return IpCidr::contains($ip, $cidr);
     }
 
     private function deny(): Response
