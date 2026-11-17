@@ -194,13 +194,8 @@ final class KavenegarSmsDispatcher
         }
 
         $rows = $this->snapshot($clientId, $messageId);
-        $state = 'accepted';
-        foreach ($rows as $row) {
-            if ($row['state'] !== 'accepted') {
-                $state = 'review_required';
-                break;
-            }
-        }
+        $states = array_values(array_unique(array_column($rows, 'state')));
+        $state = count($states) === 1 ? $states[0] : 'mixed';
 
         return ['state' => $state, 'deliveries' => $rows];
     }
