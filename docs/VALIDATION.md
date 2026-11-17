@@ -212,3 +212,13 @@ No schema signoff, version tag or production readiness claim.
 - **PASS:** `php vendor/bin/pint --test`: **76 PHP files**. Initial `php vendor/bin/pint` made **one local style-only change** in `tests/Feature/DeliveryLeaseManagerTest.php` (`class_attributes_separation`). This edit is not yet reported committed or pushed.
 - **NOT RUN in supplied output:** expanded real-MySQL lease/renew/quarantine checks in `scripts/mysql_publish_integration.php`; no additional MySQL claim/concurrency assertions can be claimed yet.
 - Next: run expanded PHP MySQL integration on preexisting, migrated, empty `arsamnet_relay_integration_test`, then inspect and commit only intended local Pint diff and push. Do not recreate or wipe test schema.
+
+ 
+## Developer Mac confirmed real MySQL lease and clean source control — 2026-11-17
+
+- **PASS:** expanded isolated `scripts/mysql_publish_integration.php` with `DB_DATABASE=arsamnet_relay_integration_test`: actual MySQL transaction rollback, sequential idempotency and mismatch rejection, inert staging, **lease fencing and correct-token renewal, expired-lease quarantine**, simultaneous two-process duplicate suppression, and fixtures cleaned back to empty.
+- This ran on the already migrated independent integration schema. No schema reset, migration re-execution, DROP, provider send or changes to `arsamnet_relay` were reported.
+- **PASS:** `php vendor/bin/pint --test` across **76 PHP files**.
+- Local `tests/Feature/DeliveryLeaseManagerTest.php` Pint-only whitespace change committed as `ea6b919` and pushed to `origin/feat/laravel13-foundation`. `git status --short` returned no output (clean worktree).
+- Last reported full PHPUnit run: **62 tests, 207 assertions, all PASS** on SQLite in memory.
+- Real live provider response/attempt processing, callback auth, retry conditions, DLQ, load/stress and hosting rehearsal remain **NOT RUN / NOT IMPLEMENTED**.

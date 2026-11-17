@@ -117,3 +117,12 @@ schema only; no new schema/migration/reset is required.
 ## Lease PHP test results (2026-11-17)
 
 On developer Mac, `php artisan test --filter=DeliveryLeaseManagerTest` passed 10 tests/41 assertions and the complete in-memory PHPUnit suite passed **62 tests/207 assertions**. PHP syntax checks passed for new source/test/integration files; Pint passed all 76 PHP files after correcting one styling issue in the new lease test. Real-MySQL lease claims/renewals/quarantine in the updated integration runner remain to be checked. No live provider sends were attempted.
+
+ 
+## Confirmed real MySQL lease checks
+
+Expanded isolated MySQL integration checks have now **PASSED on developer
+Mac**, including claim/renew with fencing token and manual-review quarantine
+after expiry. Separately, 62 Laravel tests/207 assertions and 76-file Pint
+were successful. Next tests should cover deliberate durable provider attempt
+recording and outcome transitions, still without external sends.

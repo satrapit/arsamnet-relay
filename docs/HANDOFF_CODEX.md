@@ -188,3 +188,8 @@ Follow-up source is now committed but **NOT YET TESTED ON MAC**: `app/Services/D
 ## DeliveryLeaseManager PHP regressions green; MySQL lease expansion pending (2026-11-17)
 
 Developer Mac reports: PHP lint for all 3 lease-related files PASS; 10 focused `DeliveryLeaseManagerTest` PASS / 41 assertions; complete PHPUnit 62 PASS / 207 assertions; Pint 76/76 PHP files PASS. Pint formatted the new lease test file (one local diff not yet committed). No provider sends or DDL changes. The expanded lease section in `scripts/mysql_publish_integration.php` has **not** been executed in the supplied terminal output. Next execute it only against `arsamnet_relay_integration_test` (already migrated and cleaned), inspect source differences, commit/push style fix, and retain Draft PR. Do not recreate/migrate the schema.
+
+ 
+## Real MySQL Lease QA COMPLETE (2026-11-17)
+
+Developer executed the expanded isolated PHP MySQL script, and every line passed: rollback of message/delivery/native job, sequential replay/conflict, provider-free stage, fenced claim and renewal, expiry quarantine, two-process same-key race and fixture cleanup to empty. Pint **76/76 PASS** and local lease test formatting-only commit `ea6b919` pushed. Git worktree clean. Last full PHPUnit: 62/62 tests and 207 assertions PASS. **No actual provider sends**. Existing `arsamnet_relay_integration_test` remains migrated and empty; do not recreate/migrate it again. PR Draft; Publish disabled by default.

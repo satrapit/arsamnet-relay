@@ -59,3 +59,8 @@ No version has been released.
   provider-free tenant-scoped delivery leases, token fencing, expiry-capped
   renewal and uncertain-lease quarantine to operator review, with ten PHP
   Feature cases and expanded MySQL checks (new cases pending Mac run).
+
+- Expanded PHP MySQL integration now PASS for delivery lease claim, fenced
+  renewal and ambiguous-expiry quarantine in addition to rollback and
+  two-process idempotency; developer pushed one-file Pint correction
+  `ea6b919`, and Git worktree is clean.

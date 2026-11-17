@@ -122,3 +122,13 @@ DB_DATABASE=arsamnet_relay_integration_test \
 ```
 
 All tests use PHP. The standalone MySQL runner rejects preexisting project rows and runs only on the explicitly selected local integration schema. Stopping a worker after any hypothetical external send could leave uncertainty; consequently this prototype does **not** support releasing timed-out leases back to a sendable queue.
+
+ 
+## Expanded lease runner executed on Mac — 2026-11-17
+
+The developer reran the same PHP integration script on the existing isolated
+MySQL 8 test schema. All checkpoints **PASSED**, including fenced lease claim,
+correct-token renewal, expired-token rejection, quarantine to
+`review_required`, and two competing PHP processes. The isolated project's
+fixture tables returned to an empty state; four migrations remain installed.
+This is one test scenario, not load/stress or a proof of crash recovery.
