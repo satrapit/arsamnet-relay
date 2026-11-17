@@ -64,3 +64,9 @@ No version has been released.
   renewal and ambiguous-expiry quarantine in addition to rollback and
   two-process idempotency; developer pushed one-file Pint correction
   `ea6b919`, and Git worktree is clean.
+
+- Introduced internal, inert provider-attempt bookkeeping: tenant-scoped
+  routed `started` attempts, normalized accepted/rejected/retryable/
+  ambiguous outcomes, strict fencing and sanitized status/ref values.
+  Added ten PHP Feature cases and new fake-only MySQL integration checks.
+  Actual execution on Mac remains pending; no provider adapter or sends.

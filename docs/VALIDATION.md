@@ -222,3 +222,26 @@ No schema signoff, version tag or production readiness claim.
 - Local `tests/Feature/DeliveryLeaseManagerTest.php` Pint-only whitespace change committed as `ea6b919` and pushed to `origin/feat/laravel13-foundation`. `git status --short` returned no output (clean worktree).
 - Last reported full PHPUnit run: **62 tests, 207 assertions, all PASS** on SQLite in memory.
 - Real live provider response/attempt processing, callback auth, retry conditions, DLQ, load/stress and hosting rehearsal remain **NOT RUN / NOT IMPLEMENTED**.
+
+
+## Internal provider attempt lifecycle source added (2026-11-17)
+
+- PREVIOUSLY VERIFIED on developer Mac: isolated MySQL 8 transaction rollback,
+  idempotency, two-process race, fenced leasing and expiry quarantine PASS;
+  62 Laravel PHPUnit tests/207 assertions PASS; Pint 76 files PASS; local
+  one-file style commit `ea6b919` pushed with clean worktree.
+- NEW SOURCE (not yet executed on Mac): `App\Enums\ProviderAttemptOutcome`
+  and `App\Services\DeliveryAttemptManager`. Internal provider-free
+  `begin` records the first and only `started` attempt under a current
+  lease, validates tenant/route/channel and uses a single DB transaction.
+  Internal `finish` atomically stores sanitized accepted, rejected,
+  retryable or ambiguous outcomes and clears the lease. No delivery receipt
+  is ever marked `delivered` here; uncertainty requires manual review.
+- NEW PHP tests: ten `tests/Feature/DeliveryAttemptManagerTest.php` cases.
+  Expanded separate MySQL integration runner to persist fake provider
+  account/route and two outcome scenarios and clean dependent FK rows.
+- **NOT RUN**: the newly added PHP Feature cases, Pint on new files,
+  expanded MySQL attempt runner, real provider calls, callback/ACK,
+  status queries, safe auto-retry, production hosting tests.
+- No migration or database schema changes, no new route or sender job.
+  Publish remains disabled by default. PR #1 remains Draft.

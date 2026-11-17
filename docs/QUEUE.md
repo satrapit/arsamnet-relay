@@ -49,3 +49,24 @@ were added after the last Mac regression; those additions are **NOT YET RUN**.
 Claim is purely an internal primitive and must not be wired into a real
 provider worker without routing, status, attempt durability, crash recovery,
 quotas and audit design.
+
+
+## Attempt durability and conservative outcome policy (source draft)
+
+A separate internal `DeliveryAttemptManager` can persist a unique
+`delivery_attempts` record with normalized `started` outcome under an
+active fenced lease and an explicitly tenant-authorized provider route.
+This transaction increments `deliveries.attempt_count` exactly once.
+The milestone intentionally **does not allow a second attempt**, even on a
+retryable error; real retry scheduling and crash recovery are not ready.
+
+`ProviderAttemptOutcome` supports accepted, rejected, retryable and
+ambiguous. Accepted is **not delivered**; rejected is terminal; retryable
+and ambiguous lead to `review_required`, never automatic retransmission.
+Result recording uses the same lease token and updates attempt+delivery
+atomically; repeat/stale result writes are denied. The service does no
+provider I/O and no background job calls it. A true provider dispatch
+coordinator and ACK/callback validation remain unimplemented.
+
+The PHP-only regression and expanded isolated MySQL tests have been
+written but **NOT RUN YET** on developer Mac.

@@ -132,3 +132,45 @@ correct-token renewal, expired-token rejection, quarantine to
 `review_required`, and two competing PHP processes. The isolated project's
 fixture tables returned to an empty state; four migrations remain installed.
 This is one test scenario, not load/stress or a proof of crash recovery.
+
+
+## New attempt lifecycle integration checks (source added, not executed)
+
+The same guarded PHP script now also creates a temporary **fake-only**
+provider account and explicit per-client route in the isolated integration
+database. It records one `started` attempt before any provider send, stores
+an `accepted` result without marking `delivered`, rejects a duplicate
+finish, then records an `ambiguous` result and places its delivery in
+`review_required` without creating another attempt or queue job. The test
+cleanup now deletes its fixture's delivery attempts and provider route/account
+in foreign-key-safe order.
+
+The previous MySQL lease checks have already passed; **the new attempt
+section has not yet been run**. Do not re-create or re-migrate the existing
+schema. Do not run any separate worker/scheduler against it during the check.
+
+```bash
+cd ~/Sites/arsamnet-relay
+git pull --ff-only origin feat/laravel13-foundation
+php artisan config:clear
+
+php -l app/Enums/ProviderAttemptOutcome.php
+php -l app/Services/DeliveryAttemptManager.php
+php -l tests/Feature/DeliveryAttemptManagerTest.php
+php -l scripts/mysql_publish_integration.php
+
+php artisan test --filter=DeliveryAttemptManagerTest
+php artisan test
+php vendor/bin/pint
+php vendor/bin/pint --test
+
+DB_DATABASE=arsamnet_relay_integration_test \
+  php scripts/mysql_publish_integration.php --expect=arsamnet_relay_integration_test
+
+git diff --check
+git status --short
+```
+
+On a failure, **stop** before any manual cleanup or retry. Send the full
+error output for review. The integration runner itself will refuse a
+nonempty fixture database on the next run.

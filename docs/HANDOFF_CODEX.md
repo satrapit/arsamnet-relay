@@ -193,3 +193,30 @@ Developer Mac reports: PHP lint for all 3 lease-related files PASS; 10 focused `
 ## Real MySQL Lease QA COMPLETE (2026-11-17)
 
 Developer executed the expanded isolated PHP MySQL script, and every line passed: rollback of message/delivery/native job, sequential replay/conflict, provider-free stage, fenced claim and renewal, expiry quarantine, two-process same-key race and fixture cleanup to empty. Pint **76/76 PASS** and local lease test formatting-only commit `ea6b919` pushed. Git worktree clean. Last full PHPUnit: 62/62 tests and 207 assertions PASS. **No actual provider sends**. Existing `arsamnet_relay_integration_test` remains migrated and empty; do not recreate/migrate it again. PR Draft; Publish disabled by default.
+
+
+## Durable attempt bookkeeping after confirmed lease QA (2026-11-17)
+
+All previously reported PHP and MySQL lease tests PASS; user pushed
+`ea6b919` one-file Pint formatting correction and local worktree clean.
+
+The next committed source addition (MAC TESTS **NOT YET RUN**) provides
+`App\Services\DeliveryAttemptManager` and
+`App\Enums\ProviderAttemptOutcome`. These are **INTERNAL ONLY**, never
+call provider APIs, decrypt provider credentials, or enqueue send jobs.
+`begin` validates tenant, live lease, enabled channel-matched
+provider account and explicit route, then inserts a `started` attempt
+and sets attempt_count=1 atomically; subsequent begins are refused.
+`finish` requires the active fencing token and outstanding first
+attempt, atomically normalizing accepted/rejected/retryable/ambiguous.
+Accepted is not delivered; the latter two go to manual review, with
+no automated retry. Provider reference and HTTP code are strict/sanitized.
+
+Ten new PHP Feature cases are in
+`tests/Feature/DeliveryAttemptManagerTest.php`. The existing MySQL
+integration CLI gained fake provider-account/route + accepted/ambiguous
+result assertions and FK-safe cleanup. No migrations, no public route,
+no sender, no callback and no provider I/O. See `docs/PROVIDERS.md`,
+`docs/MYSQL_INTEGRATION.md`, and `docs/TESTING.md`.
+Keep feature OFF, PR Draft, and run Mac PHP tests/Pint/MySQL integration
+before any next implementation.

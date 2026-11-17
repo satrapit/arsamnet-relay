@@ -126,3 +126,20 @@ Mac**, including claim/renew with fencing token and manual-review quarantine
 after expiry. Separately, 62 Laravel tests/207 assertions and 76-file Pint
 were successful. Next tests should cover deliberate durable provider attempt
 recording and outcome transitions, still without external sends.
+
+
+## Durable provider attempt tests — new source pending Mac verification
+
+`php artisan test --filter=DeliveryAttemptManagerTest` contains ten
+PHP Feature tests for: one durable started attempt; accepted-not-delivered;
+rejection; retryable/ambiguous quarantine; cross-tenant account route abuse;
+disabled route/account; stale fencing tokens; rejection of identifying
+provider references and invalid HTTP statuses; suspended client block.
+
+`scripts/mysql_publish_integration.php` now additionally persists a fake
+provider account/route, runs the already proven Publish/Stage/Lease sequence,
+records a durable started attempt, normalizes accepted and ambiguous results,
+rejects duplicate completion and automatic retries, then deletes only those
+fixtures. It still executes only on the dedicated pre-migrated, empty MySQL
+integration schema. The expanded runner's **new attempt checks are NOT RUN**
+on the developer Mac. No provider sends or schema alterations.

@@ -25,3 +25,14 @@ renewal and expired-uncertainty quarantine, with PHP tests and isolated
 MySQL follow-up. They are **not integrated with a sender**, and **not yet
 tested on Mac**. No delivery retries, ACK/NACK, DLQ worker, provider routes,
 quota controls or production dispatch are claimed.
+
+
+## Milestone 3 — provider attempt result groundwork
+
+After successful MySQL lease fencing QA, internal (non-sending) durable
+`delivery_attempts` insertion and normalized outcome lifecycle were
+added with PHP tests. These are **not yet executed on developer Mac**.
+Only one attempt is permitted, and uncertain/retryable outcomes require
+manual review. This is NOT a complete ACK/NACK interface or a provider
+adapter; verified delivery callbacks, safe retry/DLQ and live sending
+remain outstanding.

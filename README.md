@@ -131,3 +131,14 @@ It does not contact providers or expose new routes. New PHP unit/feature
 and isolated MySQL lease tests are written but **not yet run on Mac**.
 See [docs/QUEUE.md](docs/QUEUE.md) and
 [docs/MYSQL_INTEGRATION.md](docs/MYSQL_INTEGRATION.md).
+
+
+## Provider attempt bookkeeping (not a sender)
+
+An internal, provider-free PHP service persists a `started`
+`delivery_attempts` record under a current fenced lease and an authorized
+tenant provider route. It can normalize accepted/rejected/retryable/ambiguous
+outcomes into local delivery states, but **cannot mark `delivered`** and
+never sends any SMS, email or webhook. Automatic retry remains disabled.
+New PHP and isolated MySQL checks are authored but have **not yet run**
+on the developer Mac. See [docs/PROVIDERS.md](docs/PROVIDERS.md).
