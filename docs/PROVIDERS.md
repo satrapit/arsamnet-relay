@@ -1,5 +1,8 @@
 # Provider adapters — future implementation contract
 
+> **Latest verified QA and go-live limits:** see [STATUS.md](STATUS.md) and [PROVIDER_GO_LIVE_GATES.md](PROVIDER_GO_LIVE_GATES.md). Later historical sections may say pending for work subsequently verified.
+
+
 SMS, SMTP email and outbound webhooks will use focused channel/capability interfaces. Provider accounts can be platform-shared or owned by one client; encrypted credentials only. Routes are prioritized and must match tenant/provider channel and ownership. Status queries and delivery callbacks are optional declared capabilities.
 
 An ambiguous network timeout must not trigger automatic retry or failover, especially OTP. A provider response of accepted is not delivered. Create safe sanitized attempt records with opaque provider reference IDs; never persist raw credentials, OTP, message body or recipient address in logs.

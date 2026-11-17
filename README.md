@@ -1,5 +1,8 @@
 # Arsam Relay
 
+**Current verified QA:** [docs/STATUS.md](docs/STATUS.md) · [Provider go-live gates](docs/PROVIDER_GO_LIVE_GATES.md). Earlier status notes are historical.
+
+
 Self-hosted, multi-client messaging and notification platform for Laravel 13, PHP 8.3+ and MySQL 8, designed for cPanel shared hosting.
 
 **Development foundation only — NOT production ready.** No real SMS/email/webhook sending is enabled.

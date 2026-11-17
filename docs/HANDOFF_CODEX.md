@@ -1,5 +1,8 @@
 # Codex handoff — 2026-11-17
 
+> **Latest verified QA and go-live limits:** see [STATUS.md](STATUS.md) and [PROVIDER_GO_LIVE_GATES.md](PROVIDER_GO_LIVE_GATES.md). Later historical sections may say pending for work subsequently verified.
+
+
 Repository: https://github.com/satrapit/arsamnet-relay (PUBLIC). Branch: feat/laravel13-foundation; main remains initialized only. Product Arsam Relay. No deployment or release tag.
 
 ## Current status

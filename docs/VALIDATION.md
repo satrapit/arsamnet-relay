@@ -1,5 +1,8 @@
 # Verification ledger — 2026-11-17
 
+> **Latest verified QA and go-live limits:** see [STATUS.md](STATUS.md) and [PROVIDER_GO_LIVE_GATES.md](PROVIDER_GO_LIVE_GATES.md). Later historical sections may say pending for work subsequently verified.
+
+
 | Check | Result | Notes |
 | --- | --- | --- |
 | GitHub repository and push permissions | PASS | satrapit/arsamnet-relay is user owned, publicly visible |
