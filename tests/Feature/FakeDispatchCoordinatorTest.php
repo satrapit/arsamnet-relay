@@ -204,4 +204,50 @@ class FakeDispatchCoordinatorTest extends TestCase
         ]);
         $this->assertDatabaseCount('delivery_attempts', 0);
     }
+
+    public function test_invalid_encrypted_target_fails_before_claim_and_attempt(): void
+    {
+        $f = $this->fixture('fake-invalid-target-ciphertext');
+        $targetId = DB::table('deliveries')->where('id', $f['delivery'])->value('target_id');
+
+        DB::table('delivery_targets')->where('id', $targetId)
+            ->update(['address_ciphertext' => 'not-valid-encrypted-data']);
+
+        $this->assertNull(app(FakeDispatchCoordinator::class)
+            ->dispatch($f['client'], $f['delivery'], $f['provider']));
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $f['delivery'], 'state' => 'awaiting_provider', 'lease_token' => null,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
+
+    public function test_invalid_encrypted_message_fails_before_claim_and_attempt(): void
+    {
+        $f = $this->fixture('fake-invalid-message-ciphertext');
+
+        DB::table('messages')->where('id', $f['message'])
+            ->update(['payload_ciphertext' => 'not-valid-encrypted-data']);
+
+        $this->assertNull(app(FakeDispatchCoordinator::class)
+            ->dispatch($f['client'], $f['delivery'], $f['provider']));
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $f['delivery'], 'state' => 'awaiting_provider', 'lease_token' => null,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
+
+    public function test_oversized_decrypted_payload_never_claims_or_starts_an_attempt(): void
+    {
+        $f = $this->fixture('fake-message-too-large');
+
+        DB::table('messages')->where('id', $f['message'])
+            ->update(['payload_ciphertext' => Crypt::encryptString(str_repeat('X', 16385))]);
+
+        $this->assertNull(app(FakeDispatchCoordinator::class)
+            ->dispatch($f['client'], $f['delivery'], $f['provider']));
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $f['delivery'], 'state' => 'awaiting_provider', 'lease_token' => null,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+    }
 }
