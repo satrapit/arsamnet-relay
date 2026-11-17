@@ -89,6 +89,7 @@ New submissions return 202 with message_id, delivery_ids, normalized state, prov
 - rejected: explicit provider-side validation rejection; no automatic retry.
 - review_required: ambiguous/timeout/incomplete result; no retry or failover.
 - unavailable: message persisted but no safe first-attempt dispatch could start; needs operator reconciliation.
+- mixed: bulk result contains different individual delivery states; inspect the per-delivery array.
 - already_recorded: replay; never a second send.
 
 GET /api/v1/sms/messages/{message_ulid} uses messages.read and returns only owned message IDs, delivery states, attempt_count, HTTP status, normalized error code and safe provider reference. The staff SMS provider screen lists the latest 30 attempts. No phone number, OTP, plaintext message, API key or raw Kavenegar response is shown.
