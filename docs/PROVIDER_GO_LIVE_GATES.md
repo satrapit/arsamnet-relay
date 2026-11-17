@@ -14,7 +14,7 @@ webhook adapters, each with its own verified contract.
 - Separate client-owned and shared accounts. Restrict channel/tenant
   authorization, enabled routes and provider capabilities before any call.
 - Define one deterministic initial route. **Never** auto-failover after
-  \`started\`, a timeout, or any ambiguous result. Retry/fallback rules
+  `started`, a timeout, or any ambiguous result. Retry/fallback rules
   require separate provider-specific proof and explicit authorization.
 - **No code enables real sending** until the provider contract is chosen
   and reviewed.
@@ -56,12 +56,12 @@ For **SMS**:
 
 ## Gate 4 — Durable attempt and outcome integrity
 
-- Persist \`started\` attempt before any external call. Use active client-
+- Persist `started` attempt before any external call. Use active client-
   scoped fenced lease; reject stale tokens, exhausted quotas, disabled
   provider routes and expired/scheduled messages.
-- Distinguish \`accepted\`, \`rejected\`, \`retryable\`, \`ambiguous\`.
-  An HTTP 2xx is **never** end-recipient \`delivered\`.
-- Timeout/connection reset/unknown outcome -> \`review_required\`;
+- Distinguish `accepted`, `rejected`, `retryable`, `ambiguous`.
+  An HTTP 2xx is **never** end-recipient `delivered`.
+- Timeout/connection reset/unknown outcome -> `review_required`;
   never blind retry or failover, particularly for OTP.
 - Design operator resolution and audit before enabling retries/secondary
   accounts. Expired leased attempts may already have reached the provider.
@@ -78,7 +78,7 @@ For **SMS**:
 - Expose a public callback endpoint only after authentication,
   rate limiting, abuse controls and negative/concurrency test coverage.
 - If provider does not offer defensible delivery proof, leave delivery
-  in \`accepted\` (not \`delivered\`) and document the limitation.
+  in `accepted` (not `delivered`) and document the limitation.
 
 ## Gate 6 — Shared hosting and operations
 
@@ -105,7 +105,7 @@ For **SMS**:
 | Actual provider sandbox negative tests and operator approval | **NOT RUN** |
 | Production enablement and release/rollback plan | **NOT APPROVED** |
 
-**Go/no-go:** Do not flip \`ARSAM_PUBLISH_ENABLED\`, connect provider
+**Go/no-go:** Do not flip `ARSAM_PUBLISH_ENABLED`, connect provider
 workers, create public callback routes, or merge this Draft PR as a
 live-sending release until all relevant provider-specific gates have
 independent evidence and explicit approval.
