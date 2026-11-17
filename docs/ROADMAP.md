@@ -9,3 +9,8 @@
 6. Security/load testing, cPanel rehearsal, backups, release/rollback, license and public review — not started.
 
 Every phase requires explicit test outputs and honest Not Run/Failed/Passed ledger; do not merge or tag an unverified release.
+
+
+## Current Milestone 3 partial groundwork
+
+Added a **draft, disabled-by-default** direct publish endpoint and ID-only durable queue staging with test cases covering scope/tenant isolation, idempotency replay/conflict, encrypted persistence, no provider calls, and job creation. This is a *partial* Milestone 3 deliverable. User Mac test execution remains pending; real provider adapters, topic fanout, quota enforcement, delivery leases, concurrency guarantees, ACK/NACK, retry/DLQ and production enablement are still NOT IMPLEMENTED. No migrations were added or run for this change.

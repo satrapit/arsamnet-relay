@@ -123,3 +123,15 @@ The validator was linted with PHP CLI and passed on an isolated representative P
 The first developer Mac run of PHP-only QA passed design CSV checks (27/192/32/27) and column parity (27/192) but failed on `Unsupported FK columns: 'delivery_id'`. One PHPUnit case failed; total **39 PASS / 1 FAIL (114 assertions)**. This was a parser limitation, not invalid MySQL migration structure. Real MySQL metadata inspection separately passed 28 tables, 192 fields, 61 indexes, 32 restricted FKs, four migrations. Added support for both scalar and array syntax to `OfflineDesignChecks::phpColumns()` and regression tests for scalar, composite and malformed expressions. Offline PHP fixture tests passed in authoring environment, Mac rerun pending. Pint reported 1 new class styling issue among 66 files; apply Pint on Mac after updating the source.
 
 **WORKTREE MERGE SAFETY:** Developer Mac still holds uncommitted Pint formatting changes to 20+ PHP files, including `app/Support/OfflineDesignChecks.php`, and untracked composer.lock/package-lock.json. Pulling may fail because the new branch commit touches that same class. Back up/stash that file's formatting changes before fast-forward, then reapply Pint. Do not force-reset the whole working tree or lose generated lockfiles.
+
+
+## Direct publish staging on feature branch (2026-11-17)
+
+Following 43 PASS / 118 assertions on developer Mac, a small, opt-in portion of Milestone 3 was added to `feat/laravel13-foundation`:
+
+- `POST /api/v1/messages` uses the pre-existing machine key/IP/rate limiter, strict `messages.publish` scope and 16–128 character `Idempotency-Key`; requires 1–25 active tenant-owned targets; payload JSON object with 16 KiB request ceiling.
+- `MessagePublisher` persists encrypted message and target deliveries in a transaction with native database queue inserts, using the same DB connection. Tenant+idempotency unique index handles duplicates. HMAC request fingerprint distinguishes replay from conflicting reuse.
+- `StageDeliveryJob` contains a delivery ULID only; **no provider calls**. It can move `queued` to `awaiting_provider` or `expired`, without creating a delivery attempt. The feature is OFF in default .env.
+- `tests/Feature/PublishMessagesTest.php` has 9 new feature test cases (NOT EXECUTED YET). Run on developer Mac; do not merge if failures.
+- No new migration, no SQL changes, no prod send. Quotas, concurrent MySQL idempotency stress, topic fanout, provider adapters, lease claims, retry/ACK/DLQ, monitoring all remain future scope.
+- User's local Pint changes and actual lockfiles remain to be committed; this repo branch has not yet received them. Avoid overwriting those files. Keep PR #1 draft.

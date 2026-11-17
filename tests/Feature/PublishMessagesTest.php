@@ -113,7 +113,7 @@ class PublishMessagesTest extends TestCase
         $queuePayload = implode("\n", DB::table('jobs')->pluck('payload')->all());
         $this->assertStringNotContainsString('sensitive-value-123', $queuePayload);
         $this->assertStringNotContainsString('a@example.test', $queuePayload);
-        $this->assertStringContainsString(StageDeliveryJob::class, $queuePayload);
+        $this->assertStringContainsString('StageDeliveryJob', $queuePayload);
     }
 
     public function test_same_idempotency_key_replays_without_new_message_or_jobs(): void

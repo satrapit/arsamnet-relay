@@ -65,3 +65,8 @@ When Composer dependencies exist, use `php artisan test` for PHPUnit and `php ve
 The PHP-only migration relation checker accepts both `$table->foreign('delivery_id')->references('id')` and `$table->foreign(['message_id', 'client_id'])->references(['id', 'client_id'])`, with `restrictOnDelete()` required. The first Mac run failed on a valid scalar declaration; this parsing bug has been fixed and targeted PHPUnit regression tests added.
 
 After pulling, run `php scripts/check_migration_relationships.php`, `php artisan test`, and `php vendor/bin/pint --test`. The Mac's independent read-only MySQL structure verification already passed and requires no migration changes. Report the new result rather than assuming the fix is verified on Mac.
+
+
+## Publish staging feature tests — pending on developer Mac
+
+`php artisan test --filter=PublishMessagesTest` covers: disabled-by-default gate, encrypted local persistence, ID-only database queue job payloads, exact idempotency replay without duplicate jobs, conflicting replay, tenant/target isolation, scope restrictions, invalid headers and duplicate targets, deliberately inert job handling, and client-separated idempotency. These tests do not deliver SMS or email. Run `php artisan test` for the full regression suite and `php vendor/bin/pint --test` for formatting. For MySQL concurrency and worker failure handling use a **separate disposable MySQL integration database**, not the already migrated development schema.

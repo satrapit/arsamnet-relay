@@ -41,3 +41,5 @@ No version has been released.
 - Replaced three Python QA tools with dependency-free PHP implementations and five PHPUnit cases; all future schema/design validation uses PHP as the default. No DB migrations or runtime changes.
 
 - Fixed PHP-only FK validator handling of `foreign('delivery_id')->references('id')` alongside composite arrays, after Mac feedback; added three regression tests. MySQL schema unchanged. Pint rerun pending.
+
+- Drafted opt-in `POST /api/v1/messages` with encrypted transactional persistence, idempotency conflict detection, tenant-scoped targets and native database queue staging jobs containing only opaque IDs. No provider sending; off by default. Nine feature tests added (unexecuted on Mac).

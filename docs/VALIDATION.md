@@ -137,3 +137,13 @@ No schema signoff, version tag or production readiness claim.
 - PASS (developer Mac): `relay:db-verify` independently confirmed 28 tables including migrations, 192 fields, 61 indexes, 32 restricted FKs and four migration records. `composer validate --strict` PASS.
 - Pint on Mac reports **1 formatting issue** in `app/Support/OfflineDesignChecks.php` (66 files scanned); run `php vendor/bin/pint` after retrieving fix, then check `php vendor/bin/pint --test` and rerun full PHPUnit.
 - User's local worktree still contains prior Pint changes (including this one PHP class) plus untracked generated `composer.lock` and `package-lock.json`. Preserve that work when pulling a source edit to the overlapping class; stage/review/commit later.
+
+
+## Draft direct publish / dispatch staging — unverified on developer Mac (2026-11-17)
+
+- Last developer evidence: **43 PHPUnit tests / 118 assertions PASS**, PHP ERD/CSV/migration validation PASS, MySQL schema verification PASS with 28 tables (including migrations), 61 indexes and 32 FKs, Pint PASS across 66 files, strict Composer validation PASS.
+- Source ADDED: `app/Services/MessagePublisher.php`, `app/Http/Controllers/Api/PublishMessageController.php`, `app/Jobs/StageDeliveryJob.php`, plus typed exception classes and `tests/Feature/PublishMessagesTest.php` (nine drafted tests).
+- Route: `POST /api/v1/messages`; **disabled by default** via `ARSAM_PUBLISH_ENABLED=false`. Existing machine API authentication, CIDR checks and throttle apply. Requires `messages.publish` scope and valid `Idempotency-Key`.
+- DB design reused: encrypted messages, tenant-verified delivery targets, same-transaction per-delivery rows and native database queue records; database queue must use same DB connection. Stage worker does not contact any provider. No new migration/DDL.
+- **NOT RUN YET**: new Laravel feature tests, Pint, actual database job insert/worker handling after this commit, MySQL transactional concurrency/rollback behavior or production traffic. Do not claim live publish availability or delivery success.
+- Local developer still needs to push reviewed Pint formatting and real Composer/npm lockfiles. The new changes touch new PHP paths, routes/api.php, config/relay.php and .env.example, not the old Pint-modified files.
