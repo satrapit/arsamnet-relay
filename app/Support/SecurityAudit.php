@@ -24,7 +24,7 @@ final class SecurityAudit
         $key = self::signingKey();
         $allowed = [
             'flag_key', 'old_state', 'new_state', 'role_code',
-            'target_user_id', 'scope', 'client_id', 'key_id', 'previous_key_id',
+            'target_user_id', 'scope', 'client_id', 'key_id', 'previous_key_id', 'ip_rule_id',
         ];
         $safe = array_intersect_key($context, array_flip($allowed));
         foreach ($safe as $value) {

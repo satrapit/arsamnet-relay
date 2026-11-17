@@ -15,7 +15,13 @@
 <div class="grid gap-4">
     @foreach($clients as $client)
     <section class="rounded-2xl border border-slate-200 bg-white p-5">
-        <div class="mb-4 flex items-center justify-between gap-3"><div><h3 class="font-semibold">{{ $client->name }}</h3><p class="text-sm text-slate-500">{{ $client->slug }} · #{{ $client->id }}</p></div><span class="text-xs text-slate-500">{{ $client->status }}</span></div>
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div><h3 class="font-semibold">{{ $client->name }}</h3><p class="text-sm text-slate-500">{{ $client->slug }} · #{{ $client->id }}</p></div>
+            <div class="flex items-center gap-3">
+                <a href="{{ route('clients.ips.index', $client->id) }}" class="text-sm font-semibold text-blue-700 hover:underline">IP allowlist</a>
+                <span class="text-xs text-slate-500">{{ $client->status }}</span>
+            </div>
+        </div>
         <form method="POST" action="{{ route('clients.keys.store', $client->id) }}" class="flex flex-wrap gap-2" data-submit-once>
             @csrf
             <input name="label" required maxlength="100" aria-label="Key label" placeholder="Key label" class="min-w-0 flex-1 rounded-lg border border-slate-300 p-2 text-sm">

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\ClientApiKeyController;
 use App\Http\Controllers\Admin\ClientController;
+use App\Http\Controllers\Admin\ClientIpAllowlistController;
 use App\Http\Controllers\Admin\FeatureFlagController;
 use App\Http\Controllers\Admin\SecurityMonitorController;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->middleware('password.confirm')->name('clients.keys.rotate');
         Route::post('/clients/{client}/keys/{key}/revoke', [ClientApiKeyController::class, 'revoke'])
             ->middleware('password.confirm')->name('clients.keys.revoke');
+        Route::get('/clients/{client}/ips', [ClientIpAllowlistController::class, 'index'])
+            ->name('clients.ips.index');
+        Route::post('/clients/{client}/ips', [ClientIpAllowlistController::class, 'store'])
+            ->middleware('password.confirm')->name('clients.ips.store');
+        Route::delete('/clients/{client}/ips/{rule}', [ClientIpAllowlistController::class, 'destroy'])
+            ->middleware('password.confirm')->name('clients.ips.destroy');
         Route::get('/system/security', [SecurityMonitorController::class, 'index'])
             ->name('security-monitor.index');
         Route::get('/system/feature-flags', [FeatureFlagController::class, 'index'])
