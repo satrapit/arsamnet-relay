@@ -5,7 +5,6 @@ namespace App\Services;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
-use JsonException;
 use Throwable;
 
 /**
@@ -118,10 +117,16 @@ final class FakeSignedCallbackReceipt
                 'processed_at' => $now,
             ]);
 
-            return DB::table('deliveries')
+            $updated = DB::table('deliveries')
                 ->where('id', $delivery->id)->where('client_id', $delivery->client_id)
                 ->where('state', 'accepted')
-                ->update(['state' => 'delivered', 'updated_at' => $now]) === 1;
+                ->update(['state' => 'delivered', 'updated_at' => $now]);
+
+            if ($updated !== 1) {
+                throw new \LogicException('An authenticated receipt must update exactly one delivery.');
+            }
+
+            return true;
         }, 3);
     }
 }
