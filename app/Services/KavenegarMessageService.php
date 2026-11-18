@@ -6,6 +6,7 @@ use App\Support\InvalidPublishTargets;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pennant\Feature;
 
 /**
  * Tenant-bound SMS intake: normalized recipients, encrypted targets and
@@ -81,7 +82,7 @@ final class KavenegarMessageService
                     ->where('created_at', '>=', $now->copy()->subHour())
                     ->count();
 
-                if ($hourly + count($phones) > max(1, (int) config('relay.kavenegar_hourly_limit', 100))) {
+                if ($hourly + count($phones) > max(1, min(10000, (int) Feature::globally()->value('kavenegar-hourly-limit')))) {
                     throw ValidationException::withMessages([
                         'receptor' => 'Client hourly SMS submission limit has been reached.',
                     ]);
