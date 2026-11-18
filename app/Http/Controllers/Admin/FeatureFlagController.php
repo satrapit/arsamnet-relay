@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Support\SecurityAudit;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,13 +27,34 @@ class FeatureFlagController extends Controller
             ];
         }
 
+        $groupDefinitions = [
+            'Message delivery' => [
+                'icon' => 'fa-paper-plane',
+                'description' => 'Control message intake, scheduling and provider network access.',
+                'keys' => ['message-publishing', 'scheduled-messages', 'kavenegar-sending'],
+            ],
+            'Providers & integrations' => [
+                'icon' => 'fa-plug',
+                'description' => 'Manage provider configuration and optional delivery services.',
+                'keys' => ['client-provider-overrides', 'provider-status-queries', 'webhook-delivery'],
+            ],
+        ];
+
+        $byKey = collect($flags)->keyBy('key');
+        $groups = collect($groupDefinitions)->map(fn (array $group) => [
+            'icon' => $group['icon'],
+            'description' => $group['description'],
+            'flags' => collect($group['keys'])->map(fn (string $key) => $byKey->get($key))
+                ->filter()->values()->all(),
+        ]);
+
         return view('admin.feature-flags', [
-            'flags' => $flags,
+            'groups' => $groups,
             'hourlyLimit' => (int) Feature::globally()->value('kavenegar-hourly-limit'),
         ]);
     }
 
-    public function update(Request $request, string $key): RedirectResponse
+    public function update(Request $request, string $key): JsonResponse|RedirectResponse
     {
         Gate::authorize('feature-flags.write');
         abort_unless(array_key_exists($key, config('relay.flags')), 404);
@@ -56,10 +78,18 @@ class FeatureFlagController extends Controller
             ], null, $request->ip());
         });
 
-        return back()->with('status', 'Feature flag updated.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Setting updated successfully.',
+                'key' => $key,
+                'enabled' => $enabled,
+            ], 200, ['Cache-Control' => 'no-store']);
+        }
+
+        return back()->with('status', 'Setting updated successfully.');
     }
 
-    public function updateHourlyLimit(Request $request): RedirectResponse
+    public function updateHourlyLimit(Request $request): JsonResponse|RedirectResponse
     {
         Gate::authorize('feature-flags.write');
         $validated = $request->validate([
@@ -78,6 +108,13 @@ class FeatureFlagController extends Controller
             ], null, $request->ip());
         });
 
-        return back()->with('status', 'Kavenegar hourly limit updated.');
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Hourly SMS limit saved.',
+                'hourly_limit' => $limit,
+            ], 200, ['Cache-Control' => 'no-store']);
+        }
+
+        return back()->with('status', 'Hourly SMS limit saved.');
     }
 }
