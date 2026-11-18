@@ -171,3 +171,13 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - **No delivery state transition, receipt insertion, retry, resend or automatic polling**, even on provider code 10. Current audit logs are the only persisted inquiry history.
 - Added four focused adapter tests plus four DeliveryReview feature tests; expanded the isolated real MySQL test runner with an HTTP-faked status lookup. These **new tests are NOT RUN** and the changes are NOT verified on Mac.
 - Before considering status network access, run PHP lint, Pint, focused/full PHPUnit, and the guarded real-MySQL integration script. Keep the status/send gates OFF pending separate approval. PR #1 Draft, `main` unchanged.
+
+
+## Super Admin operational settings migration and PHPUnit fatal fix (2026-11-18)
+
+- **Developer Mac input:** isolated MySQL integration including two-process recovery and status-only Kavenegar lookup PASS, with fixture cleanup. PHP lint PASS for new files. Pint found one test formatting issue; PHPUnit failed to start because `KavenegarStatusAdapterTest::status()` collided with PHPUnit's final `TestCase::status()`. These failures are not provider regressions.
+- **New commits, NOT TESTED on Mac:** renamed the test helper to `providerStatusResponse()`, corrected `DeliveryReviewTest` class method spacing, and migrated all runtime operational switches from `.env` to the existing audited Super Admin Pennant Feature Flags UI.
+- Runtime flags `message-publishing`, `kavenegar-sending`, `provider-status-queries` default OFF independently. The numeric `kavenegar-hourly-limit` defaults to 100, adjustable between 1 and 10000 by Super Admin via password-confirmed route with signed Audit. No migration; existing Pennant feature store is reused. Account-specific provider credentials remain encrypted in the existing per-client account settings UI.
+- `.env.example` now retains infrastructure/secret configuration only, including APP_KEY, DB, SMTP, ARSAM_AUDIT_HMAC_KEY and initial admin provisioning. Former `ARSAM_PUBLISH_ENABLED`, `ARSAM_KAVENEGAR_SEND_ENABLED`, `ARSAM_KAVENEGAR_STATUS_ENABLED` and `ARSAM_KAVENEGAR_HOURLY_LIMIT` are no longer read by runtime.
+- Existing PHP test setup and isolated MySQL runner were switched to explicit Pennant gates, with the runner using the **array** store to avoid modifying global flags in the fixture-only MySQL schema. New role/limit tests were added.
+- **QA pending:** full PHPUnit, Pint, isolated MySQL runner, syntax/lint and review of all gate transitions. No live provider contact, Cron change, database migration, or `main` merge; PR #1 Draft.
