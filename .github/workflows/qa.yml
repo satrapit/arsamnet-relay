@@ -60,5 +60,8 @@ jobs:
           npm ci --ignore-scripts
           npm run build
 
+      - name: Validate staging preflight without executing it
+        run: php -l scripts/staging_preflight.php
+
       - name: Validate live smoke shell syntax without running it
         run: bash -n scripts/kavenegar_live_smoke.sh
