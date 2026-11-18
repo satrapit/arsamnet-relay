@@ -134,7 +134,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
      */
     public function queryStatus(string $messageId): array
     {
-        if (! preg_match('/\\A[0-9]{1,18}\\z/D', $messageId)) {
+        if (! preg_match('/\A[0-9]{1,18}\z/D', $messageId)) {
             throw new InvalidArgumentException('Invalid provider message ID.');
         }
 
@@ -155,7 +155,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
         $code = is_array($entry) ? ($entry['status'] ?? null) : null;
         if ((! is_int($id) && ! is_string($id))
             || (string) $id !== $messageId
-            || (! is_int($code) && ! (is_string($code) && preg_match('/\\A[0-9]{1,3}\\z/D', $code)))
+            || (! is_int($code) && ! (is_string($code) && preg_match('/\A[0-9]{1,3}\z/D', $code)))
             || (int) $code < 0 || (int) $code > 999) {
             return ['state' => 'unknown', 'provider_code' => null];
         }
