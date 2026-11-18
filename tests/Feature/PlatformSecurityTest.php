@@ -141,5 +141,4 @@ class PlatformSecurityTest extends TestCase
             ->assertSessionHasErrors('hourly_limit');
         $this->assertSame(25, Feature::globally()->value('kavenegar-hourly-limit'));
     }
-
 }
