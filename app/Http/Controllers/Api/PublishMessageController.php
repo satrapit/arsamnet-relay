@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\MessagePublisher;
 use App\Support\InvalidPublishTargets;
@@ -10,6 +9,7 @@ use App\Support\MessagePublicationConflict;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pennant\Feature;
 
 final class PublishMessageController extends Controller
 {
