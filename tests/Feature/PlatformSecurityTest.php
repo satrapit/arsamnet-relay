@@ -107,4 +107,39 @@ class PlatformSecurityTest extends TestCase
         $this->assertTrue(Feature::globally()->active('webhook-delivery'));
         $this->assertDatabaseHas('security_events', ['event_code' => 'feature_flag.changed']);
     }
+
+    public function test_super_admin_controls_message_send_and_status_flags_in_dashboard(): void
+    {
+        $user = $this->platformUser('super_admin', true);
+        foreach (['message-publishing', 'kavenegar-sending', 'provider-status-queries'] as $key) {
+            $this->assertFalse(Feature::globally()->active($key));
+            $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])
+                ->post('/system/feature-flags/'.$key, ['enabled' => '1'])
+                ->assertRedirect();
+            $this->assertTrue(Feature::globally()->active($key));
+        }
+        $this->assertDatabaseCount('security_events', 3);
+    }
+
+    public function test_only_super_admin_can_change_sms_hourly_limit_with_signed_audit(): void
+    {
+        $admin = $this->platformUser('platform_admin', true);
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('settings.kavenegar-hourly-limit.update'), ['hourly_limit' => 25])
+            ->assertForbidden();
+
+        $super = $this->platformUser('super_admin', true);
+        $this->actingAs($super)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('settings.kavenegar-hourly-limit.update'), ['hourly_limit' => 25])
+            ->assertRedirect();
+
+        $this->assertSame(25, Feature::globally()->value('kavenegar-hourly-limit'));
+        $this->assertDatabaseHas('security_events', ['event_code' => 'feature_flag.changed']);
+
+        $this->actingAs($super)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('settings.kavenegar-hourly-limit.update'), ['hourly_limit' => 0])
+            ->assertSessionHasErrors('hourly_limit');
+        $this->assertSame(25, Feature::globally()->value('kavenegar-hourly-limit'));
+    }
+
 }
