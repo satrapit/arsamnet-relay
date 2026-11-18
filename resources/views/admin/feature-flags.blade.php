@@ -22,4 +22,18 @@
     </section>
     @endforeach
 </div>
+
+<section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+    <h2 class="font-semibold text-slate-900">Kavenegar hourly SMS submission limit</h2>
+    <p class="mt-1 text-sm text-slate-600">Maximum new SMS delivery records per client in a rolling hour (1–10,000). This does not enable sending or change the independent safety flags.</p>
+    <p class="mt-2 text-sm">Current limit: <strong>{{ $hourlyLimit }}</strong></p>
+    @can('feature-flags.write')
+    <form method="POST" action="{{ route('settings.kavenegar-hourly-limit.update') }}" class="mt-4 flex flex-wrap items-center gap-3" data-submit-once>
+        @csrf
+        <label class="text-sm" for="hourly_limit">Deliveries per hour</label>
+        <input type="number" class="w-32 rounded-lg border border-slate-300 p-2" name="hourly_limit" id="hourly_limit" min="1" max="10000" value="{{ old('hourly_limit', $hourlyLimit) }}" required>
+        <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white" data-confirm="Update the global Kavenegar hourly delivery limit?">Save limit</button>
+    </form>
+    @endcan
+</section>
 @endsection
