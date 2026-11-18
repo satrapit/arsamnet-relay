@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Laravel\Pennant\Feature;
 use App\Providers\Adapters\KavenegarSmsAdapter;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ final class KavenegarDeliveryStatus
     /** @return array{state:string,provider_code:?int} */
     public function query(int $clientId, string $deliveryId): array
     {
-        if (! config('relay.kavenegar_status_enabled', false)) {
+        if (! Feature::globally()->active('provider-status-queries')) {
             return ['state' => 'disabled', 'provider_code' => null];
         }
 
