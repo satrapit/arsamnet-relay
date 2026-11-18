@@ -10,7 +10,7 @@
     <main class="mx-auto flex min-h-screen max-w-xl items-center justify-center px-4 py-12">
         <section class="w-full rounded-2xl border border-slate-200 bg-white p-7 shadow-sm sm:p-10">
             <a href="/" class="mb-8 flex items-center gap-3 font-semibold text-xl text-slate-900">
-                <span class="flex size-10 items-center justify-center rounded-xl bg-blue-600 text-white"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></span>
+                <span class="flex size-10 items-center justify-center rounded-xl bg-blue-600 text-white"><svg class="inline-block size-5 shrink-0 align-middle " aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#send"></use></svg></span>
                 Arsam Relay
             </a>
             @if(session('status')) <p role="status" class="mb-5 rounded-lg bg-blue-50 p-3 text-sm text-blue-800">{{ session('status') }}</p> @endif

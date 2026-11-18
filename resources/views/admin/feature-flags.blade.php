@@ -8,7 +8,7 @@
         <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Manage messaging capabilities and provider operations. Changes are saved instantly without leaving this page.</p>
     </div>
     @cannot('feature-flags.write')
-        <span class="w-fit rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"><i class="fa-solid fa-eye me-2" aria-hidden="true"></i>Read-only access</span>
+        <span class="w-fit rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"><svg class="inline-block size-5 shrink-0 align-middle me-2" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#eye"></use></svg>Read-only access</span>
     @endcannot
 </div>
 
@@ -17,7 +17,7 @@
         <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="settings-group-{{ $loop->index }}">
             <div class="flex items-start gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-6">
                 <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
-                    <i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i>
+                    <svg class="inline-block size-5 shrink-0 align-middle {{ $group['icon'] }}" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#{{ $group['icon'] }}"></use></svg>
                 </span>
                 <div>
                     <h2 id="settings-group-{{ $loop->index }}" class="font-semibold text-slate-950">{{ $title }}</h2>
@@ -57,7 +57,7 @@
 
     <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="settings-limits-title">
         <div class="flex items-start gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-6">
-            <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+            <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><svg class="inline-block size-5 shrink-0 align-middle " aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#sliders-horizontal"></use></svg></span>
             <div>
                 <h2 id="settings-limits-title" class="font-semibold text-slate-950">Limits & quotas</h2>
                 <p class="mt-1 text-sm text-slate-500">Protect client usage and control hourly SMS capacity.</p>
@@ -87,7 +87,7 @@
 
 <dialog data-settings-confirm class="m-auto w-[calc(100vw-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl backdrop:bg-slate-950/50">
     <div class="p-6">
-        <span class="flex size-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+        <span class="flex size-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><svg class="inline-block size-5 shrink-0 align-middle " aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#triangle-alert"></use></svg></span>
         <h2 class="mt-4 text-lg font-semibold text-slate-950">Enable live SMS sending?</h2>
         <p class="mt-2 text-sm leading-6 text-slate-600">This setting allows billable provider requests when publishing and an eligible client route are also enabled.</p>
         <div class="mt-6 flex justify-end gap-3">

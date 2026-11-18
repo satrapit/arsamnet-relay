@@ -16,8 +16,5 @@
     "optionalDependencies": {
         "@laravel/multiplex": "^0.4.1"
     },
-    "name": "arsamnet-relay",
-    "dependencies": {
-        "@fortawesome/fontawesome-free": "7.3.1"
-    }
+    "name": "arsamnet-relay"
 }

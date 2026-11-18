@@ -68,9 +68,12 @@ document.addEventListener('DOMContentLoaded', () => {
             const indicator = document.createElement('span');
             indicator.className = 'flex size-9 shrink-0 items-center justify-center rounded-xl ' +
                 (successful ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-700');
-            const icon = document.createElement('i');
-            icon.className = 'fa-solid ' + (successful ? 'fa-circle-check' : 'fa-circle-exclamation');
+            const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            icon.setAttribute('class', 'size-5');
             icon.setAttribute('aria-hidden', 'true');
+            const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+            use.setAttribute('href', '/icons/lucide.svg#' + (successful ? 'circle-check' : 'circle-alert'));
+            icon.append(use);
             indicator.append(icon);
 
             const label = document.createElement('p');

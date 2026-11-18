@@ -29,12 +29,12 @@ class FeatureFlagController extends Controller
 
         $groupDefinitions = [
             'Message delivery' => [
-                'icon' => 'fa-paper-plane',
+                'icon' => 'send',
                 'description' => 'Control message intake, scheduling and provider network access.',
                 'keys' => ['message-publishing', 'scheduled-messages', 'kavenegar-sending'],
             ],
             'Providers & integrations' => [
-                'icon' => 'fa-plug',
+                'icon' => 'plug',
                 'description' => 'Manage provider configuration and optional delivery services.',
                 'keys' => ['client-provider-overrides', 'provider-status-queries', 'webhook-delivery'],
             ],

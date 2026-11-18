@@ -9,7 +9,7 @@
     </div>
     @can('clients.manage')
         <a href="{{ route('clients.index') }}" class="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-blue-700 px-5 py-3 text-sm font-semibold text-white shadow-sm shadow-blue-200 transition hover:bg-blue-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-            <i class="fa-solid fa-plus" aria-hidden="true"></i> Manage clients
+            <svg class="inline-block size-5 shrink-0 align-middle " aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#plus"></use></svg> Manage clients
         </a>
     @endcan
 </div>
@@ -26,23 +26,23 @@
         <span class="size-1.5 rounded-full {{ $flags['status'] ? 'bg-emerald-500' : 'bg-slate-400' }}"></span> Status queries {{ $flags['status'] ? 'on' : 'off' }}
     </span>
     @can('feature-flags.view')
-        <a href="{{ route('settings.index') }}" class="ml-auto rounded-lg px-3 py-2 font-semibold text-blue-700 hover:bg-blue-50">Manage settings <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
+        <a href="{{ route('settings.index') }}" class="ml-auto rounded-lg px-3 py-2 font-semibold text-blue-700 hover:bg-blue-50">Manage settings <svg class="inline-block size-5 shrink-0 align-middle ml-1" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#arrow-right"></use></svg></a>
     @endcan
 </div>
 
 <div class="mb-7 grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-3">
     @foreach([
-        ['Active clients', $counts['clients'], 'fa-users', 'text-indigo-700', 'bg-indigo-50'],
-        ['Messages', $counts['messages'], 'fa-envelope-open-text', 'text-blue-700', 'bg-blue-50'],
-        ['Today’s deliveries', $counts['today'], 'fa-paper-plane', 'text-sky-700', 'bg-sky-50'],
-        ['Accepted', $counts['accepted'], 'fa-clock', 'text-amber-700', 'bg-amber-50'],
-        ['Delivered', $counts['delivered'], 'fa-circle-check', 'text-emerald-700', 'bg-emerald-50'],
-        ['Needs review', $counts['review'], 'fa-triangle-exclamation', 'text-rose-700', 'bg-rose-50'],
+        ['Active clients', $counts['clients'], 'users', 'text-indigo-700', 'bg-indigo-50'],
+        ['Messages', $counts['messages'], 'mail-open', 'text-blue-700', 'bg-blue-50'],
+        ['Today’s deliveries', $counts['today'], 'send', 'text-sky-700', 'bg-sky-50'],
+        ['Accepted', $counts['accepted'], 'clock', 'text-amber-700', 'bg-amber-50'],
+        ['Delivered', $counts['delivered'], 'circle-check', 'text-emerald-700', 'bg-emerald-50'],
+        ['Needs review', $counts['review'], 'triangle-alert', 'text-rose-700', 'bg-rose-50'],
     ] as [$label, $count, $icon, $color, $background])
         <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5">
             <div class="flex items-start justify-between gap-3">
                 <span class="text-xs font-semibold text-slate-500 sm:text-sm">{{ $label }}</span>
-                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $background }} {{ $color }}"><i class="fa-solid {{ $icon }}" aria-hidden="true"></i></span>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $background }} {{ $color }}"><svg class="inline-block size-5 shrink-0 align-middle {{ $icon }}" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#{{ $icon }}"></use></svg></span>
             </div>
             <p class="mt-4 text-3xl font-bold tracking-tight text-slate-950 tabular-nums">{{ number_format($count) }}</p>
             @if($label === 'Accepted')
@@ -60,13 +60,13 @@
     <section class="min-w-0 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
         <div class="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-5 sm:px-6">
             <div><h2 class="text-lg font-semibold text-slate-950">Recent delivery activity</h2><p class="mt-1 text-xs text-slate-500">Latest accepted, delivered and review-required records</p></div>
-            <i class="fa-solid fa-list-check text-slate-400" aria-hidden="true"></i>
+            <svg class="inline-block size-5 shrink-0 align-middle text-slate-400" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#list-checks"></use></svg>
         </div>
         <div class="divide-y divide-slate-100">
             @forelse($recent as $item)
                 <a href="{{ route('clients.delivery-reviews.history', [$item->client_id, $item->id]) }}" class="flex min-w-0 items-center gap-3 px-5 py-4 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:px-6">
                     <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $item->state === 'delivered' ? 'bg-emerald-50 text-emerald-700' : ($item->state === 'accepted' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700') }}">
-                        <i class="fa-solid {{ $item->state === 'delivered' ? 'fa-check' : ($item->state === 'accepted' ? 'fa-clock' : 'fa-exclamation') }}" aria-hidden="true"></i>
+                        <svg class="inline-block size-5 shrink-0 align-middle {{ $item->state === 'delivered' ? '' : ($item->state === 'accepted' ? '' : '') }}" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#check"></use></svg>
                     </span>
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -75,11 +75,11 @@
                         </div>
                         <p class="mt-1 truncate font-mono text-xs text-slate-500">{{ $item->id }}</p>
                     </div>
-                    <i class="fa-solid fa-chevron-right text-xs text-slate-400" aria-hidden="true"></i>
+                    <svg class="inline-block size-5 shrink-0 align-middle text-xs text-slate-400" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#chevron-right"></use></svg>
                 </a>
             @empty
                 <div class="px-6 py-14 text-center">
-                    <span class="mx-auto flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><i class="fa-solid fa-inbox" aria-hidden="true"></i></span>
+                    <span class="mx-auto flex size-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-500"><svg class="inline-block size-5 shrink-0 align-middle " aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#inbox"></use></svg></span>
                     <p class="mt-4 text-sm font-semibold text-slate-700">No delivery activity yet</p>
                     <p class="mt-1 text-xs text-slate-500">Recent delivery records will appear here.</p>
                 </div>
@@ -92,17 +92,17 @@
         <div class="mt-5 grid gap-2">
             @can('clients.manage')
                 <a href="{{ route('clients.index') }}" class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
-                    <i class="fa-solid fa-users w-5 text-blue-700" aria-hidden="true"></i><span class="flex-1">Clients & providers</span><i class="fa-solid fa-arrow-right text-slate-400" aria-hidden="true"></i>
+                    <svg class="inline-block size-5 shrink-0 align-middle w-5 text-blue-700" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#users"></use></svg><span class="flex-1">Clients & providers</span><svg class="inline-block size-5 shrink-0 align-middle text-slate-400" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#arrow-right"></use></svg>
                 </a>
             @endcan
             @can('feature-flags.view')
                 <a href="{{ route('settings.index') }}" class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
-                    <i class="fa-solid fa-sliders w-5 text-blue-700" aria-hidden="true"></i><span class="flex-1">Operational settings</span><i class="fa-solid fa-arrow-right text-slate-400" aria-hidden="true"></i>
+                    <svg class="inline-block size-5 shrink-0 align-middle w-5 text-blue-700" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#sliders-horizontal"></use></svg><span class="flex-1">Operational settings</span><svg class="inline-block size-5 shrink-0 align-middle text-slate-400" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#arrow-right"></use></svg>
                 </a>
             @endcan
             @can('security.monitor')
                 <a href="{{ route('security-monitor.index') }}" class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
-                    <i class="fa-solid fa-shield-halved w-5 text-blue-700" aria-hidden="true"></i><span class="flex-1">Security monitor</span><i class="fa-solid fa-arrow-right text-slate-400" aria-hidden="true"></i>
+                    <svg class="inline-block size-5 shrink-0 align-middle w-5 text-blue-700" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#shield-check"></use></svg><span class="flex-1">Security monitor</span><svg class="inline-block size-5 shrink-0 align-middle text-slate-400" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#arrow-right"></use></svg>
                 </a>
             @endcan
         </div>
