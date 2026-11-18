@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Support\SecurityAudit;
 use Illuminate\Http\RedirectResponse;
@@ -56,8 +57,8 @@ final class KavenegarAccountController extends Controller
             'configurationRoute' => $request->routeIs('account.clients.providers.kavenegar.*')
                 ? 'account.clients.providers.kavenegar.save' : 'clients.providers.kavenegar.save',
             'isClientSelfService' => $request->routeIs('account.clients.providers.kavenegar.*'),
-            'publishEnabled' => (bool) config('relay.publish_enabled', false),
-            'sendEnabled' => (bool) config('relay.kavenegar_send_enabled', false),
+            'publishEnabled' => (bool) Feature::globally()->active('message-publishing'),
+            'sendEnabled' => (bool) Feature::globally()->active('kavenegar-sending'),
         ]);
     }
 
