@@ -153,3 +153,11 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - Previously supplied full PHPUnit output: **150 passed, 602 assertions**. Previously supplied independent MySQL output confirmed safe offline recovery and Kavenegar mock operations.
 - No recent actual Kavenegar delivery or target-host Cron rehearsal. In-flight HTTP crash recovery and audited operator resolution remain open; the two-process stage-vs-reconcile race is not a substitute.
 - Next architectural checkpoint: inspect the current `SecurityAudit` allowlist and `review_required` transition rules before adding an operator resolution API, any automatic recovery, or status polling. Keep live sends disabled and PR #1 Draft.
+
+
+## Operator review triage (source only; Mac QA pending, 2026-11-18)
+
+- **Prior developer evidence:** Pint 102 PHP files PASS; `git diff --check` and clean worktree after formatting. Full PHPUnit 150/602 and recovery MySQL integration were reported successful before this milestone.
+- **New source, NOT RUN on Mac:** privileged per-client review queue, GET `/clients/{client}/delivery-reviews` and password-confirmed POST `.../{delivery}/acknowledge`, new `DeliveryReviewController`, Blade view, link from Clients, `SecurityAudit` allowlist limited to `delivery_id` and static `review_action`, and seven PHP Feature tests.
+- Signed audit event `delivery.review_acknowledged` is recorded transactionally for an exact tenant-owned `review_required` delivery. No state transition, provider status claim, retry, send, migration, queue, or Cron change. Audit unavailability fails the action closed.
+- **Next gates:** PHP lint for authored controller/tests, focused `DeliveryReviewTest`, full PHPUnit, Pint, and isolated MySQL regression. Acknowledgement is triage, **not** provider-confirmed resolution. Live sends OFF; PR Draft; no `main` merge.
