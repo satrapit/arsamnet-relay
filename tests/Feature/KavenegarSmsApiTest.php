@@ -21,7 +21,7 @@ class KavenegarSmsApiTest extends TestCase
         config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         Feature::globally()->activate('message-publishing');
         Feature::globally()->activate('kavenegar-sending');
-        config()->set('relay.kavenegar_hourly_limit', 100);
+        Feature::globally()->activate('kavenegar-hourly-limit', 100);
         Http::preventStrayRequests();
     }
 
@@ -255,7 +255,7 @@ class KavenegarSmsApiTest extends TestCase
     public function test_client_hourly_quota_fails_closed_before_any_second_send(): void
     {
         $f = $this->fixture('sms-hourly-limit');
-        config()->set('relay.kavenegar_hourly_limit', 1);
+        Feature::globally()->activate('kavenegar-hourly-limit', 1);
         $this->goodResponse([999]);
 
         $body = ['receptor' => '09123456789', 'message' => 'First SMS'];
