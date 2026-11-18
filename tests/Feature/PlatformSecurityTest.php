@@ -86,7 +86,7 @@ class PlatformSecurityTest extends TestCase
         $user = $this->platformUser('support', true);
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->post('/system/feature-flags/webhook-delivery', ['enabled' => '1'])
+            ->post(route('settings.flags.update', 'webhook-delivery'), ['enabled' => '1'])
             ->assertForbidden();
     }
 
@@ -102,7 +102,7 @@ class PlatformSecurityTest extends TestCase
         $user = $this->platformUser('super_admin', true);
         $this->actingAs($user)
             ->withSession(['auth.password_confirmed_at' => time()])
-            ->post('/system/feature-flags/webhook-delivery', ['enabled' => '1'])
+            ->post(route('settings.flags.update', 'webhook-delivery'), ['enabled' => '1'])
             ->assertRedirect();
         $this->assertTrue(Feature::globally()->active('webhook-delivery'));
         $this->assertDatabaseHas('security_events', ['event_code' => 'feature_flag.changed']);
@@ -114,7 +114,7 @@ class PlatformSecurityTest extends TestCase
         foreach (['message-publishing', 'kavenegar-sending', 'provider-status-queries'] as $key) {
             $this->assertFalse(Feature::globally()->active($key));
             $this->actingAs($user)->withSession(['auth.password_confirmed_at' => time()])
-                ->post('/system/feature-flags/'.$key, ['enabled' => '1'])
+                ->post(route('settings.flags.update', $key), ['enabled' => '1'])
                 ->assertRedirect();
             $this->assertTrue(Feature::globally()->active($key));
         }
@@ -141,4 +141,71 @@ class PlatformSecurityTest extends TestCase
             ->assertSessionHasErrors('hourly_limit');
         $this->assertSame(25, Feature::globally()->value('kavenegar-hourly-limit'));
     }
+
+    public function test_settings_are_grouped_and_old_url_redirects(): void
+    {
+        $admin = $this->platformUser('platform_admin', true);
+        $this->actingAs($admin)->get(route('settings.index'))
+            ->assertOk()
+            ->assertSee('Message delivery')
+            ->assertSee('Providers &amp; integrations', false)
+            ->assertSee('Limits &amp; quotas', false)
+            ->assertSee('data-settings-toggle')
+            ->assertSee('data-settings-toasts')
+            ->assertSee('role="switch"', false)
+            ->assertSee('Kavenegar hourly SMS limit');
+        $this->get('/system/feature-flags')->assertRedirect('/system/settings');
+    }
+
+    public function test_super_admin_can_change_settings_with_json_without_password_confirmation(): void
+    {
+        $super = $this->platformUser('super_admin', true);
+        $this->actingAs($super)->postJson(route('settings.flags.update', 'provider-status-queries'), [
+            'enabled' => true,
+        ])->assertOk()->assertJsonPath('enabled', true)
+            ->assertJsonPath('key', 'provider-status-queries');
+
+        $this->assertTrue(Feature::globally()->active('provider-status-queries'));
+        $this->assertDatabaseHas('security_events', ['event_code' => 'feature_flag.changed']);
+
+        $this->postJson(route('settings.kavenegar-hourly-limit.update'), [
+            'hourly_limit' => 25,
+        ])->assertOk()->assertJsonPath('hourly_limit', 25);
+        $this->assertSame(25, Feature::globally()->value('kavenegar-hourly-limit'));
+    }
+
+    public function test_settings_json_requires_super_admin_mfa_and_valid_payload(): void
+    {
+        $support = $this->platformUser('support', true);
+        $url = route('settings.flags.update', 'kavenegar-sending');
+        $this->actingAs($support)->postJson($url, ['enabled' => true])->assertForbidden();
+
+        $superWithoutMfa = $this->platformUser('super_admin');
+        $this->actingAs($superWithoutMfa)->postJson($url, ['enabled' => true])
+            ->assertRedirect(route('security.setup'));
+
+        $super = $this->platformUser('super_admin', true);
+        $this->actingAs($super)->postJson($url, ['enabled' => 'invalid'])
+            ->assertUnprocessable()->assertJsonValidationErrors('enabled');
+        $this->postJson(route('settings.flags.update', 'nonexistent-flag'), ['enabled' => true])
+            ->assertNotFound();
+
+        $this->postJson(route('settings.kavenegar-hourly-limit.update'), ['hourly_limit' => 0])
+            ->assertUnprocessable()->assertJsonValidationErrors('hourly_limit');
+        $this->assertFalse(Feature::globally()->active('kavenegar-sending'));
+        $this->assertDatabaseCount('security_events', 0);
+    }
+
+    public function test_settings_update_still_requires_csrf_for_web_requests(): void
+    {
+        $this->app->forgetInstance('middleware.disable');
+        $super = $this->platformUser('super_admin', true);
+        $this->actingAs($super);
+        // HTTP feature tests bypass CSRF by default in Laravel's testing
+        // environment; assert the route retains web middleware instead.
+        $route = app('router')->getRoutes()->getByName('settings.flags.update');
+        $this->assertNotNull($route);
+        $this->assertContains('web', $route->gatherMiddleware());
+    }
+
 }
