@@ -97,3 +97,12 @@ so the full suite is expected to contain **144 tests** if green.
 The separate guarded MySQL integration runner has offline Kavenegar
 single/bulk/OTP cases, also NOT RUN after the changes. No real network
 send or third-party callback/status verification has occurred.
+
+
+## Developer-reported Kavenegar QA and subsequent recovery source (2026-11-18)
+
+- **Developer-reported PASS (not independently rerun here):** 28 focused Kavenegar tests / 151 assertions; full PHPUnit 144 tests / 581 assertions; Pint 100 PHP files; git diff check. This supersedes the earlier 116/140/144 *pending* milestones above as a user-provided result. Exact pushed formatting diff and final dedicated MySQL/Kavenegar integration result were not established by this report and remain to be checked.
+- **New commit(s), NOT RUN:** `relay:reconcile-deliveries` provider-free reconciliation command, six PHP feature test scenarios and `docs/DELIVERY_RECOVERY.md`. This bounded command previews by default, stages only never-attempted due `queued` deliveries, expires obsolete queued records and quarantines expired leases as `review_required`. It never sends or retries. See runbook.
+- **Pending:** lint/Pint, full PHPUnit, isolated real MySQL recovery/concurrency evaluation and code review for these new commits. Do not add the six cases to the 144-confirmed total until actually run.
+- **Official API discovery:** Kavenegar `sms/status` / `sms/statuslocalmessageid` exist, but status polling and verified status mapping are still NOT IMPLEMENTED.
+- **Safety:** global publish and Kavenegar live send flags default OFF; no production change, no real SMS or `main` merge. PR #1 remains Draft.
