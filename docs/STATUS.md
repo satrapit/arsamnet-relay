@@ -237,3 +237,10 @@ These results cover the **existing signed audit history implementation**, not a 
 - Six operational flags are grouped under Message delivery and Providers & integrations. Settings display accessible iOS-style switches; toggles use same-origin POST JSON with CSRF, revert on error, show a compact Tailwind/Font Awesome toast, and do not reload the page. The numeric Kavenegar hourly limit uses the same asynchronous save behavior.
 - The only confirmation dialog is for enabling potentially billable Kavenegar sending. **No password reconfirmation** for settings updates; existing authenticated/verified platform MFA, Super Admin gate, rate limit, signed HMAC audit and validation remain in place. Other sensitive operations retain their existing password confirmation.
 - Added Feature tests for groups, old redirect, role isolation, MFA, JSON responses, input validation and no password challenge. Tests, browser behavior, Pint and CI **not yet executed** for these changes; no real SMS network request or deployment.
+
+
+## Isolated cPanel staging and single-send smoke hardening — pending CI (2026-11-19)
+
+- Added `docs/STAGING_DEPLOYMENT.md` describing isolated hostname/database, HTTPS public/ document root, private `.env`, separate migration approval, preflight and one-recipient real SMS verification with rollback.
+- Tightened `scripts/kavenegar_live_smoke.sh`: Relay machine token syntax matches server's lowercase token contract and a local `~/.arsam-relay/` fingerprint marker is atomically reserved before the first outbound request. The same recipient+staging origin cannot accidentally be retried by another invocation after an ambiguous timeout. The marker records only timestamp and idempotency key, never the phone or token. No provider calls or staging host deployment have been performed.
+- The operator must separately configure staging and run the existing read-only preflight, then explicitly enable sending and type the script's live-send confirmation; subsequent disabling/revocation is mandatory. This PR must pass CI before `main` merge; GitHub Actions only syntax-checks the shell script.

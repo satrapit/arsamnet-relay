@@ -29,6 +29,8 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 
 - Grouped System Settings page with AJAX iOS-style switches, accessible toast notifications, background quota save and removal of password reconfirmation only for Super Admin settings operations.
 
+- Documented isolated cPanel staging deployment and hardened operator-only live Kavenegar SMS smoke with persistent duplicate-run prevention.
+
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.
 - Actual TailAdmin Free components, provider adapters and safe delivery pipeline.

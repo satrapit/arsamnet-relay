@@ -26,10 +26,28 @@ fi
 printf 'Paste the ONE-TIME ISSUED tenant Relay API token (hidden input): '
 IFS= read -r -s token
 printf '\n'
-if [[ ! "${token}" =~ ^relay_[A-Fa-f0-9]{64}$ ]]; then
+if [[ ! "${token}" =~ ^relay_[a-f0-9]{64}$ ]]; then
     echo "The Relay machine token format is invalid." >&2
     unset token
     exit 2
+fi
+
+# A persistent local marker prevents accidental duplicate paid trials
+# after a timeout, ambiguous outcome or interrupted terminal session.
+state_dir="${HOME}/.arsam-relay"
+if [[ -L "${state_dir}" ]]; then
+    echo "Refusing a symlinked local trial directory." >&2
+    unset token
+    exit 2
+fi
+(umask 077; mkdir -p -- "${state_dir}")
+fingerprint="$(printf '%s\\n%s' "${base_url}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+marker="${state_dir}/kavenegar-single-${fingerprint}.attempted"
+if [[ -e "${marker}" || -L "${marker}" ]]; then
+    echo "An SMS trial already started for this staging origin and recipient." >&2
+    echo "Review the provider dashboard and delivery attempt before considering any other send." >&2
+    unset token
+    exit 3
 fi
 
 idempotency="live-smoke-$(php -r 'echo bin2hex(random_bytes(16));')"
@@ -43,6 +61,14 @@ if [[ "${confirmation}" != 'SEND ONE SMS' ]]; then
     echo "Cancelled. No network call made."
     unset token
     exit 0
+fi
+
+# Reserve the trial BEFORE network access. No retry after an ambiguous result.
+# noclobber keeps simultaneous terminal runs from both sending.
+if ! (set -C; printf 'Started: %s UTC\\nIdempotency: %s\\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "${idempotency}" > "${marker}") 2>/dev/null; then
+    echo "Trial already reserved for this number. No SMS sent by this invocation." >&2
+    unset token
+    exit 3
 fi
 
 # Curl's secret header is streamed through stdin config, never passed in
