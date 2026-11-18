@@ -126,3 +126,12 @@ send or third-party callback/status verification has occurred.
 - **Source control:** developer `git pull --ff-only` advanced the feature branch to `da15513`; subsequent `git diff --check` and `git status --short` produced no reported output.
 - **Next gate:** separately execute the guarded, pre-existing `scripts/mysql_publish_integration.php` on the exact pre-migrated, empty `arsamnet_relay_integration_test` schema. The current MySQL runner covers the prior delivery lifecycle, but does **not** yet exercise the new reconciliation command or concurrent recovery. Do not interpret a MySQL pass as validating reconciliation until explicit recovery assertions are implemented and run.
 - **Production gate:** live Kavenegar sending remains disabled; no provider status proof or manual operator resolution workflow is implemented. No merge to `main`.
+
+
+## MySQL Kavenegar regression PASS; dedicated recovery MySQL checks authored (2026-11-18)
+
+Developer Mac output confirms the **existing** isolated MySQL 8 script PASS for rollback, sequential/concurrent idempotency (two PHP processes), staging, fenced leases, tenant route selection, durable attempts, signed fake receipt, ambiguous quarantine, and Kavenegar single/SendArray/VerifyLookup under `Http::fake`. Isolated test fixtures were cleaned to empty. Read-only primary schema verifier PASS: 28 tables including migrations, 192 documented columns, 61 indexes, 32 restricted foreign keys, four migration records. Git worktree was clean.
+
+**New source, NOT YET RUN on Mac:** strengthened `ReconcileDeliveries` conditional update to recheck message schedule/expiry and correlated prior-attempt absence at write time. Expanded the same guarded real-MySQL runner with preview, queued staging/repeat apply, expired queued rows, old attempt evidence refusal, expired-lease quarantine and no-network assertions. No schema migrations, production sends, or Cron changes. **These tests are not yet evidence of concurrent reconciliation under separate processes**; an explicit race test remains a separate gate.
+
+Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`, `php vendor/bin/pint --test`, and the guarded integration runner again; no result for these new commits is yet verified.
