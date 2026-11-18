@@ -125,6 +125,49 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
         return $this->single('verify/lookup', $parameters);
     }
 
+    /**
+     * Provider status is a read-only network operation, never a delivery proof
+     * or a resend. Only the numeric ID from our verified accepted attempt can
+     * be supplied by the caller. Never expose raw provider response fields.
+     *
+     * @return array{state:string,provider_code:?int}
+     */
+    public function queryStatus(string $messageId): array
+    {
+        if (! preg_match('/\\A[0-9]{1,18}\\z/D', $messageId)) {
+            throw new InvalidArgumentException('Invalid provider message ID.');
+        }
+
+        $response = $this->post('sms/status', ['messageid' => $messageId], true);
+        $body = $response['body'];
+        if ($response['http_status'] !== 200 || ! is_array($body)
+            || ($body['return']['status'] ?? null) !== 200) {
+            return ['state' => 'unknown', 'provider_code' => null];
+        }
+
+        $entries = $body['entries'] ?? null;
+        if (! is_array($entries) || ! array_is_list($entries) || count($entries) !== 1) {
+            return ['state' => 'unknown', 'provider_code' => null];
+        }
+
+        $entry = $entries[0];
+        $id = is_array($entry) ? ($entry['messageid'] ?? null) : null;
+        $code = is_array($entry) ? ($entry['status'] ?? null) : null;
+        if ((! is_int($id) && ! is_string($id))
+            || (string) $id !== $messageId
+            || (! is_int($code) && ! (is_string($code) && preg_match('/\\A[0-9]{1,3}\\z/D', $code)))
+            || (int) $code < 0 || (int) $code > 999) {
+            return ['state' => 'unknown', 'provider_code' => null];
+        }
+
+        $code = (int) $code;
+
+        return [
+            'state' => $code === 10 ? 'provider_reports_delivered' : 'not_confirmed',
+            'provider_code' => $code,
+        ];
+    }
+
     /** @param array<string,string> $params */
     private function single(string $path, array $params): OutboundProviderResult
     {
@@ -134,10 +177,11 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
     /** @param array<string,string> $params
      * @return array{http_status:int,body:?array}
      */
-    private function post(string $path, array $params): array
+    private function post(string $path, array $params, bool $statusOnly = false): array
     {
-        if (! config('relay.kavenegar_send_enabled', false)) {
-            throw new LogicException('Kavenegar network sending is disabled.');
+        if ($statusOnly ? ! config('relay.kavenegar_status_enabled', false)
+            : ! config('relay.kavenegar_send_enabled', false)) {
+            throw new LogicException('Kavenegar network operation is disabled.');
         }
 
         // Credentials appear in Kavenegar's official URL path. Do not log
