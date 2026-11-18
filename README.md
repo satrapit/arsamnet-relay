@@ -40,6 +40,27 @@ DB_DATABASE=arsamnet_relay_integration_test php scripts/mysql_publish_integratio
 
 No GitHub workflow is installed. Builds, test execution and any future deploy are local operator actions. An actual provider SMS is a separate, explicitly enabled and billable operation.
 
+## Local Kavenegar smoke (operator only)
+
+Start the local Laravel server and configure a dedicated test client with encrypted Kavenegar account, a scoped Relay API key and approved sender. In **System → Settings**, Super Admin must deliberately enable `message-publishing` and `kavenegar-sending`. Set the hourly SMS capacity to at least 2 for the limited bulk trial. These operations may incur charges.
+
+```bash
+php artisan serve
+# In a second trusted terminal:
+bash scripts/kavenegar_live_smoke.sh
+# Choose single, bulk (two different owned numbers), or OTP (approved VerifyLookup template).
+```
+
+The script first checks `/api/v1/me` and `/api/v1/sms/readiness` on loopback, then asks for explicit typed approval before any paid call. It stores one private marker per local URL, operation and recipient to prevent blind re-sends. OTP tokens and the Relay secret are not printed. **Do not remove the marker after a timeout or unknown result.**
+
+To review a persisted message without making any Kavenegar request, use a Relay key with `messages.read` scope:
+
+```bash
+bash scripts/kavenegar_live_smoke.sh --status
+```
+
+A provider-accepted message is not a confirmed handset delivery. Inspect the provider dashboard and the actual device, then **disable both sending flags** and revoke the temporary key. No SMS is sent automatically by tests.
+
 ## Canonical project references
 
 - [Compact context and current boundaries](docs/PROJECT_CONTEXT.md)
