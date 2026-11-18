@@ -47,7 +47,7 @@ try {
     if (! is_array($parsed) || ($parsed['scheme'] ?? '') !== 'https'
         || ! isset($parsed['host'])
         || in_array(strtolower($parsed['host']), ['localhost', '127.0.0.1'], true)
-        || isset($parsed['user'], $parsed['pass'])
+        || isset($parsed['user']) || isset($parsed['pass'])
         || isset($parsed['query']) || isset($parsed['fragment'])) {
         failed('APP_URL must be a public HTTPS origin without URL credentials or query parameters.');
     }
