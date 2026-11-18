@@ -135,3 +135,12 @@ Developer Mac output confirms the **existing** isolated MySQL 8 script PASS for 
 **New source, NOT YET RUN on Mac:** strengthened `ReconcileDeliveries` conditional update to recheck message schedule/expiry and correlated prior-attempt absence at write time. Expanded the same guarded real-MySQL runner with preview, queued staging/repeat apply, expired queued rows, old attempt evidence refusal, expired-lease quarantine and no-network assertions. No schema migrations, production sends, or Cron changes. **These tests are not yet evidence of concurrent reconciliation under separate processes**; an explicit race test remains a separate gate.
 
 Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`, `php vendor/bin/pint --test`, and the guarded integration runner again; no result for these new commits is yet verified.
+
+ 
+## Recovery MySQL validation and first two-process race (2026-11-18)
+
+- **Developer Mac PASS:** PHP syntax on reconciliation command and integration runner; Pint 102/102 files; focused recovery 6 tests/21 assertions; full Laravel suite 150 tests/602 assertions.
+- **Developer Mac PASS:** guarded isolated MySQL 8 integration now includes recovery dry run, repeat staging, queued expiry, refusal with previous attempt evidence and expired-lease quarantine. Existing rollback, two-process publisher idempotency, provider routing and offline Kavenegar single/bulk/OTP also passed. Integration fixture cleanup completed.
+- **NEW SOURCE ONLY, NOT YET TESTED:** extra two-process barrier test in `scripts/mysql_publish_integration.php` races an inert `StageDeliveryJob` with `relay:reconcile-deliveries --apply` using separate PHP/MySQL connections and validates exactly one safely staged delivery with no new provider attempts. This is **not** evidence of in-flight HTTP crash safety, concurrent operator resolution, or high-load stress.
+- **Required next checks:** `php -l scripts/mysql_publish_integration.php`, `php vendor/bin/pint --test`, full PHPUnit and guarded MySQL runner on the already migrated/empty `arsamnet_relay_integration_test` schema. No migration/reset or real Kavenegar traffic.
+- `main` remains untouched; PR #1 is Draft; publish/send flags default OFF.
