@@ -811,12 +811,13 @@ try {
         ensure(DB::table('deliveries')->where('id', $statusDeliveryId)
             ->where('state', 'accepted')->where('attempt_count', 1)->exists(),
             'Read-only status query incorrectly changed delivery state.');
-        Http::assertSentCount(1);
+        Http::assertSent(fn ($request): bool => $request->method() === 'POST'
+            && str_contains($request->url(), '/sms/status.json')
+            && $request['messageid'] === '777001');
         ensure(app(KavenegarDeliveryStatus::class)->query($f['client'] + 99999, $statusDeliveryId)
             === ['state' => 'unavailable', 'provider_code' => null],
             'Foreign tenant was allowed to query status.');
-        Http::assertSentCount(1);
-        echo "PASS: MySQL Kavenegar status lookup is tenant-bound, no-send, and never marks delivered.\\n";
+        echo "PASS: MySQL Kavenegar status lookup is tenant-bound, no-send, and never marks delivered.\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
