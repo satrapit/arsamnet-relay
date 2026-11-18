@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Laravel\Pennant\Feature;
 use Symfony\Component\Process\Process;
 
 require dirname(__DIR__).'/vendor/autoload.php';
@@ -633,8 +634,11 @@ try {
 
         // Kavenegar is exercised using Laravel's HTTP fake. Never make
         // a real external request from this integration runner.
-        config()->set('relay.publish_enabled', true);
-        config()->set('relay.kavenegar_send_enabled', true);
+        // Exercise operator-controlled gates without writing global feature
+        // rows to the guarded, fixture-only MySQL integration schema.
+        config()->set('pennant.default', 'array');
+        Feature::globally()->activate('message-publishing');
+        Feature::globally()->activate('kavenegar-sending');
         Http::preventStrayRequests();
         $kvKey = 'TEST_KAVENEGAR_KEY_12345678901234567890';
         $kvAccount = DB::table('provider_accounts')->insertGetId([
@@ -802,8 +806,8 @@ try {
 
         // Separate read-only provider-status path uses an independently
         // enabled network gate and always keeps the delivery accepted.
-        config()->set('relay.kavenegar_send_enabled', false);
-        config()->set('relay.kavenegar_status_enabled', true);
+        Feature::globally()->deactivate('kavenegar-sending');
+        Feature::globally()->activate('provider-status-queries');
         $statusDeliveryId = $singleKv['delivery_ids'][0];
         $deliveryStatus = app(KavenegarDeliveryStatus::class)->query($f['client'], $statusDeliveryId);
         ensure($deliveryStatus === ['state' => 'provider_reports_delivered', 'provider_code' => 10],
