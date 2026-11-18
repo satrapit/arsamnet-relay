@@ -3,7 +3,6 @@
 return [
     'audit_hmac_key' => env('ARSAM_AUDIT_HMAC_KEY'),
     'provision_admin' => (bool) env('ARSAM_PROVISION_ADMIN', false),
-    'kavenegar_hourly_limit' => (int) env('ARSAM_KAVENEGAR_HOURLY_LIMIT', 100),
     'flags' => [
         'message-publishing' => 'Enable machine publishing of messages (independent of provider sending)',
         'kavenegar-sending' => 'Enable live Kavenegar network sending (potentially billable)',
