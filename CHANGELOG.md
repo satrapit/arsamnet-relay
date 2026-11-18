@@ -15,6 +15,9 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 - Recent password confirmation before recovery-code disclosure; dummy hash verification for absent-account login timing.
 - Dependency-free audit integrity smoke assertions and negative-security test sources.
 
+- Provider-free delivery recovery reconciliation with dry-run, bounded processing, expiry and uncertain-lease quarantine; offline PHP and isolated MySQL regression coverage.
+- Platform-only tenant-scoped `review_required` queue and password-confirmed, signed audit acknowledgement. Acknowledgement never sends, retries or changes delivery status; new feature tests pending Mac execution.
+
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.
 - Actual TailAdmin Free components, provider adapters and safe delivery pipeline.
