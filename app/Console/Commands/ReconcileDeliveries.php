@@ -35,9 +35,17 @@ class ReconcileDeliveries extends Command
                     ->on('m.client_id', '=', 'd.client_id');
             })
             ->where(function ($query) use ($now): void {
-                $query->where('d.state', 'queued')
+                $query->where(function ($queued) use ($now): void {
+                    $queued->where('d.state', 'queued')
+                        ->where(function ($due) use ($now): void {
+                            $due->whereNull('m.scheduled_at')
+                                ->orWhere('m.scheduled_at', '<=', $now)
+                                ->orWhere('m.expires_at', '<=', $now);
+                        });
+                })
                     ->orWhere(function ($lease) use ($now): void {
                         $lease->where('d.state', 'leased')
+                            ->whereNotNull('d.lease_token')
                             ->whereNotNull('d.lease_expires_at')
                             ->where('d.lease_expires_at', '<=', $now);
                     });
