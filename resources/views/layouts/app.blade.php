@@ -9,7 +9,7 @@
 <body class="min-h-screen bg-slate-50 font-sans text-slate-800 antialiased">
 <div class="min-h-screen lg:flex">
     <button type="button" data-sidebar-backdrop class="fixed inset-0 z-40 hidden bg-slate-950/40 lg:hidden" aria-label="Dismiss navigation"></button>
-    <aside id="platform-sidebar" data-sidebar aria-label="Platform navigation" class="fixed inset-y-0 start-0 z-50 w-72 shrink-0 -translate-x-full overflow-y-auto border-e border-slate-200 bg-white p-5 shadow-xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:shadow-none">
+    <aside id="platform-sidebar" data-sidebar aria-label="Platform navigation" class="fixed inset-y-0 start-0 z-50 w-72 shrink-0 {{ in_array(app()->getLocale(), ['fa','ar'], true) ? 'translate-x-full' : '-translate-x-full' }} overflow-y-auto border-e border-slate-200 bg-white p-5 shadow-xl transition-transform duration-300 ease-out lg:sticky lg:top-0 lg:h-screen lg:w-64 lg:translate-x-0 lg:shadow-none">
         <div class="mb-5 flex justify-end lg:hidden"><button type="button" data-sidebar-close class="rounded-lg p-2 text-slate-600 hover:bg-slate-100" aria-label="Close navigation"><i class="fa-solid fa-xmark" aria-hidden="true"></i></button></div>
         <div class="mb-9 flex items-center gap-3 border-b border-slate-100 pb-6 text-lg font-bold tracking-tight text-slate-900">
             <span class="flex size-11 items-center justify-center rounded-2xl bg-blue-700 text-white shadow-sm shadow-blue-200"><i class="fa-solid fa-paper-plane" aria-hidden="true"></i></span>Arsam Relay
