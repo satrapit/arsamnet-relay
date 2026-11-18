@@ -91,10 +91,10 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
-        async function save(form) {
+        async function save(form, data = new FormData(form)) {
             const response = await fetch(form.action, {
                 method: 'POST',
-                body: new FormData(form),
+                body: data,
                 credentials: 'same-origin',
                 headers: {
                     'Accept': 'application/json',
@@ -154,14 +154,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
 
+                const data = new FormData(form);
                 input.disabled = true;
                 input.setAttribute('aria-busy', 'true');
                 try {
-                    // Disabled inputs are omitted from FormData, so capture
-                    // before changing the disabled state in save().
-                    input.disabled = false;
-                    const payload = await save(form);
-                    input.disabled = true;
+                    const payload = await save(form, data);
                     saved = payload.enabled === true;
                     input.checked = saved;
                     input.defaultChecked = saved;
