@@ -314,4 +314,74 @@ class KavenegarSmsApiTest extends TestCase
         $this->assertDatabaseCount('delivery_attempts', 1);
         Http::assertSentCount(1);
     }
+
+    public function test_local_readiness_probe_requires_publish_scope_and_never_calls_provider(): void
+    {
+        $readonly = $this->fixture('sms-readiness-readonly', true, ['messages.read']);
+        $this->withToken($readonly['token'])->getJson('/api/v1/sms/readiness')
+            ->assertForbidden();
+
+        $off = $this->fixture('sms-readiness-disabled');
+        Feature::globally()->deactivate('kavenegar-sending');
+        Http::fake();
+
+        $this->withToken($off['token'])->getJson('/api/v1/sms/readiness')
+            ->assertOk()
+            ->assertJsonPath('data.ready', false)
+            ->assertJsonPath('data.sending_enabled', false)
+            ->assertJsonPath('data.provider_route_enabled', true);
+
+        $this->assertDatabaseCount('messages', 0);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_local_readiness_probe_checks_tenant_route_and_requested_capacity(): void
+    {
+        $enabled = $this->fixture('sms-readiness-enabled');
+        $disabled = $this->fixture('sms-readiness-no-route', false);
+        Feature::globally()->activate('kavenegar-hourly-limit', 1);
+        Http::fake();
+
+        $this->withToken($enabled['token'])
+            ->getJson('/api/v1/sms/readiness?recipients=1')
+            ->assertOk()
+            ->assertJsonPath('data.ready', true)
+            ->assertJsonPath('data.remaining_hourly_capacity', 1);
+
+        $this->withToken($enabled['token'])
+            ->getJson('/api/v1/sms/readiness?recipients=2')
+            ->assertOk()
+            ->assertJsonPath('data.ready', false);
+
+        $this->withToken($disabled['token'])->getJson('/api/v1/sms/readiness')
+            ->assertOk()
+            ->assertJsonPath('data.provider_route_enabled', false)
+            ->assertJsonPath('data.ready', false);
+
+        $this->withToken($enabled['token'])
+            ->getJson('/api/v1/sms/readiness?recipients=3')
+            ->assertUnprocessable();
+        Http::assertNothingSent();
+    }
+
+    public function test_local_readiness_probe_fails_after_quota_is_consumed_without_extra_provider_io(): void
+    {
+        $f = $this->fixture('sms-readiness-full');
+        Feature::globally()->activate('kavenegar-hourly-limit', 1);
+        $this->goodResponse([456123]);
+
+        $this->request($f['token'], 'sms-readiness-fill-0001', '/api/v1/sms/send', [
+            'receptor' => '09123456789',
+            'message' => 'Quota test message',
+        ])->assertStatus(202);
+
+        $this->withToken($f['token'])->getJson('/api/v1/sms/readiness')
+            ->assertOk()
+            ->assertJsonPath('data.ready', false)
+            ->assertJsonPath('data.remaining_hourly_capacity', 0);
+
+        $this->assertDatabaseCount('delivery_attempts', 1);
+        Http::assertSentCount(1);
+    }
 }
