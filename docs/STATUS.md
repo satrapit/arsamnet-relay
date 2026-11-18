@@ -211,3 +211,13 @@ Verified from developer-supplied full command output after fast-forward to `564a
 - `git diff --check` and `git status --short` produced no output after checks (clean developer worktree).
 
 These results cover the **existing signed audit history implementation**, not a future provider-backed delivery settlement feature. No automatic `delivered` state transition, retry, real SMS, new migration, or production go-live is authorized. PR #1 remains Draft and `main` unchanged.
+
+
+## Dashboard UX and first real Kavenegar smoke preparation — SOURCE ONLY (2026-11-19)
+
+- **Developer Mac baseline:** verified 170 Laravel tests / 714 assertions, Pint 106 files, full isolated MySQL fake-only integration, with original worktree clean. These numbers precede the UI/smoke changes below.
+- Found the legacy dashboard was a static placeholder and incorrectly said no delivery provider was connected. Added `DashboardController` with read-only active-client, message, delivered/accepted/review-required and current-day metrics, recent delivery links, and real Pennant gate state; replaced the Blade dashboard with a mobile-first operational overview, visual hierarchy, accessible links and empty states. Refined the shell navigation and fixed RTL mobile drawer transition. Added `DashboardOverviewTest` (three cases). **New UI changes not yet executed or browser-verified.**
+- Added a per-client **first live SMS readiness** panel in the Kavenegar settings view, showing provider route state and Super Admin publishing/sending flags; no send action is triggered by the page.
+- Added `scripts/kavenegar_live_smoke.sh` and `docs/KAVENEGAR_LIVE_SMOKE.md`: interactive, HTTPS-only, one explicit manually confirmed single SMS with a separate scoped Relay machine token, redacted phone display, fixed harmless text, fresh idempotency, bounded curl and no automatic retries/redirects. **No real SMS was sent or tested by the assistant**; script itself has NOT yet been shell-checked on Mac.
+- PR #1 is **Draft, not merged**, last GitHub metadata reports `mergeable=false` and around 215 changed files. `main` therefore remains unchanged. Before merge: investigate GitHub mergeability, vet generated lockfiles and runtime prerequisites, run PHP tests/Pint, `npm run build`, shell syntax/UX/browser checks, review production-specific deployment and secret-safe upstream traffic. Do not auto-merge an unreviewed staging build.
+- Prioritize a dedicated isolated staging host and an operator-owned number for the first single real Kavenegar trial. The real network send remains dependent on the Super Admin independently enabling `message-publishing` and `kavenegar-sending` and the provider route. Both default OFF; no bulk/OTP live trial or automatic retry.
