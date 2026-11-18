@@ -2,10 +2,10 @@
 
 namespace App\Services;
 
-use Laravel\Pennant\Feature;
 use App\Providers\Adapters\KavenegarSmsAdapter;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Laravel\Pennant\Feature;
 use Throwable;
 
 /**
