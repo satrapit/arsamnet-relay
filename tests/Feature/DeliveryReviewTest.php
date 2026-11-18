@@ -286,6 +286,14 @@ class DeliveryReviewTest extends TestCase
         $this->assertStringNotContainsString('09123456789', $audit->context_json);
         $this->assertStringNotContainsString('Private response', $audit->context_json);
         Http::assertSentCount(1);
+
+        $history = $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.history', [$fixture['client'], $fixture['delivery']]))
+            ->assertOk()
+            ->assertSee('provider_reports_delivered')
+            ->assertSee('Verified');
+        $this->assertStringNotContainsString('09123456789', $history->getContent());
+        Http::assertSentCount(1);
     }
 
     public function test_delivery_history_only_shows_verified_events_for_exact_tenant_and_delivery(): void
