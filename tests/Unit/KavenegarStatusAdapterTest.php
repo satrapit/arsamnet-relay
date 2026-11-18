@@ -5,6 +5,7 @@ namespace Tests\Unit;
 use App\Providers\Adapters\KavenegarSmsAdapter;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class KavenegarStatusAdapterTest extends TestCase
@@ -14,8 +15,9 @@ class KavenegarStatusAdapterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config()->set('relay.kavenegar_send_enabled', false);
-        config()->set('relay.kavenegar_status_enabled', true);
+        config()->set('pennant.default', 'array');
+        Feature::globally()->deactivate('kavenegar-sending');
+        Feature::globally()->activate('provider-status-queries');
         Http::preventStrayRequests();
     }
 
@@ -73,7 +75,7 @@ class KavenegarStatusAdapterTest extends TestCase
 
     public function test_status_gate_and_bad_message_id_fail_without_network(): void
     {
-        config()->set('relay.kavenegar_status_enabled', false);
+        Feature::globally()->deactivate('provider-status-queries');
         Http::fake();
         try {
             $this->adapter()->queryStatus('987654');
@@ -82,7 +84,7 @@ class KavenegarStatusAdapterTest extends TestCase
             Http::assertNothingSent();
         }
 
-        config()->set('relay.kavenegar_status_enabled', true);
+        Feature::globally()->activate('provider-status-queries');
         $this->expectException(InvalidArgumentException::class);
         $this->adapter()->queryStatus('987654/other');
     }
