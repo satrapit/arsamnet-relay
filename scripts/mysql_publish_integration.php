@@ -12,6 +12,7 @@ use App\Services\DeliveryAttemptManager;
 use App\Services\DeliveryLeaseManager;
 use App\Services\FakeDispatchCoordinator;
 use App\Services\FakeSignedCallbackReceipt;
+use App\Services\KavenegarDeliveryStatus;
 use App\Services\KavenegarMessageService;
 use App\Services\KavenegarSmsDispatcher;
 use App\Services\MessagePublisher;
@@ -791,6 +792,31 @@ try {
             'Recovery performed a provider operation.');
         echo "PASS: MySQL recovery quarantines expired lease with zero retries or HTTP calls.\n";
         runRecoveryRace($f);
+
+        // Separate read-only provider-status path uses an independently
+        // enabled network gate and always keeps the delivery accepted.
+        config()->set('relay.kavenegar_send_enabled', false);
+        config()->set('relay.kavenegar_status_enabled', true);
+        Http::fake(['*' => Http::response([
+            'return' => ['status' => 200],
+            'entries' => [[
+                'messageid' => 777001, 'status' => 10,
+                'receptor' => '09123456789', 'statustext' => 'Sensitive provider text',
+            ]],
+        ], 200)]);
+        $statusDeliveryId = $singleKv['delivery_ids'][0];
+        $deliveryStatus = app(KavenegarDeliveryStatus::class)->query($f['client'], $statusDeliveryId);
+        ensure($deliveryStatus === ['state' => 'provider_reports_delivered', 'provider_code' => 10],
+            'MySQL status service rejected matched provider delivery status.');
+        ensure(DB::table('deliveries')->where('id', $statusDeliveryId)
+            ->where('state', 'accepted')->where('attempt_count', 1)->exists(),
+            'Read-only status query incorrectly changed delivery state.');
+        Http::assertSentCount(1);
+        ensure(app(KavenegarDeliveryStatus::class)->query($f['client'] + 99999, $statusDeliveryId)
+            === ['state' => 'unavailable', 'provider_code' => null],
+            'Foreign tenant was allowed to query status.');
+        Http::assertSentCount(1);
+        echo "PASS: MySQL Kavenegar status lookup is tenant-bound, no-send, and never marks delivered.\\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
