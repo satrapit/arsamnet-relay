@@ -103,9 +103,26 @@ class ReconcileDeliveries extends Command
                 ->where('attempt_count', 0)
                 ->whereNull('lease_token')
                 ->whereNull('lease_expires_at')
-                ->whereNotExists(function ($query) use ($candidate): void {
+                ->whereNotExists(function ($query): void {
                     $query->selectRaw('1')->from('delivery_attempts')
-                        ->where('delivery_id', $candidate->id);
+                        ->whereColumn('delivery_attempts.delivery_id', 'deliveries.id');
+                })
+                ->whereExists(function ($query) use ($expired, $now): void {
+                    $query->selectRaw('1')->from('messages')
+                        ->whereColumn('messages.id', 'deliveries.message_id')
+                        ->whereColumn('messages.client_id', 'deliveries.client_id');
+                    if ($expired) {
+                        $query->whereNotNull('messages.expires_at')
+                            ->where('messages.expires_at', '<=', $now);
+                    } else {
+                        $query->where(function ($due) use ($now): void {
+                            $due->whereNull('messages.scheduled_at')
+                                ->orWhere('messages.scheduled_at', '<=', $now);
+                        })->where(function ($valid) use ($now): void {
+                            $valid->whereNull('messages.expires_at')
+                                ->orWhere('messages.expires_at', '>', $now);
+                        });
+                    }
                 })
                 ->update(['state' => $expired ? 'expired' : 'awaiting_provider', 'updated_at' => now()->utc()]);
             $counts[$changed === 1 ? ($expired ? 'expired' : 'staged') : 'skipped']++;
