@@ -72,14 +72,14 @@ class ReconcileDeliveries extends Command
                 continue;
             }
 
-            if ($candidate->scheduled_at !== null && $candidate->scheduled_at > $now->toDateTimeString()) {
+            $expired = $candidate->expires_at !== null
+                && $candidate->expires_at <= $now->toDateTimeString();
+            if (! $expired && $candidate->scheduled_at !== null
+                && $candidate->scheduled_at > $now->toDateTimeString()) {
                 $counts['skipped']++;
 
                 continue;
             }
-
-            $expired = $candidate->expires_at !== null
-                && $candidate->expires_at <= $now->toDateTimeString();
             if (! $apply) {
                 $counts[$expired ? 'expired' : 'staged']++;
 
