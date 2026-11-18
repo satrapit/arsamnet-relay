@@ -52,7 +52,7 @@ final class DeliveryReviewController extends Controller
         KavenegarDeliveryStatus $statuses,
     ): RedirectResponse {
         Gate::authorize('clients.manage');
-        abort_unless(preg_match('/\\A[0-9A-HJKMNP-TV-Z]{26}\\z/D', $delivery) === 1, 404);
+        abort_unless(preg_match('/\A[0-9A-HJKMNP-TV-Z]{26}\z/D', $delivery) === 1, 404);
         abort_unless(DB::table('clients')->where('id', $client)->exists(), 404);
 
         // This is a manual, separate network gate. It never sends messages,
