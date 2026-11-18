@@ -25,7 +25,7 @@ class KavenegarStatusAdapterTest extends TestCase
     }
 
     /** @return array<string,mixed> */
-    private function status(int $code, int $id = 987654): array
+    private function providerStatusResponse(int $code, int $id = 987654): array
     {
         return [
             'return' => ['status' => 200, 'message' => 'Secret diagnostic'],
@@ -38,7 +38,7 @@ class KavenegarStatusAdapterTest extends TestCase
 
     public function test_status_uses_independent_gate_and_never_sends_sms(): void
     {
-        Http::fake(['*' => Http::response($this->status(10), 200)]);
+        Http::fake(['*' => Http::response($this->providerStatusResponse(10), 200)]);
         $result = $this->adapter()->queryStatus('987654');
 
         $this->assertSame(['state' => 'provider_reports_delivered', 'provider_code' => 10], $result);
@@ -55,7 +55,7 @@ class KavenegarStatusAdapterTest extends TestCase
 
     public function test_nonterminal_status_never_claims_delivered(): void
     {
-        Http::fake(['*' => Http::response($this->status(4), 200)]);
+        Http::fake(['*' => Http::response($this->providerStatusResponse(4), 200)]);
         $this->assertSame(['state' => 'not_confirmed', 'provider_code' => 4],
             $this->adapter()->queryStatus('987654'));
     }
@@ -63,7 +63,7 @@ class KavenegarStatusAdapterTest extends TestCase
     public function test_mismatched_id_and_malformed_response_are_unknown(): void
     {
         Http::fake(['*' => Http::sequence()
-            ->push($this->status(10, 111222), 200)
+            ->push($this->providerStatusResponse(10, 111222), 200)
             ->push(['return' => ['status' => 200], 'entries' => []], 200)]);
         $this->assertSame(['state' => 'unknown', 'provider_code' => null],
             $this->adapter()->queryStatus('987654'));
