@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Services\DeliveryLeaseManager;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
@@ -85,7 +86,7 @@ class ReconcileDeliveriesTest extends TestCase
     public function test_expired_lease_is_quarantined_without_retry(): void
     {
         $row = $this->delivery('reconcile-leased', 'awaiting_provider');
-        $token = app(\App\Services\DeliveryLeaseManager::class)->claim($row['client'], $row['delivery']);
+        $token = app(DeliveryLeaseManager::class)->claim($row['client'], $row['delivery']);
         $this->assertNotNull($token);
         DB::table('deliveries')->where('id', $row['delivery'])
             ->update(['lease_expires_at' => now()->utc()->subMinute()]);
