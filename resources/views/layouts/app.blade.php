@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'Dashboard') · Arsam Relay</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
@@ -23,7 +24,7 @@
             <a class="flex min-h-11 items-center rounded-xl px-4 py-3 transition-colors hover:bg-blue-50 {{ request()->routeIs('security-monitor.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('security-monitor.index') }}"><i class="fa-solid fa-shield-halved mr-2" aria-hidden="true"></i>Security monitor</a>
             @endcan
             @can('feature-flags.view')
-            <a class="flex min-h-11 items-center rounded-xl px-4 py-3 transition-colors hover:bg-blue-50 {{ request()->routeIs('feature-flags.*', 'settings.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('feature-flags.index') }}"><i class="fa-solid fa-toggle-on mr-2" aria-hidden="true"></i>Feature flags</a>
+            <a class="flex min-h-11 items-center rounded-xl px-4 py-3 transition-colors hover:bg-blue-50 {{ request()->routeIs('settings.*', 'feature-flags.*') ? 'bg-blue-50 font-semibold text-blue-700' : '' }}" href="{{ route('settings.index') }}"><i class="fa-solid fa-sliders mr-2" aria-hidden="true"></i>Settings</a>
             @endcan
         </nav>
         <div class="mt-12 border-t border-slate-100 pt-6 text-xs text-slate-500">v0.1.0-alpha.1 · Internal preview</div>
