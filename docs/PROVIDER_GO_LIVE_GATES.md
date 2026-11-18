@@ -105,7 +105,7 @@ For **SMS**:
 | Actual provider sandbox negative tests and operator approval | **NOT RUN** |
 | Production enablement and release/rollback plan | **NOT APPROVED** |
 
-**Go/no-go:** Do not flip `ARSAM_PUBLISH_ENABLED`, connect provider
+**Go/no-go:** Do not activate the Super Admin-only `message-publishing` or `kavenegar-sending` feature flags, connect provider
 workers, create public callback routes, or merge this Draft PR as a
 live-sending release until all relevant provider-specific gates have
 independent evidence and explicit approval.
