@@ -25,6 +25,8 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 
 - Signed tenant-bound, paginated delivery audit history with HMAC verification and tamper-safe display, without a duplicate audit table or migration.
 
+- Replaced static dashboard with read-only operational KPIs, recent deliveries and real provider flag states; refined mobile/RTL shell and added a first-live-SMS readiness checklist. Added a manually confirmed, single-message Kavenegar staging smoke script (not executed).
+
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.
 - Actual TailAdmin Free components, provider adapters and safe delivery pipeline.
