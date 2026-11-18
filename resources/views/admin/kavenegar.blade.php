@@ -46,7 +46,7 @@
     </div>
     <div class="mt-5 flex flex-wrap items-center gap-3">
         @can('feature-flags.write')
-            <a class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" href="{{ route('feature-flags.index') }}">Super Admin settings</a>
+            <a class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" href="{{ route('settings.index') }}">Settings</a>
         @endcan
         @unless($isClientSelfService)
             <a class="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ route('clients.index') }}">Issue scoped test API key</a>
