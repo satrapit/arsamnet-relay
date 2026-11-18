@@ -58,6 +58,7 @@ class FeatureFlagController extends Controller
 
         return back()->with('status', 'Feature flag updated.');
     }
+
     public function updateHourlyLimit(Request $request): RedirectResponse
     {
         Gate::authorize('feature-flags.write');
