@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
 use LogicException;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class KavenegarSmsAdapterTest extends TestCase
@@ -18,7 +19,8 @@ class KavenegarSmsAdapterTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        config()->set('relay.kavenegar_send_enabled', true);
+        config()->set('pennant.default', 'array');
+        Feature::globally()->activate('kavenegar-sending');
         Http::preventStrayRequests();
     }
 
@@ -151,7 +153,7 @@ class KavenegarSmsAdapterTest extends TestCase
 
     public function test_network_gate_prevents_any_request(): void
     {
-        config()->set('relay.kavenegar_send_enabled', false);
+        Feature::globally()->deactivate('kavenegar-sending');
         Http::fake();
 
         $this->expectException(LogicException::class);
