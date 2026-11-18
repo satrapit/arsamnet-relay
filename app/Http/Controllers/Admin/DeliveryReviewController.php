@@ -46,6 +46,52 @@ final class DeliveryReviewController extends Controller
         return view('admin.delivery-reviews', compact('owner', 'deliveries', 'accepted'));
     }
 
+    public function history(int $client, string $delivery): View
+    {
+        Gate::authorize('clients.manage');
+        abort_unless(preg_match('/\\A[0-9A-HJKMNP-TV-Z]{26}\\z/D', $delivery) === 1, 404);
+
+        $owner = DB::table('clients')->where('id', $client)->first(['id', 'name', 'slug']);
+        abort_unless($owner, 404);
+        $record = DB::table('deliveries')
+            ->where('client_id', $client)
+            ->where('id', $delivery)
+            ->first(['id', 'state', 'attempt_count', 'last_error_code']);
+        abort_unless($record, 404);
+
+        // Audit data stays tenant scoped. JSON path checks the exact opaque
+        // delivery ID, not an unsafe substring of a serialized event.
+        $events = DB::table('security_events')
+            ->where('client_id', $client)
+            ->whereIn('event_code', [
+                'delivery.review_acknowledged',
+                'delivery.provider_status_queried',
+            ])
+            ->where('context_json->delivery_id', $delivery)
+            ->orderByDesc('id')
+            ->paginate(25, [
+                'id', 'actor_user_id', 'event_code', 'context_json',
+                'created_at', 'severity', 'client_id', 'source_ip_hmac', 'record_hmac',
+            ]);
+
+        $events->getCollection()->transform(function (object $event): object {
+            $verified = SecurityAudit::verifyRecord($event);
+            $context = $verified ? json_decode((string) $event->context_json, true) : [];
+
+            return (object) [
+                'id' => $event->id,
+                'created_at' => $event->created_at,
+                'actor_user_id' => $verified ? $event->actor_user_id : null,
+                'event_code' => $verified ? $event->event_code : 'integrity_failed',
+                'review_action' => $verified ? ($context['review_action'] ?? null) : null,
+                'provider_status_code' => $verified ? ($context['provider_status_code'] ?? null) : null,
+                'verified' => $verified,
+            ];
+        });
+
+        return view('admin.delivery-review-history', compact('owner', 'record', 'events'));
+    }
+
     public function checkStatus(
         Request $request,
         int $client,
