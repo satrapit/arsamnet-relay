@@ -6,6 +6,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class KavenegarSmsApiTest extends TestCase
@@ -18,8 +19,8 @@ class KavenegarSmsApiTest extends TestCase
     {
         parent::setUp();
         config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-        config()->set('relay.publish_enabled', true);
-        config()->set('relay.kavenegar_send_enabled', true);
+        Feature::globally()->activate('message-publishing');
+        Feature::globally()->activate('kavenegar-sending');
         config()->set('relay.kavenegar_hourly_limit', 100);
         Http::preventStrayRequests();
     }
@@ -73,7 +74,7 @@ class KavenegarSmsApiTest extends TestCase
     public function test_network_send_is_disabled_by_default_without_any_database_write(): void
     {
         $f = $this->fixture('sms-off');
-        config()->set('relay.kavenegar_send_enabled', false);
+        Feature::globally()->deactivate('kavenegar-sending');
         Http::fake();
 
         $this->request($f['token'], 'sms-disabled-request-0001', '/api/v1/sms/send', [
