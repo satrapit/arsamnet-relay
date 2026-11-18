@@ -26,7 +26,10 @@ class FeatureFlagController extends Controller
             ];
         }
 
-        return view('admin.feature-flags', ['flags' => $flags]);
+        return view('admin.feature-flags', [
+            'flags' => $flags,
+            'hourlyLimit' => (int) Feature::globally()->value('kavenegar-hourly-limit'),
+        ]);
     }
 
     public function update(Request $request, string $key): RedirectResponse
@@ -55,4 +58,26 @@ class FeatureFlagController extends Controller
 
         return back()->with('status', 'Feature flag updated.');
     }
+    public function updateHourlyLimit(Request $request): RedirectResponse
+    {
+        Gate::authorize('feature-flags.write');
+        $validated = $request->validate([
+            'hourly_limit' => ['required', 'integer', 'between:1,10000'],
+        ]);
+        $limit = (int) $validated['hourly_limit'];
+
+        DB::transaction(function () use ($request, $limit): void {
+            $previous = (int) Feature::globally()->value('kavenegar-hourly-limit');
+            Feature::globally()->activate('kavenegar-hourly-limit', $limit);
+            SecurityAudit::record('feature_flag.changed', 'high', (int) $request->user()->getKey(), [
+                'flag_key' => 'kavenegar-hourly-limit',
+                'old_state' => $previous,
+                'new_state' => $limit,
+                'scope' => 'global',
+            ], null, $request->ip());
+        });
+
+        return back()->with('status', 'Kavenegar hourly limit updated.');
+    }
+
 }
