@@ -49,13 +49,17 @@ fi
 # command-line args or printed. No redirects, no retries, bounded timeout.
 # The JSON body is made from fixed content + validated digits only.
 body="{\"receptor\":\"${receptor}\",\"message\":\"Arsam Relay live SMS connectivity test\"}"
+body_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-smoke.XXXXXXXX")"
+trap 'rm -f -- "${body_file}"' EXIT
+printf '%s' "${body}" > "${body_file}"
+unset body
 printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nheader = "Content-Type: application/json"\n' "${token}" "${idempotency}" \
     | curl --silent --show-error --proto '=https' --tlsv1.2 \
         --max-redirs 0 --connect-timeout 3 --max-time 15 \
         --retry 0 --request POST \
         --config - \
-        --data-raw "${body}" \
+        --data-binary "@${body_file}" \
         --write-out '\nHTTP status: %{http_code}\n' \
         "${base_url}/api/v1/sms/send"
-unset token body
+unset token
 echo "Check the matching delivery and attempt in the admin panel. Disable live sending after the trial."
