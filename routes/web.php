@@ -33,6 +33,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->middleware('password.confirm')->name('clients.keys.revoke');
         Route::get('/clients/{client}/delivery-reviews', [DeliveryReviewController::class, 'index'])
             ->name('clients.delivery-reviews.index');
+        Route::get('/clients/{client}/delivery-reviews/{delivery}/history', [DeliveryReviewController::class, 'history'])
+            ->name('clients.delivery-reviews.history');
         Route::post('/clients/{client}/delivery-reviews/{delivery}/acknowledge', [DeliveryReviewController::class, 'acknowledge'])
             ->middleware('password.confirm')->name('clients.delivery-reviews.acknowledge');
         Route::post('/clients/{client}/delivery-reviews/{delivery}/check-status', [DeliveryReviewController::class, 'checkStatus'])
