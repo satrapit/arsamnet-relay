@@ -230,4 +230,61 @@ class DeliveryReviewTest extends TestCase
         Http::assertNothingSent();
     }
 
+
+    public function test_status_query_records_signed_provider_evidence_without_marking_delivered(): void
+    {
+        $fixture = $this->fixture('status-accepted', 'accepted');
+        $admin = $this->actor('platform_admin');
+        config()->set('relay.kavenegar_status_enabled', true);
+        config()->set('relay.kavenegar_send_enabled', false);
+        $accountId = DB::table('provider_accounts')->insertGetId([
+            'client_id' => $fixture['client'], 'adapter_code' => 'kavenegar',
+            'channel' => 'sms', 'display_name' => 'Test Kavenegar',
+            'credentials_ciphertext' => Crypt::encryptString(json_encode([
+                'api_key' => 'TEST_KAVENEGAR_KEY_12345678901234567890',
+                'sender' => '10001234',
+            ], JSON_THROW_ON_ERROR)),
+            'enabled' => true, 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        DB::table('delivery_attempts')->insert([
+            'delivery_id' => $fixture['delivery'],
+            'provider_account_id' => $accountId, 'attempt_no' => 1,
+            'outcome' => 'accepted', 'provider_ref' => 'kv-987654',
+            'created_at' => now(),
+        ]);
+        Http::fake(['*' => Http::response([
+            'return' => ['status' => 200, 'message' => 'Private response'],
+            'entries' => [[
+                'messageid' => 987654, 'status' => 10,
+                'receptor' => '09123456789', 'statustext' => 'Private info',
+            ]],
+        ], 200)]);
+
+        $page = $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.index', $fixture['client']))
+            ->assertOk()->assertSee('Check provider status');
+        $this->assertStringNotContainsString('09123456789', $page->getContent());
+
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('clients.delivery-reviews.check-status', [
+                $fixture['client'], $fixture['delivery'],
+            ]))->assertRedirect();
+
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $fixture['delivery'], 'state' => 'accepted', 'attempt_count' => 1,
+        ]);
+        $this->assertDatabaseCount('delivery_attempts', 1);
+        $audit = DB::table('security_events')
+            ->where('event_code', 'delivery.provider_status_queried')->first();
+        $this->assertNotNull($audit);
+        $this->assertTrue(SecurityAudit::verifyRecord($audit));
+        $evidence = json_decode($audit->context_json, true);
+        $this->assertSame($fixture['delivery'], $evidence['delivery_id']);
+        $this->assertSame(10, $evidence['provider_status_code']);
+        $this->assertSame('provider_reports_delivered', $evidence['review_action']);
+        $this->assertStringNotContainsString('09123456789', $audit->context_json);
+        $this->assertStringNotContainsString('Private response', $audit->context_json);
+        Http::assertSentCount(1);
+    }
+
 }
