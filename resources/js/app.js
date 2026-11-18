@@ -6,9 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const close = document.querySelector('[data-sidebar-close]');
     const desktop = window.matchMedia('(min-width: 1024px)');
 
+    const closedClass = document.documentElement.dir === 'rtl' ? 'translate-x-full' : '-translate-x-full';
+
     function setOpen(open) {
         const mobileOpen = open && !desktop.matches;
-        sidebar?.classList.toggle('-translate-x-full', !mobileOpen);
+        sidebar?.classList.toggle(closedClass, !mobileOpen);
         backdrop?.classList.toggle('hidden', !mobileOpen);
         toggle?.setAttribute('aria-expanded', String(mobileOpen));
         sidebar?.setAttribute('aria-hidden', String(!desktop.matches && !mobileOpen));
