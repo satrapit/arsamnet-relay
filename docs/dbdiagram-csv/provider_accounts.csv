@@ -1,0 +1,2 @@
+"id","client_id","adapter_code","channel","display_name","credentials_ciphertext","enabled","created_at","updated_at"
+"1","1","example","sms","example","ENCRYPTED_SAMPLE_ONLY","1","2026-01-01 00:00:00","2026-01-01 00:00:00"

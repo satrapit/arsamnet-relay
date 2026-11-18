@@ -1,0 +1,38 @@
+<?php
+
+use App\Http\Middleware\AuthenticateClientKey;
+use App\Http\Middleware\EnsurePlatformMfa;
+use App\Http\Middleware\SecurityHeaders;
+use App\Support\SecurityEventRecorder;
+use Illuminate\Foundation\Application;
+use Illuminate\Foundation\Configuration\Exceptions;
+use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Http\Request;
+
+return Application::configure(basePath: dirname(__DIR__))
+    ->withRouting(
+        web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
+        commands: __DIR__.'/../routes/console.php',
+        health: '/up',
+    )
+    ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->alias([
+            'platform.mfa' => EnsurePlatformMfa::class,
+            'relay.machine' => AuthenticateClientKey::class,
+        ]);
+        $middleware->append(SecurityHeaders::class);
+    })
+    ->withExceptions(function (Exceptions $exceptions): void {
+        // Never flash provider credentials, OTPs or plaintext SMS into sessions.
+        $exceptions->dontFlash(['api_key', 'token', 'token2', 'token3', 'sender', 'message']);
+        $exceptions->render(function (ThrottleRequestsException $exception, Request $request): void {
+            if ($request->isMethod('post') && $request->is('login', 'two-factor-challenge')) {
+                SecurityEventRecorder::authenticationFailure('auth.login.throttled');
+            }
+        });
+        $exceptions->shouldRenderJsonWhen(
+            fn (Request $request) => $request->is('api/*') || $request->expectsJson(),
+        );
+    })->create();

@@ -1,0 +1,14 @@
+@import 'tailwindcss';
+@import '@fortawesome/fontawesome-free/css/fontawesome.min.css';
+@import '@fortawesome/fontawesome-free/css/solid.min.css';
+@import '@fortawesome/fontawesome-free/css/regular.min.css';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../views/**/*.blade.php';
+
+@theme {
+    --font-sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --color-brand-600: #3056d3;
+    --color-brand-700: #2446b5;
+}

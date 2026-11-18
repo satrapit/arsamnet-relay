@@ -1,0 +1,2 @@
+"id","provider_account_id","event_id_hmac","delivery_attempt_id","status","received_at","processed_at"
+"1","1","0000000000000000000000000000000000000000000000000000000000000000","1","example","2026-01-01 00:00:00","2026-01-01 00:00:00"
