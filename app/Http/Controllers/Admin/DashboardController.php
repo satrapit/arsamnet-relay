@@ -30,12 +30,12 @@ final class DashboardController extends Controller
         ];
 
         // Read-only operational overview; no provider network access.
-        $recent = DB::table('deliveries as d')
+        $recent = Gate::allows('clients.manage') ? DB::table('deliveries as d')
             ->join('clients as c', 'c.id', '=', 'd.client_id')
             ->whereIn('d.state', ['review_required', 'accepted', 'delivered'])
             ->orderByDesc('d.updated_at')
             ->limit(7)
-            ->get(['d.id', 'd.client_id', 'c.name as client_name', 'd.state', 'd.updated_at']);
+            ->get(['d.id', 'd.client_id', 'c.name as client_name', 'd.state', 'd.updated_at']) : collect();
 
         return view('dashboard.index', compact('counts', 'flags', 'recent'));
     }
