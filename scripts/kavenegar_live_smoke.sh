@@ -211,11 +211,29 @@ fi
 # Curl's secret header is streamed through stdin config, never passed in
 # command-line args or printed. No redirects, no retries, bounded timeout.
 # The JSON body is made from fixed content + validated digits only.
-body="{\"receptor\":\"${receptor}\",\"message\":\"Arsam Relay live SMS connectivity test\"}"
 body_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-smoke.XXXXXXXX")"
 response_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-response.XXXXXXXX")"
-printf '%s' "${body}" > "${body_file}"
-unset body
+# Data (including OTP and recipients) goes over a pipe and into a private
+# temporary payload, never a process argument or terminal log.
+printf '%s\n' "${mode}" "${receptor}" "${receptor2}" "${template}" "${otp}" |
+    php -r '
+        $v=file("php://stdin",FILE_IGNORE_NEW_LINES);
+        [$mode,$one,$two,$template,$otp]=$v;
+        $data=match($mode){
+            "single"=>["receptor"=>$one,"message"=>"Arsam Relay live SMS connectivity test"],
+            "bulk"=>["items"=>[
+                ["receptor"=>$one,"message"=>"Arsam Relay bulk test A"],
+                ["receptor"=>$two,"message"=>"Arsam Relay bulk test B"],
+            ]],
+            "otp"=>["receptor"=>$one,"template"=>$template,"token"=>$otp],
+            default=>throw new RuntimeException("Invalid operation"),
+        };
+        echo json_encode($data,JSON_THROW_ON_ERROR|JSON_UNESCAPED_UNICODE);
+    ' > "${body_file}"
+unset otp
+endpoint="send"
+if [[ "${mode}" == "bulk" ]]; then endpoint="bulk"; fi
+if [[ "${mode}" == "otp" ]]; then endpoint="otp"; fi
 printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nheader = "Content-Type: application/json"\n' "${token}" "${idempotency}" \
     | curl --silent --show-error --noproxy '*' --proto '=http' \
         --max-redirs 0 --connect-timeout 3 --max-time 15 \
@@ -223,7 +241,7 @@ printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nhea
         --config - \
         --data-binary "@${body_file}" \
         --output "${response_file}" --write-out 'HTTP status: %{http_code}\n' \
-        "${base_url}/api/v1/sms/send"
+        "${base_url}/api/v1/sms/${endpoint}"
 unset token
 php -r '
     $r=json_decode((string)file_get_contents($argv[1]),true);
