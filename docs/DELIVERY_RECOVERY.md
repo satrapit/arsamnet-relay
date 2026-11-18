@@ -49,3 +49,18 @@ Never run destructive database commands or migration resets. The new unit/featur
 - Cron deployment validation, alarms and an approved runbook for handling ambiguous sends.
 
 Kavenegar's official PHP SDK exposes `status($messageid)` and `statusLocalMessageId($localid)`. These are distinct from the app's internal status endpoint; do not infer `delivered` solely from HTTP 200 or an accepted send reference.
+
+
+## Manual triage (new source, unverified on developer Mac)
+
+The platform staff dashboard now links **Clients → Delivery reviews** for each client. Only verified and MFA-confirmed Super Admin/Platform Admin users with `clients.manage` can open the paginated list of tenant-scoped `review_required` delivery IDs. The list contains no recipient addresses, message bodies, OTPs or credentials.
+
+The operator can select **Acknowledge review**, protected by recent password confirmation and CSRF. This creates a signed `delivery.review_acknowledged` security event inside a transaction with an exact client/delivery match and row lock. Allowed audit fields are `delivery_id` and the static `review_action=investigating`. No arbitrary human notes or provider errors are accepted. If auditing fails, acknowledgement fails closed.
+
+**Acknowledgement is not resolution.** The original delivery remains `review_required`; no provider calls, state transitions, retry, failover or delivered claim take place. It records only that a staff member started investigating. A validated provider status query and a separately approved evidence-based resolution workflow are still needed.
+
+Routes:
+- `GET /clients/{client}/delivery-reviews`
+- `POST /clients/{client}/delivery-reviews/{delivery}/acknowledge`
+
+New `DeliveryReviewTest` PHP Feature tests cover safe listing, signed audit, missing privileges, foreign-client/non-review deliveries, password confirmation, bad identifiers and audit failure. **Not yet run on the developer Mac.** No database migration or Cron change is required.
