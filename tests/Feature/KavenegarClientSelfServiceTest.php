@@ -79,7 +79,7 @@ class KavenegarClientSelfServiceTest extends TestCase
     {
         $client = $this->client('selfservice-owner');
         $owner = $this->member($client, 'owner');
-        Feature::activate('client-provider-overrides');
+        Feature::globally()->activate('client-provider-overrides');
 
         $this->actingAs($owner)->get(route('account.clients.providers.kavenegar.index', $client))
             ->assertOk()->assertSee('Kavenegar SMS');
@@ -111,7 +111,7 @@ class KavenegarClientSelfServiceTest extends TestCase
         $other = $this->client('selfservice-second');
         $owner = $this->member($client, 'owner');
         $viewer = $this->member($other, 'viewer');
-        Feature::activate('client-provider-overrides');
+        Feature::globally()->activate('client-provider-overrides');
 
         $this->actingAs($owner)
             ->get(route('account.clients.providers.kavenegar.index', $other))->assertForbidden();
@@ -129,7 +129,7 @@ class KavenegarClientSelfServiceTest extends TestCase
     {
         $client = $this->client('selfservice-mfa');
         $withoutMfa = $this->member($client, 'owner', false);
-        Feature::activate('client-provider-overrides');
+        Feature::globally()->activate('client-provider-overrides');
 
         $this->actingAs($withoutMfa)
             ->get(route('account.clients.providers.kavenegar.index', $client))->assertForbidden();
