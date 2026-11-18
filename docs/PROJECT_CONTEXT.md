@@ -12,6 +12,8 @@
 
 **Data:** `docs/ERD.dbml` only (27 tables, 192 fields, 32 refs). The diagram models existing initial migrations; never treat a diagram as migration approval. Existing local `arsamnet_relay` database must not be reset. `arsamnet_relay_integration_test` is a pre-migrated isolated test schema; run its guarded script, do not re-create/drop.
 
+**Local live trial:** guarded `scripts/kavenegar_live_smoke.sh` now supports single, two-number bulk and OTP only after read-only identity/readiness checks, explicit typed approval and persistent no-retry markers. `--status` shows persisted Delivery state only; never confirms handset receipt. Real SMS is manual, billable and not yet executed by the assistant.
+
 **QA/commands:** `php vendor/bin/pint --test`; `php artisan test`; `npm run build`; `php scripts/validate_design.php`; `php scripts/check_migration_parity.php`; `php scripts/check_migration_relationships.php`; guarded MySQL runner as in README. Historic test results are not claims about later commits. Report passes only after execution.
 
 **Workflow:** direct main changes, no remote CI, no new feature branches, local deployment only. No real paid SMS unless operator explicitly executes a controlled test. Code and docs concise; read graph/context first, then only the necessary files.
