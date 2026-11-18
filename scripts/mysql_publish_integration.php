@@ -639,6 +639,7 @@ try {
         config()->set('pennant.default', 'array');
         Feature::globally()->activate('message-publishing');
         Feature::globally()->activate('kavenegar-sending');
+        Feature::globally()->activate('kavenegar-hourly-limit', 100);
         Http::preventStrayRequests();
         $kvKey = 'TEST_KAVENEGAR_KEY_12345678901234567890';
         $kvAccount = DB::table('provider_accounts')->insertGetId([
