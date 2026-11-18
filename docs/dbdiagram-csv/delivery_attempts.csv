@@ -1,2 +1,0 @@
-"id","delivery_id","provider_account_id","attempt_no","outcome","provider_ref","http_status","error_code","response_meta","created_at"
-"1","example","1","1","example","example","1","example","{}","2026-01-01 00:00:00"

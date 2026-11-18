@@ -1,2 +1,0 @@
-"id","client_id","topic_id","template_id","api_key_id","kind","priority","payload_ciphertext","payload_hash","idempotency_key_hash","scheduled_at","expires_at","created_at"
-"01ARZ3NDEKTSV4RRFFQ69G5FAV","1","1","1","1","example","example","ENCRYPTED_SAMPLE_ONLY","0000000000000000000000000000000000000000000000000000000000000000","0000000000000000000000000000000000000000000000000000000000000000","2026-01-01 00:00:00","2026-01-01 00:00:00","2026-01-01 00:00:00"

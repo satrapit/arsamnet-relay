@@ -8,10 +8,10 @@ use PHPUnit\Framework\TestCase;
 
 class OfflineDesignChecksTest extends TestCase
 {
-    public function test_design_csv_and_samples_match_the_documented_erd(): void
+    public function test_single_dbml_file_matches_the_documented_erd(): void
     {
         $result = OfflineDesignChecks::design(dirname(__DIR__, 2));
-        $this->assertSame(['tables' => 27, 'fields' => 192, 'refs' => 32, 'samples' => 27], $result);
+        $this->assertSame(['tables' => 27, 'fields' => 192, 'refs' => 32], $result);
     }
 
     public function test_all_migration_table_and_column_names_match_the_design(): void

@@ -27,11 +27,6 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
 OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
 USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-## Font Awesome Free
+## Lucide Icons
 
-Font Awesome Free is installed from npm and used with locally built assets.
-Its icon glyphs, fonts, code and trademarks may use different licenses.
-Preserve the notices included with the installed package and follow its
-license terms: https://fontawesome.com/license/free
-
-Note: This file is NOT the Arsam Relay project's license.
+SVG symbols in `public/icons/lucide.svg` are derived from the official Lucide Icons repository (MIT License): https://github.com/lucide-icons/lucide. Copyright (c) Lucide Contributors. The MIT license permits modification and distribution with retention of its copyright and permission notices. Original license: https://github.com/lucide-icons/lucide/blob/main/LICENSE. This repository keeps this notice next to the bundled artwork.

@@ -1,0 +1,16 @@
+# Keep Graphify's local index focused and exclude secrets/generated outputs.
+.env
+.env.*
+vendor/
+node_modules/
+public/build/
+public/icons/
+storage/
+bootstrap/cache/
+graphify-out/
+*.log
+composer.lock
+package-lock.json
+*.sql.gz
+*.pem
+*.key

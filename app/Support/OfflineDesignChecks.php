@@ -6,63 +6,23 @@ use InvalidArgumentException;
 use RuntimeException;
 
 /**
- * Dependency-free, read-only checks of the project's restricted DBML/CSV/PHP
+ * Dependency-free, read-only checks of the project's restricted DBML/PHP
  * migration source formats. This is not an official DBML or SQL parser.
  */
 final class OfflineDesignChecks
 {
-    /** @return array{tables: int, fields: int, refs: int, samples: int} */
+    /** @return array{tables: int, fields: int, refs: int} */
     public static function design(string $root): array
     {
+        // DBML is the only ERD source: no duplicate CSV dictionary or samples.
         $manifest = self::manifest($root);
         $tables = $manifest['tables'];
-        $csv = self::csv($root.'/docs/ERD.csv');
-        $header = ['index', 'table', 'column', 'mysql_type', 'attributes', 'description', 'migration_owner'];
-        if (array_shift($csv) !== $header) {
-            throw new InvalidArgumentException('ERD.csv has an invalid header or non-CSV preamble.');
-        }
 
-        $seen = [];
-        $rowNumber = 0;
-        foreach ($csv as $row) {
-            if (count($row) !== count($header) || $row[0] !== (string) $rowNumber) {
-                throw new InvalidArgumentException('Malformed ERD.csv row/index: '.($rowNumber + 1));
-            }
-            [, $table, $field, $type] = $row;
-            if (! isset($tables[$table][$field])) {
-                throw new InvalidArgumentException("Unexpected ERD.csv field: {$table}.{$field}");
-            }
-            $spec = $tables[$table][$field];
-            $expectedType = $spec['type'].($spec['length'] === null ? '' : '('.$spec['length'].')');
-            if ($type !== $expectedType) {
-                throw new InvalidArgumentException("ERD.csv type drift: {$table}.{$field}");
-            }
-            if (isset($seen[$table.'.'.$field])) {
-                throw new InvalidArgumentException("Duplicate ERD.csv field: {$table}.{$field}");
-            }
-            $seen[$table.'.'.$field] = true;
-            $rowNumber++;
-        }
-
-        $fieldCount = array_sum(array_map('count', $tables));
-        if ($rowNumber !== $fieldCount) {
-            throw new InvalidArgumentException("ERD.csv has {$rowNumber} fields; expected {$fieldCount}.");
-        }
-
-        $files = glob($root.'/docs/dbdiagram-csv/*.csv');
-        if ($files === false || count($files) !== count($tables)) {
-            throw new InvalidArgumentException('Incorrect number of per-table CSV samples.');
-        }
-        foreach ($tables as $table => $fields) {
-            $path = $root.'/docs/dbdiagram-csv/'.$table.'.csv';
-            $rows = self::csv($path);
-            if (count($rows) !== 2 || $rows[0] !== array_keys($fields) || count($rows[1]) !== count($fields)) {
-                throw new InvalidArgumentException('Invalid per-table CSV sample: '.$table);
-            }
-        }
-
-        return ['tables' => count($tables), 'fields' => $fieldCount,
-            'refs' => count($manifest['references']), 'samples' => count($files)];
+        return [
+            'tables' => count($tables),
+            'fields' => array_sum(array_map('count', $tables)),
+            'refs' => count($manifest['references']),
+        ];
     }
 
     /** @return array{tables: int, fields: int} */
@@ -238,28 +198,6 @@ final class OfflineDesignChecks
         preg_match_all('/\'([a-z_]+)\'/', $trimmed, $matches);
 
         return $matches[1];
-    }
-
-    /** @return list<list<string>> */
-    private static function csv(string $path): array
-    {
-        $handle = @fopen($path, 'rb');
-        if ($handle === false) {
-            throw new RuntimeException('Cannot read CSV: '.basename($path));
-        }
-        $rows = [];
-        try {
-            while (($row = fgetcsv($handle, null, ',', '"', '')) !== false) {
-                if ($row === [null]) {
-                    continue;
-                }
-                $rows[] = $row;
-            }
-        } finally {
-            fclose($handle);
-        }
-
-        return $rows;
     }
 
     /** @param list<string> $issues */
