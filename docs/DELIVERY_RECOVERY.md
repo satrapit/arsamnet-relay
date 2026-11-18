@@ -64,3 +64,16 @@ Routes:
 - `POST /clients/{client}/delivery-reviews/{delivery}/acknowledge`
 
 New `DeliveryReviewTest` PHP Feature tests cover safe listing, signed audit, missing privileges, foreign-client/non-review deliveries, password confirmation, bad identifiers and audit failure. **Not yet run on the developer Mac.** No database migration or Cron change is required.
+
+
+## Per-delivery audit history — source authored, Mac verification pending (2026-11-19)
+
+The existing signed `security_events` records now have a dedicated **history view per delivery** under Clients → Delivery reviews. Click a Delivery ID or open `GET /clients/{client}/delivery-reviews/{delivery}/history`. The route inherits authenticated, verified and platform-MFA middleware and the `clients.manage` authorization check.
+
+This is a **logical history view on the existing signed audit table, not a new physical table**. It intentionally avoids a duplicate schema and migration. Events are limited to `delivery.review_acknowledged` and `delivery.provider_status_queried`, filtered by the exact tenant ID and the exact `context_json.delivery_id` value; pagination is limited to 25 records.
+
+Each event's HMAC is verified on read. Valid records show timestamp, event classification, sanitized action, numeric provider status and actor ID. Failed verification displays **Integrity failed** and hides the unverified action, provider code and actor ID. No recipient, OTP, SMS body, raw provider response, API secret, sending action, replay, or Delivery state update is performed.
+
+Three new Feature tests cover an exact tenant/delivery scope, sanitized verified history, a tampered event, guests/support/foreign clients, and absence of HTTP calls. **These tests have not been executed on the developer Mac.** Prior 2026-11-19 Mac report confirmed all previous tests PASS, but that report does not cover this new history milestone.
+
+This is not yet a provider-evidence settlement workflow: manual or automatic `delivered` transitions remain excluded until status-code mapping, provenance and concurrency conditions have separately passed review. Existing SMS send and status gates remain OFF by default.
