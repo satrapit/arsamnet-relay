@@ -23,6 +23,8 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 - Super Admin-controlled operational Pennant flags for message publishing, live Kavenegar SMS sending and read-only status queries, plus an audited per-client/hour SMS quota. Removed their obsolete .env settings.
 - Fixed PHPUnit final-method name collision and new review-test Pint spacing issue (post-change QA pending).
 
+- Signed tenant-bound, paginated delivery audit history with HMAC verification and tamper-safe display, without a duplicate audit table or migration.
+
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.
 - Actual TailAdmin Free components, provider adapters and safe delivery pipeline.
