@@ -8,11 +8,12 @@ if [[ ! -t 0 ]]; then
     exit 2
 fi
 
-printf 'Relay HTTPS base URL (example https://relay.example.com): '
+printf 'Local Relay URL (default http://127.0.0.1:8000): '
 IFS= read -r base_url
+base_url="${base_url:-http://127.0.0.1:8000}"
 base_url="${base_url%/}"
-if [[ ! "${base_url}" =~ ^https://[A-Za-z0-9.-]+(:443)?$ ]]; then
-    echo "A hostname-only HTTPS URL (optional :443) is required." >&2
+if [[ ! "${base_url}" =~ ^http://(127\.0\.0\.1|localhost):[0-9]{2,5}$ ]]; then
+    echo "Only a local loopback HTTP origin with explicit port is allowed." >&2
     exit 2
 fi
 
@@ -44,7 +45,7 @@ fi
 fingerprint="$(printf '%s\\n%s' "${base_url}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
 marker="${state_dir}/kavenegar-single-${fingerprint}.attempted"
 if [[ -e "${marker}" || -L "${marker}" ]]; then
-    echo "An SMS trial already started for this staging origin and recipient." >&2
+    echo "An SMS trial already started for this local Relay origin and recipient." >&2
     echo "Review the provider dashboard and delivery attempt before considering any other send." >&2
     unset token
     exit 3
@@ -80,7 +81,7 @@ trap 'rm -f -- "${body_file}"' EXIT
 printf '%s' "${body}" > "${body_file}"
 unset body
 printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nheader = "Content-Type: application/json"\n' "${token}" "${idempotency}" \
-    | curl --silent --show-error --proto '=https' --tlsv1.2 \
+    | curl --silent --show-error --noproxy '*' --proto '=http' \
         --max-redirs 0 --connect-timeout 3 --max-time 15 \
         --retry 0 --request POST \
         --config - \
