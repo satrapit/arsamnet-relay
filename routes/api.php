@@ -14,6 +14,7 @@ Route::get('/v1/status', fn () => response()->json([
 Route::middleware(['throttle:relay-machine', 'relay.machine'])->group(function (): void {
     Route::post('/v1/messages', PublishMessageController::class);
 
+    Route::get('/v1/sms/readiness', [KavenegarSmsController::class, 'readiness']);
     Route::post('/v1/sms/send', [KavenegarSmsController::class, 'single']);
     Route::post('/v1/sms/bulk', [KavenegarSmsController::class, 'bulk']);
     Route::post('/v1/sms/otp', [KavenegarSmsController::class, 'otp']);
