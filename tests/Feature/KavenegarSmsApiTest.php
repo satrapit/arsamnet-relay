@@ -303,7 +303,6 @@ class KavenegarSmsApiTest extends TestCase
         $messageId = $send->json('data.message_id');
         Feature::globally()->deactivate('message-publishing');
         Feature::globally()->deactivate('kavenegar-sending');
-        Http::fake();
 
         $result = $this->withToken($fixture['token'])
             ->getJson('/api/v1/sms/messages/'.$messageId)
@@ -313,6 +312,6 @@ class KavenegarSmsApiTest extends TestCase
         $this->assertStringNotContainsString('09123456789', $result->getContent());
         $this->assertStringNotContainsString('Local status privacy test', $result->getContent());
         $this->assertDatabaseCount('delivery_attempts', 1);
-        Http::assertNothingSent();
+        Http::assertSentCount(1);
     }
 }
