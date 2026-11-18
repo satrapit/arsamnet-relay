@@ -42,7 +42,7 @@
         <section class="min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm transition hover:shadow-md sm:p-5">
             <div class="flex items-start justify-between gap-3">
                 <span class="text-xs font-semibold text-slate-500 sm:text-sm">{{ $label }}</span>
-                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $background }} {{ $color }}"><svg class="inline-block size-5 shrink-0 align-middle {{ $icon }}" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#{{ $icon }}"></use></svg></span>
+                <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $background }} {{ $color }}"><svg class="inline-block size-5 shrink-0 align-middle" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#{{ $icon }}"></use></svg></span>
             </div>
             <p class="mt-4 text-3xl font-bold tracking-tight text-slate-950 tabular-nums">{{ number_format($count) }}</p>
             @if($label === 'Accepted')
@@ -66,7 +66,7 @@
             @forelse($recent as $item)
                 <a href="{{ route('clients.delivery-reviews.history', [$item->client_id, $item->id]) }}" class="flex min-w-0 items-center gap-3 px-5 py-4 transition hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-blue-600 sm:px-6">
                     <span class="flex size-10 shrink-0 items-center justify-center rounded-xl {{ $item->state === 'delivered' ? 'bg-emerald-50 text-emerald-700' : ($item->state === 'accepted' ? 'bg-amber-50 text-amber-700' : 'bg-rose-50 text-rose-700') }}">
-                        <svg class="inline-block size-5 shrink-0 align-middle {{ $item->state === 'delivered' ? '' : ($item->state === 'accepted' ? '' : '') }}" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#check"></use></svg>
+                        <svg class="inline-block size-5 shrink-0 align-middle" aria-hidden="true"><use href="{{ asset('icons/lucide.svg') }}#{{ $item->state === 'delivered' ? 'check' : ($item->state === 'accepted' ? 'clock' : 'triangle-alert') }}"></use></svg>
                     </span>
                     <div class="min-w-0 flex-1">
                         <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
