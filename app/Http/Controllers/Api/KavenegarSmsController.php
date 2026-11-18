@@ -102,6 +102,51 @@ final class KavenegarSmsController extends Controller
         ]], 200, ['Cache-Control' => 'no-store']);
     }
 
+    /**
+     * Read-only, tenant-scoped readiness check for an operator-driven local
+     * smoke. Does not disclose provider keys or contact Kavenegar.
+     */
+    public function readiness(Request $request): JsonResponse
+    {
+        if (! in_array('messages.publish', (array) $request->attributes->get('relay.scopes', []), true)) {
+            return $this->problem(403, 'Forbidden', 'Message publishing scope is required.');
+        }
+
+        $data = $request->validate([
+            'recipients' => ['sometimes', 'integer', 'between:1,2'],
+        ]);
+        $requested = (int) ($data['recipients'] ?? 1);
+        $client = (int) $request->attributes->get('relay.client_id');
+
+        $publishing = Feature::globally()->active('message-publishing');
+        $sending = Feature::globally()->active('kavenegar-sending');
+        $hasRoute = DB::table('client_provider_routes as routes')
+            ->join('provider_accounts as accounts', 'accounts.id', '=', 'routes.provider_account_id')
+            ->where('routes.client_id', $client)
+            ->where('routes.channel', 'sms')
+            ->where('routes.enabled', true)
+            ->where('accounts.adapter_code', 'kavenegar')
+            ->where('accounts.channel', 'sms')
+            ->where('accounts.enabled', true)
+            ->where(function ($query) use ($client): void {
+                $query->whereNull('accounts.client_id')->orWhere('accounts.client_id', $client);
+            })
+            ->exists();
+
+        $limit = max(1, min(10000, (int) Feature::globally()->value('kavenegar-hourly-limit')));
+        $used = DB::table('deliveries')->where('client_id', $client)
+            ->where('created_at', '>=', now()->utc()->subHour())->count();
+        $remaining = max(0, $limit - $used);
+
+        return response()->json(['data' => [
+            'ready' => $publishing && $sending && $hasRoute && $remaining >= $requested,
+            'publishing_enabled' => $publishing,
+            'sending_enabled' => $sending,
+            'provider_route_enabled' => $hasRoute,
+            'remaining_hourly_capacity' => $remaining,
+        ]], 200, ['Cache-Control' => 'no-store']);
+    }
+
     private function authorizeSend(Request $request): ?JsonResponse
     {
         if (! Feature::globally()->active('message-publishing')
