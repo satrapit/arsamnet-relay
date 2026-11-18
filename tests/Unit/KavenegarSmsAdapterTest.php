@@ -86,8 +86,7 @@ class KavenegarSmsAdapterTest extends TestCase
 
         $this->assertSame('kv-333', $result->providerReference);
         Http::assertSent(function ($request): bool {
-            return str_contains($request->url(), '/verify/lookup.json')
-                && ! str_contains($request->url(), '123456')
+            return $request->url() === 'https://api.kavenegar.com/v1/'.self::KEY.'/verify/lookup.json'
                 && $request['receptor'] === '09123456789'
                 && $request['template'] === 'LoginCode'
                 && $request['token'] === '123456'
