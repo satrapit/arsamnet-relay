@@ -33,6 +33,29 @@ if [[ ! "${token}" =~ ^relay_[a-f0-9]{64}$ ]]; then
     exit 2
 fi
 
+# Read-only machine scope check before allocating a paid trial.
+# The token is streamed through stdin, never exposed in process arguments.
+auth_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-auth.XXXXXXXX")"
+body_file=""
+response_file=""
+trap 'rm -f -- "${auth_file}" "${body_file}" "${response_file}"' EXIT
+if ! auth_status="$(printf 'header = "Authorization: Bearer %s"\nheader = "Accept: application/json"\n' "${token}" |
+    curl --silent --show-error --noproxy '*' --proto '=http' \
+      --max-redirs 0 --connect-timeout 2 --max-time 6 --retry 0 \
+      --config - --output "${auth_file}" --write-out '%{http_code}' \
+      "${base_url}/api/v1/me")"; then
+    echo "Local API is unreachable. No SMS requested." >&2
+    unset token
+    exit 3
+fi
+if [[ "${auth_status}" != "200" ]] ||
+    ! php -r '$r=json_decode((string)file_get_contents($argv[1]),true);exit(is_array($r)&&is_array($r["data"]["scopes"]??null)&&in_array("messages.publish",$r["data"]["scopes"],true)?0:1);' "${auth_file}"; then
+    echo "Relay machine token is invalid or lacks messages.publish scope. No SMS requested." >&2
+    unset token
+    exit 3
+fi
+echo "Local Relay identity and messages.publish scope verified."
+
 # A persistent local marker prevents accidental duplicate paid trials
 # after a timeout, ambiguous outcome or interrupted terminal session.
 state_dir="${HOME}/.arsam-relay"
@@ -77,7 +100,7 @@ fi
 # The JSON body is made from fixed content + validated digits only.
 body="{\"receptor\":\"${receptor}\",\"message\":\"Arsam Relay live SMS connectivity test\"}"
 body_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-smoke.XXXXXXXX")"
-trap 'rm -f -- "${body_file}"' EXIT
+response_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-response.XXXXXXXX")"
 printf '%s' "${body}" > "${body_file}"
 unset body
 printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nheader = "Content-Type: application/json"\n' "${token}" "${idempotency}" \
@@ -86,7 +109,18 @@ printf 'header = "Authorization: Bearer %s"\nheader = "Idempotency-Key: %s"\nhea
         --retry 0 --request POST \
         --config - \
         --data-binary "@${body_file}" \
-        --write-out '\nHTTP status: %{http_code}\n' \
+        --output "${response_file}" --write-out 'HTTP status: %{http_code}\n' \
         "${base_url}/api/v1/sms/send"
 unset token
-echo "Check the matching delivery and attempt in the admin panel. Disable live sending after the trial."
+php -r '
+    $r=json_decode((string)file_get_contents($argv[1]),true);
+    $data=$r["data"]??null;
+    if(!is_array($data)){echo "No accepted publish response. Check HTTP status; do not retry blindly.\n";exit;}
+    printf("Message ID: %s\n",$data["message_id"]??"unknown");
+    printf("Overall state: %s\n",$data["state"]??"unknown");
+    foreach($data["deliveries"]??[] as $d){
+        printf("Delivery: %s | state: %s | provider ref: %s\n",
+          $d["id"]??"unknown",$d["state"]??"unknown",$d["provider_ref"]??"none");
+    }
+' "${response_file}"
+echo "Check provider dashboard and the device. Disable live sending flags after the trial."
