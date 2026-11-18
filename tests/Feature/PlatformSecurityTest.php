@@ -198,7 +198,6 @@ class PlatformSecurityTest extends TestCase
 
     public function test_settings_update_still_requires_csrf_for_web_requests(): void
     {
-        $this->app->forgetInstance('middleware.disable');
         $super = $this->platformUser('super_admin', true);
         $this->actingAs($super);
         // HTTP feature tests bypass CSRF by default in Laravel's testing
@@ -207,5 +206,4 @@ class PlatformSecurityTest extends TestCase
         $this->assertNotNull($route);
         $this->assertContains('web', $route->gatherMiddleware());
     }
-
 }
