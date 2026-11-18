@@ -36,6 +36,8 @@ function arguments(array $argv): array
     foreach (array_slice($argv, 1) as $arg) {
         if ($arg === '--worker') {
             $result['worker'] = true;
+        } elseif ($arg === '--recovery-worker') {
+            $result['recovery-worker'] = true;
         } elseif (preg_match('/\A--([a-z-]+)=(.*)\z/D', $arg, $match)) {
             if (isset($result[$match[1]])) {
                 throw new RuntimeException('Repeated argument: '.$match[1]);
@@ -221,6 +223,102 @@ function runConcurrent(array $f): void
     }
 }
 
+
+/**
+ * One of two no-network recovery race participants on separate MySQL connections.
+ *
+ * @param  array<string, string|bool>  $options
+ */
+function recoveryRaceWorker(array $options): void
+{
+    $role = $options['role'] ?? null;
+    $barrier = $options['barrier'] ?? null;
+    $deliveryId = $options['delivery'] ?? null;
+    ensure(is_string($role) && in_array($role, ['stage', 'reconcile'], true)
+        && is_string($barrier) && str_starts_with($barrier, rtrim(sys_get_temp_dir(), '/').'/relay_mysql_')
+        && is_dir($barrier) && is_string($deliveryId)
+        && (bool) preg_match('/\A[0-9A-HJKMNP-TV-Z]{26}\z/D', $deliveryId),
+        'Invalid recovery race worker parameters.');
+
+    ensure(file_put_contents($barrier.'/ready-'.$role, '1', LOCK_EX) === 1,
+        'Recovery race worker readiness failed.');
+    $deadline = microtime(true) + 15;
+    while (! is_file($barrier.'/go')) {
+        ensure(microtime(true) < $deadline, 'Recovery race barrier timeout.');
+        usleep(10_000);
+    }
+
+    if ($role === 'stage') {
+        (new StageDeliveryJob($deliveryId))->handle();
+    } else {
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Concurrent reconciliation failed.');
+    }
+}
+
+/** @param array{client:int,key:int,target:int} $fixture */
+function runRecoveryRace(array $fixture): void
+{
+    $record = app(MessagePublisher::class)->publish(
+        $fixture['client'], $fixture['key'], 'recovery-race-'.bin2hex(random_bytes(12)),
+        [$fixture['target']], payload()
+    );
+    $deliveryId = $record['delivery_ids'][0];
+    ensure(DB::table('deliveries')->where('id', $deliveryId)->where('state', 'queued')->exists(),
+        'Expected queued recovery race fixture.');
+    $attemptsBefore = DB::table('delivery_attempts')->count();
+
+    $barrier = rtrim(sys_get_temp_dir(), '/').'/relay_mysql_'.bin2hex(random_bytes(10));
+    ensure(mkdir($barrier, 0700), 'Cannot make recovery race barrier.');
+    $processes = [];
+    try {
+        foreach (['stage', 'reconcile'] as $role) {
+            $process = new Process([
+                PHP_BINARY, __FILE__, '--recovery-worker',
+                '--expect=arsamnet_relay_integration_test',
+                '--barrier='.$barrier, '--role='.$role, '--delivery='.$deliveryId,
+            ], dirname(__DIR__));
+            $process->setTimeout(25);
+            $process->start();
+            $processes[$role] = $process;
+        }
+        $deadline = microtime(true) + 15;
+        while (! is_file($barrier.'/ready-stage') || ! is_file($barrier.'/ready-reconcile')) {
+            ensure(microtime(true) < $deadline, 'Recovery race processes not ready.');
+            foreach ($processes as $process) {
+                ensure($process->isRunning(), 'Recovery race worker exited prematurely.');
+            }
+            usleep(10_000);
+        }
+        ensure(file_put_contents($barrier.'/go', '1', LOCK_EX) === 1,
+            'Cannot release recovery workers.');
+        foreach ($processes as $role => $process) {
+            $process->wait();
+            ensure($process->isSuccessful(), 'Recovery race '.$role.' failed: '.$process->getErrorOutput());
+        }
+
+        ensure(DB::table('deliveries')->where('id', $deliveryId)
+            ->where('state', 'awaiting_provider')->where('attempt_count', 0)
+            ->whereNull('lease_token')->count() === 1,
+            'Race did not converge on one safely staged delivery.');
+        ensure(DB::table('delivery_attempts')->count() === $attemptsBefore,
+            'Race created a provider attempt.');
+        echo "PASS: two concurrent MySQL processes staged/reconciled one delivery without attempts or sending.\n";
+    } finally {
+        foreach ($processes as $process) {
+            if ($process->isRunning()) {
+                $process->stop(2);
+            }
+        }
+        foreach (['go', 'ready-stage', 'ready-reconcile'] as $part) {
+            if (is_file($barrier.'/'.$part)) {
+                unlink($barrier.'/'.$part);
+            }
+        }
+        rmdir($barrier);
+    }
+}
+
 /**
  * Delete only this isolated fixture and its matching queued job records.
  * Never delete other rows and never truncate or drop any table.
@@ -269,6 +367,10 @@ try {
 
     if (! empty($options['worker'])) {
         worker($options);
+        exit(0);
+    }
+    if (! empty($options['recovery-worker'])) {
+        recoveryRaceWorker($options);
         exit(0);
     }
 
@@ -689,6 +791,7 @@ try {
             && count(Http::recorded()) === $httpBeforeRecovery,
             'Recovery performed a provider operation.');
         echo "PASS: MySQL recovery quarantines expired lease with zero retries or HTTP calls.\n";
+        runRecoveryRace($f);
     } finally {
         cleanup($clientId);
         ensureEmpty();
