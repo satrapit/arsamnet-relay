@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Support\SecurityAudit;
 use Illuminate\Http\RedirectResponse;
@@ -12,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Laravel\Pennant\Feature;
 
 /**
  * Privileged provider configuration; credentials never go back to browsers.
