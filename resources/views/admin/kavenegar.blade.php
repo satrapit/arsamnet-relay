@@ -19,6 +19,41 @@
         @foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach
     </ul>
 @endif
+<section class="mb-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+    <div class="flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-widest text-blue-700">Provider readiness</p>
+            <h2 class="mt-1 text-lg font-semibold text-slate-950">First live SMS checklist</h2>
+            <p class="mt-1 text-sm text-slate-500">Use one owned test number and a short non-sensitive message. Never start with bulk or OTP.</p>
+        </div>
+        <span class="rounded-full px-3 py-1.5 text-xs font-semibold {{ $account?->enabled && $publishEnabled && $sendEnabled ? 'bg-amber-50 text-amber-800' : 'bg-slate-100 text-slate-600' }}">
+            {{ $account?->enabled && $publishEnabled && $sendEnabled ? 'Live route enabled' : 'Live send not ready' }}
+        </span>
+    </div>
+    <div class="mt-5 grid gap-3 sm:grid-cols-3">
+        <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <span class="text-xs text-slate-500">1 · Provider account & route</span>
+            <p class="mt-2 text-sm font-semibold {{ $account?->enabled ? 'text-emerald-700' : 'text-slate-700' }}">{{ $account?->enabled ? 'Enabled' : 'Not enabled' }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <span class="text-xs text-slate-500">2 · Message publishing</span>
+            <p class="mt-2 text-sm font-semibold {{ $publishEnabled ? 'text-emerald-700' : 'text-slate-700' }}">{{ $publishEnabled ? 'Enabled' : 'Disabled' }}</p>
+        </div>
+        <div class="rounded-xl border border-slate-100 bg-slate-50 p-4">
+            <span class="text-xs text-slate-500">3 · Kavenegar sending</span>
+            <p class="mt-2 text-sm font-semibold {{ $sendEnabled ? 'text-amber-700' : 'text-slate-700' }}">{{ $sendEnabled ? 'Enabled' : 'Disabled' }}</p>
+        </div>
+    </div>
+    <div class="mt-5 flex flex-wrap items-center gap-3">
+        @can('feature-flags.write')
+            <a class="inline-flex min-h-11 items-center rounded-xl bg-blue-700 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800" href="{{ route('feature-flags.index') }}">Super Admin settings</a>
+        @endcan
+        @unless($isClientSelfService)
+            <a class="inline-flex min-h-11 items-center rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50" href="{{ route('clients.index') }}">Issue scoped test API key</a>
+        @endunless
+    </div>
+    <p class="mt-4 text-xs leading-5 text-slate-500">A test uses the normal authenticated `/api/v1/sms/send` machine endpoint, idempotency key and durable attempt log. The web console never exposes the provider key or sends a message automatically. Switch off live sending after the trial.</p>
+</section>
 <section class="mb-7 rounded-2xl border border-slate-200 bg-white p-6">
     <h2 class="mb-5 text-lg font-semibold">{{ $account ? 'Update provider' : 'Configure provider' }}</h2>
     <form method="POST" action="{{ route($configurationRoute, $client->id) }}" class="grid gap-4 sm:grid-cols-2" data-submit-once>
