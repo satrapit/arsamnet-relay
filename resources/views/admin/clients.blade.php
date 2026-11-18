@@ -19,6 +19,7 @@
             <div><h3 class="font-semibold">{{ $client->name }}</h3><p class="text-sm text-slate-500">{{ $client->slug }} · #{{ $client->id }}</p></div>
             <div class="flex items-center gap-3">
                 <a href="{{ route('clients.providers.kavenegar.index', $client->id) }}" class="text-sm font-semibold text-blue-700 hover:underline">SMS provider</a>
+                <a href="{{ route('clients.delivery-reviews.index', $client->id) }}" class="text-sm font-semibold text-blue-700 hover:underline">Delivery reviews</a>
                 <a href="{{ route('clients.ips.index', $client->id) }}" class="text-sm font-semibold text-blue-700 hover:underline">IP allowlist</a>
                 <span class="text-xs text-slate-500">{{ $client->status }}</span>
             </div>
