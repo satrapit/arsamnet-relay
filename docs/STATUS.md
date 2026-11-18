@@ -229,3 +229,11 @@ These results cover the **existing signed audit history implementation**, not a 
 - The developer also reported all other checks PASS in the immediately preceding QA round (DashboardOverviewTest, full PHPUnit, npm/Vite build, Bash syntax, guarded isolated MySQL). Detailed fresh counts and browser screenshots were not supplied; these claims are recorded as developer-reported, not independently verified by GitHub Actions.
 - GitHub PR #1 metadata rechecked: **mergeable=true**, **draft=true**, **merged=false**, base `main`; no CI status entries found for head `f184737`.
 - Remaining release distinctions: code review/merge to `main` is separate from staging deployment and real provider sending. Browser UIX review and operator-run one-recipient staging Kavenegar SMS smoke are not yet evidenced. All operational publishing/sending flags stay OFF by default, and no live sends are authorized through automated tests.
+
+
+## Grouped AJAX System Settings — QA pending (2026-11-19)
+
+- The platform navigation now uses **System → Settings** at `/system/settings`; the previous GET `/system/feature-flags` redirects to the new page. Laravel Pennant is retained as the persistence engine; no migration or configuration duplication.
+- Six operational flags are grouped under Message delivery and Providers & integrations. Settings display accessible iOS-style switches; toggles use same-origin POST JSON with CSRF, revert on error, show a compact Tailwind/Font Awesome toast, and do not reload the page. The numeric Kavenegar hourly limit uses the same asynchronous save behavior.
+- The only confirmation dialog is for enabling potentially billable Kavenegar sending. **No password reconfirmation** for settings updates; existing authenticated/verified platform MFA, Super Admin gate, rate limit, signed HMAC audit and validation remain in place. Other sensitive operations retain their existing password confirmation.
+- Added Feature tests for groups, old redirect, role isolation, MFA, JSON responses, input validation and no password challenge. Tests, browser behavior, Pint and CI **not yet executed** for these changes; no real SMS network request or deployment.
