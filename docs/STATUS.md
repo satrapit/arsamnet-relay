@@ -197,3 +197,17 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - Added password-session/MFA-protected platform staff history for one tenant-owned Delivery: `GET /clients/{client}/delivery-reviews/{delivery}/history`. Delivery IDs in both review and accepted lists link to this view.
 - History uses already-signed `security_events`, not another table; filters exact tenant and `context_json.delivery_id`, paginates 25, re-verifies each event's HMAC and hides any tampered record metadata. Only review acknowledgements and provider-status inquiries are included.
 - Added **three new Feature tests**, including foreign-client access and forged audit detection. **Not yet executed on Mac.** No migration, provider call, automatic settlement, retry, Cron or `main` merge. PR #1 remains Draft and operational gates default OFF.
+
+
+## Signed delivery audit history — developer Mac QA PASS (2026-11-19)
+
+Verified from developer-supplied full command output after fast-forward to `564a6db`:
+
+- PHP lint: `DeliveryReviewController.php` and `DeliveryReviewTest.php` — PASS.
+- Laravel Pint: **106/106 files PASS**.
+- `DeliveryReviewTest`: **14 passed / 85 assertions**, including exact tenant/delivery audit filtering, HMAC verification, tampering concealment, role restrictions, signed provider evidence and no-send behavior.
+- Full PHPUnit: **170 passed / 714 assertions**.
+- Guarded isolated MySQL 8 integration: all scenarios PASS, including two-process recovery race, offline Kavenegar single/bulk/OTP and status lookup, tenant boundaries, durable attempts, and fixture cleanup to empty. No real network sends.
+- `git diff --check` and `git status --short` produced no output after checks (clean developer worktree).
+
+These results cover the **existing signed audit history implementation**, not a future provider-backed delivery settlement feature. No automatic `delivered` state transition, retry, real SMS, new migration, or production go-live is authorized. PR #1 remains Draft and `main` unchanged.
