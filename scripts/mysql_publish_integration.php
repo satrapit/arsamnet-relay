@@ -609,6 +609,86 @@ try {
             'VerifyLookup attempt missing.');
         Http::assertSentCount(3);
         echo "PASS: MySQL Kavenegar VerifyLookup preserves OTP secrecy; faked HTTP only.\n";
+
+        // Reconciliation uses the same guarded real MySQL schema, with no
+        // network or automatic dispatch. Every fixture is owned by $f.
+        $recovery = $publisher->publish(
+            $f['client'], $f['key'], 'recovery-queued-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $queuedId = $recovery['delivery_ids'][0];
+        $attemptsBeforeRecovery = DB::table('delivery_attempts')->count();
+        $httpBeforeRecovery = count(Http::recorded());
+        ensure(DB::table('deliveries')->where('id', $queuedId)
+            ->where('state', 'queued')->exists(), 'Expected a queued recovery fixture.');
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500]) === 0,
+            'Recovery preview command failed.');
+        ensure(DB::table('deliveries')->where('id', $queuedId)
+            ->where('state', 'queued')->exists(), 'Recovery preview modified a queued row.');
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Recovery apply command failed.');
+        ensure(DB::table('deliveries')->where('id', $queuedId)
+            ->where('state', 'awaiting_provider')->where('attempt_count', 0)->exists(),
+            'Recovery did not stage the queued message safely.');
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Second recovery apply failed.');
+        ensure(DB::table('deliveries')->where('id', $queuedId)
+            ->where('state', 'awaiting_provider')->exists(),
+            'Recovery was not idempotent.');
+        ensure(DB::table('delivery_attempts')->count() === $attemptsBeforeRecovery
+            && count(Http::recorded()) === $httpBeforeRecovery,
+            'Recovery created provider attempts or invoked HTTP.');
+        echo "PASS: MySQL recovery preview, due-queue staging and repeated apply are no-send/idempotent.\n";
+
+        $expiredRecovery = $publisher->publish(
+            $f['client'], $f['key'], 'recovery-expired-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        DB::table('messages')->where('id', $expiredRecovery['message_id'])
+            ->update(['expires_at' => now()->utc()->subMinute()]);
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Expired recovery command failed.');
+        ensure(DB::table('deliveries')->where('id', $expiredRecovery['delivery_ids'][0])
+            ->where('state', 'expired')->exists(),
+            'Expired queued delivery was incorrectly staged.');
+        echo "PASS: MySQL recovery expires stale queued messages, without sending.\n";
+
+        $evidenceRecovery = $publisher->publish(
+            $f['client'], $f['key'], 'recovery-evidence-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $evidenceId = $evidenceRecovery['delivery_ids'][0];
+        DB::table('deliveries')->where('id', $evidenceId)->update(['attempt_count' => 1]);
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Recovery with previous attempt evidence failed.');
+        ensure(DB::table('deliveries')->where('id', $evidenceId)
+            ->where('state', 'queued')->where('attempt_count', 1)->exists(),
+            'Recovery resurrected a previously attempted delivery.');
+        echo "PASS: MySQL recovery refuses queued deliveries with previous attempt evidence.\n";
+
+        $leaseRecovery = $publisher->publish(
+            $f['client'], $f['key'], 'recovery-lease-'.bin2hex(random_bytes(10)),
+            [$f['target']], payload()
+        );
+        $leaseId = $leaseRecovery['delivery_ids'][0];
+        (new StageDeliveryJob($leaseId))->handle();
+        $leaseToken = $leases->claim($f['client'], $leaseId, 45);
+        ensure(is_string($leaseToken), 'Recovery fixture lease could not be claimed.');
+        DB::table('deliveries')->where('id', $leaseId)->update([
+            'lease_expires_at' => now()->utc()->subMinute(),
+        ]);
+        ensure(Artisan::call('relay:reconcile-deliveries', ['--limit' => 500, '--apply' => true]) === 0,
+            'Expired lease recovery failed.');
+        ensure(DB::table('deliveries')->where('id', $leaseId)
+            ->where('state', 'review_required')->whereNull('lease_token')
+            ->where('last_error_code', 'LEASE_EXPIRED_UNCERTAIN')->exists(),
+            'Expired lease did not require manual review.');
+        ensure($leases->claim($f['client'], $leaseId) === null,
+            'Recovery allowed automatic reclaim of an uncertain lease.');
+        ensure(DB::table('delivery_attempts')->count() === $attemptsBeforeRecovery
+            && count(Http::recorded()) === $httpBeforeRecovery,
+            'Recovery performed a provider operation.');
+        echo "PASS: MySQL recovery quarantines expired lease with zero retries or HTTP calls.\n";
     } finally {
         cleanup($clientId);
         ensureEmpty();
