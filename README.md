@@ -111,7 +111,7 @@ The first five commands do not require Composer or a database. `php artisan test
 
 ## Opt-in publish staging (development only)
 
-A first Milestone 3 draft adds `POST /api/v1/messages` with tenant-scoped target IDs, `messages.publish` scope, HMAC idempotency, encrypted message storage and native DB jobs carrying delivery IDs only. **Disabled by default**: `ARSAM_PUBLISH_ENABLED=false`. No live SMS/email/webhook dispatch, ACK, retries, provider receipt or actual delivery exists. New PHP feature tests have been authored but **not yet run on the developer Mac**. See [docs/API.md](docs/API.md) and [docs/QUEUE.md](docs/QUEUE.md).
+A first Milestone 3 draft adds `POST /api/v1/messages` with tenant-scoped target IDs, `messages.publish` scope, HMAC idempotency, encrypted message storage and native DB jobs carrying delivery IDs only. **Disabled by default**: Super Admin Feature Flag `message-publishing`.  No live SMS/email/webhook dispatch, ACK, retries, provider receipt or actual delivery exists. New PHP feature tests have been authored but **not yet run on the developer Mac**. See [docs/API.md](docs/API.md) and [docs/QUEUE.md](docs/QUEUE.md).
 
  
 ## Isolated MySQL integration QA
