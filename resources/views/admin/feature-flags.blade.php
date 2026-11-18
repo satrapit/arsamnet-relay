@@ -1,42 +1,99 @@
 @extends('layouts.app')
-@section('title', 'Feature flags')
+@section('title', 'Settings')
 @section('content')
-<div class="mb-7"><p class="text-sm font-semibold text-blue-600">System</p><h1 class="mt-1 text-3xl font-bold text-slate-900">Feature flags</h1>
-<p class="mt-3 text-sm text-slate-600">Operational settings are stored in Pennant/database and are adjustable only by Super Admin. All sending and publishing gates default OFF. Enabling provider sending may generate billable traffic.</p></div>
-<div class="grid gap-4">
-    @foreach($flags as $flag)
-    <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="flex flex-wrap items-center justify-between gap-4">
-            <div><h2 class="font-semibold text-slate-900">{{ $flag['key'] }}</h2><p class="mt-1 text-sm text-slate-600">{{ $flag['description'] }}</p></div>
-            <span class="rounded-full px-3 py-1 text-xs font-semibold {{ $flag['enabled'] ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600' }}">{{ $flag['enabled'] ? 'Enabled' : 'Disabled' }}</span>
-        </div>
-        @can('feature-flags.write')
-        <form method="POST" action="{{ route('feature-flags.update', $flag['key']) }}" class="mt-4" data-submit-once
-            @if($flag['key'] === 'kavenegar-sending' && !$flag['enabled'])
-            data-confirm="Enable live, potentially billable Kavenegar SMS? This alone does not enable publishing."
-            @endif>
-            @csrf
-            <input type="hidden" name="enabled" value="{{ $flag['enabled'] ? '0' : '1' }}">
-            <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-                {{ $flag['enabled'] ? 'Disable feature' : 'Enable feature' }}
-            </button>
-        </form>
-        @endcan
-    </section>
-    @endforeach
+<div class="mb-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+        <p class="text-xs font-semibold uppercase tracking-[.18em] text-blue-700">System / Configuration</p>
+        <h1 class="mt-2 text-3xl font-bold tracking-tight text-slate-950">Settings</h1>
+        <p class="mt-2 max-w-2xl text-sm leading-6 text-slate-500">Manage messaging capabilities and provider operations. Changes are saved instantly without leaving this page.</p>
+    </div>
+    @cannot('feature-flags.write')
+        <span class="w-fit rounded-full bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-600"><i class="fa-solid fa-eye me-2" aria-hidden="true"></i>Read-only access</span>
+    @endcannot
 </div>
 
-<section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-    <h2 class="font-semibold text-slate-900">Kavenegar hourly SMS submission limit</h2>
-    <p class="mt-1 text-sm text-slate-600">Maximum new SMS delivery records per client in a rolling hour (1–10,000). This does not enable sending or change the independent safety flags.</p>
-    <p class="mt-2 text-sm">Current limit: <strong>{{ $hourlyLimit }}</strong></p>
-    @can('feature-flags.write')
-    <form method="POST" action="{{ route('settings.kavenegar-hourly-limit.update') }}" class="mt-4 flex flex-wrap items-center gap-3" data-submit-once>
-        @csrf
-        <label class="text-sm" for="hourly_limit">Deliveries per hour</label>
-        <input type="number" class="w-32 rounded-lg border border-slate-300 p-2" name="hourly_limit" id="hourly_limit" min="1" max="10000" value="{{ old('hourly_limit', $hourlyLimit) }}" required>
-        <button type="submit" class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white" data-confirm="Update the global Kavenegar hourly delivery limit?">Save limit</button>
-    </form>
-    @endcan
-</section>
+<div class="grid gap-6">
+    @foreach($groups as $title => $group)
+        <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="settings-group-{{ $loop->index }}">
+            <div class="flex items-start gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-6">
+                <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700">
+                    <i class="fa-solid {{ $group['icon'] }}" aria-hidden="true"></i>
+                </span>
+                <div>
+                    <h2 id="settings-group-{{ $loop->index }}" class="font-semibold text-slate-950">{{ $title }}</h2>
+                    <p class="mt-1 text-sm text-slate-500">{{ $group['description'] }}</p>
+                </div>
+            </div>
+            <div class="divide-y divide-slate-100">
+                @foreach($group['flags'] as $flag)
+                    <div class="flex flex-wrap items-center justify-between gap-4 px-5 py-5 sm:px-6">
+                        <div class="min-w-0 flex-1">
+                            <h3 class="text-sm font-semibold text-slate-900">{{ \Illuminate\Support\Str::headline($flag['key']) }}</h3>
+                            <p class="mt-1 max-w-2xl text-sm leading-6 text-slate-500">{{ $flag['description'] }}</p>
+                            @if($flag['key'] === 'kavenegar-sending')
+                                <p class="mt-1 text-xs font-medium text-amber-700">Enabling live sending may incur SMS charges.</p>
+                            @endif
+                        </div>
+                        <form method="POST" action="{{ route('settings.flags.update', $flag['key']) }}"
+                              data-settings-toggle data-setting-label="{{ \Illuminate\Support\Str::headline($flag['key']) }}"
+                              @if($flag['key'] === 'kavenegar-sending') data-confirm-live @endif>
+                            @csrf
+                            <input type="hidden" name="enabled" value="0">
+                            <label class="flex cursor-pointer items-center gap-3">
+                                <span class="text-xs font-semibold text-slate-500" data-switch-state>{{ $flag['enabled'] ? 'On' : 'Off' }}</span>
+                                <input type="checkbox" name="enabled" value="1" role="switch"
+                                       class="settings-switch" aria-label="{{ \Illuminate\Support\Str::headline($flag['key']) }}"
+                                       aria-checked="{{ $flag['enabled'] ? 'true' : 'false' }}"
+                                       {{ $flag['enabled'] ? 'checked' : '' }}
+                                       @cannot('feature-flags.write') disabled @endcannot>
+                            </label>
+                            <noscript><button type="submit" class="mt-2 text-xs font-semibold text-blue-700">Save setting</button></noscript>
+                        </form>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endforeach
+
+    <section class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm" aria-labelledby="settings-limits-title">
+        <div class="flex items-start gap-3 border-b border-slate-100 bg-slate-50/70 px-5 py-5 sm:px-6">
+            <span class="flex size-11 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-700"><i class="fa-solid fa-sliders" aria-hidden="true"></i></span>
+            <div>
+                <h2 id="settings-limits-title" class="font-semibold text-slate-950">Limits & quotas</h2>
+                <p class="mt-1 text-sm text-slate-500">Protect client usage and control hourly SMS capacity.</p>
+            </div>
+        </div>
+        <form method="POST" action="{{ route('settings.kavenegar-hourly-limit.update') }}"
+              data-settings-limit class="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+            @csrf
+            <div class="max-w-2xl">
+                <label class="text-sm font-semibold text-slate-900" for="hourly_limit">Kavenegar hourly SMS limit</label>
+                <p class="mt-1 text-sm leading-6 text-slate-500">Maximum new SMS deliveries per client during a rolling hour. This limit does not enable network sending.</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <input id="hourly_limit" type="number" name="hourly_limit" min="1" max="10000"
+                       value="{{ old('hourly_limit', $hourlyLimit) }}" required
+                       class="h-11 w-28 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-900 focus:border-blue-500 focus:outline-none focus:ring-4 focus:ring-blue-100"
+                       @cannot('feature-flags.write') disabled @endcannot>
+                @can('feature-flags.write')
+                    <button type="submit" class="inline-flex h-11 items-center justify-center rounded-xl bg-blue-700 px-5 text-sm font-semibold text-white transition hover:bg-blue-800 disabled:cursor-wait disabled:opacity-60">Save</button>
+                @endcan
+            </div>
+        </form>
+    </section>
+</div>
+
+<div data-settings-toasts class="pointer-events-none fixed bottom-5 end-4 z-[100] flex w-[calc(100vw-2rem)] max-w-sm flex-col gap-3 sm:end-6" role="region" aria-label="Settings notifications" aria-live="polite" aria-relevant="additions"></div>
+
+<dialog data-settings-confirm class="m-auto w-[calc(100vw-2rem)] max-w-md rounded-2xl border border-slate-200 bg-white p-0 shadow-2xl backdrop:bg-slate-950/50">
+    <div class="p-6">
+        <span class="flex size-12 items-center justify-center rounded-xl bg-amber-100 text-amber-700"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span>
+        <h2 class="mt-4 text-lg font-semibold text-slate-950">Enable live SMS sending?</h2>
+        <p class="mt-2 text-sm leading-6 text-slate-600">This setting allows billable provider requests when publishing and an eligible client route are also enabled.</p>
+        <div class="mt-6 flex justify-end gap-3">
+            <button type="button" data-settings-cancel class="rounded-xl border border-slate-200 px-4 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50">Cancel</button>
+            <button type="button" data-settings-confirm-accept class="rounded-xl bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-700">Enable sending</button>
+        </div>
+    </div>
+</dialog>
 @endsection

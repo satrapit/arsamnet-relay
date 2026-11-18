@@ -52,11 +52,13 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->middleware('password.confirm')->name('clients.ips.destroy');
         Route::get('/system/security', [SecurityMonitorController::class, 'index'])
             ->name('security-monitor.index');
-        Route::get('/system/feature-flags', [FeatureFlagController::class, 'index'])
-            ->name('feature-flags.index');
+        Route::get('/system/settings', [FeatureFlagController::class, 'index'])
+            ->name('settings.index');
+        Route::redirect('/system/feature-flags', '/system/settings')
+            ->name('feature-flags.legacy');
         Route::post('/system/settings/kavenegar-hourly-limit', [FeatureFlagController::class, 'updateHourlyLimit'])
-            ->middleware('password.confirm')->name('settings.kavenegar-hourly-limit.update');
-        Route::post('/system/feature-flags/{key}', [FeatureFlagController::class, 'update'])
-            ->middleware('password.confirm')->name('feature-flags.update');
+            ->middleware('throttle:30,1')->name('settings.kavenegar-hourly-limit.update');
+        Route::post('/system/settings/flags/{key}', [FeatureFlagController::class, 'update'])
+            ->middleware('throttle:30,1')->name('settings.flags.update');
     });
 });

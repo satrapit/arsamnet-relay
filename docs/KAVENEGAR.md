@@ -29,7 +29,7 @@ The account is scoped to one client (or a platform-shared account can be configu
 - `kavenegar-sending` — OFF by default
 - `kavenegar-hourly-limit` — default 100 deliveries per client per hour
 
-All are configured through **System → Feature Flags** by Super Admin, with recent password confirmation and signed audit.
+All are configured through **System → Settings** by Super Admin, with recent password confirmation and signed audit.
 
 Do NOT enable real sending until independent PHP/MySQL tests, Kavenegar sandbox validation, operator approval and production readiness review are complete. Never place a real Kavenegar API key in source control or test fixtures. The Kavenegar official API puts its key in the URL path: suppress outbound URI, HTTP trace, request exceptions and proxy/APM logs containing that URL.
 
@@ -211,4 +211,9 @@ The isolated MySQL integration runner now includes an **additional** HTTP-faked,
 
 ### Operational settings location (2026-11-18)
 
-The Super Admin-only **System → Feature Flags** page owns the global publishing, Kavenegar sending, status querying and per-client/hour SMS quota settings. These are persisted through Laravel Pennant in the database and audited. No feature is enabled automatically by editing `.env`. Keep `.env` for application/database/mail connections, application encryption, the audit signing key and first-admin provisioning only. Previous `ARSAM_PUBLISH_ENABLED`, `ARSAM_KAVENEGAR_SEND_ENABLED`, `ARSAM_KAVENEGAR_STATUS_ENABLED`, and `ARSAM_KAVENEGAR_HOURLY_LIMIT` values are obsolete and are intentionally ignored by the application after this change; remove them manually from private runtime configuration when convenient (do not expose secrets). **New code has not yet been tested on Mac.**
+The Super Admin-only **System → Settings** page owns the global publishing, Kavenegar sending, status querying and per-client/hour SMS quota settings. These are persisted through Laravel Pennant in the database and audited. No feature is enabled automatically by editing `.env`. Keep `.env` for application/database/mail connections, application encryption, the audit signing key and first-admin provisioning only. Previous `ARSAM_PUBLISH_ENABLED`, `ARSAM_KAVENEGAR_SEND_ENABLED`, `ARSAM_KAVENEGAR_STATUS_ENABLED`, and `ARSAM_KAVENEGAR_HOURLY_LIMIT` values are obsolete and are intentionally ignored by the application after this change; remove them manually from private runtime configuration when convenient (do not expose secrets). **New code has not yet been tested on Mac.**
+
+
+### Settings UI (2026-11-19)
+
+Platform Super Admin manages global operational flags and Kavenegar quotas at **System → Settings** (`/system/settings`), not the old Feature Flags page. Settings are grouped, changes happen without reload, a toast confirms success or failure, and enabling live Kavenegar sends requires a confirmation dialog. Password reconfirmation has been removed **only for settings**, while login, platform MFA, Super Admin authorization, CSRF and signed audit remain mandatory. The existing Pennant store and underlying flags are unchanged. New UI behavior awaits Mac/browser QA and GitHub CI.

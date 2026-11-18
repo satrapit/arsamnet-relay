@@ -27,6 +27,8 @@ All notable changes to Arsam Relay will follow Keep a Changelog and Semantic Ver
 
 - Replaced static dashboard with read-only operational KPIs, recent deliveries and real provider flag states; refined mobile/RTL shell and added a first-live-SMS readiness checklist. Added a manually confirmed, single-message Kavenegar staging smoke script (not executed).
 
+- Grouped System Settings page with AJAX iOS-style switches, accessible toast notifications, background quota save and removal of password reconfirmation only for Super Admin settings operations.
+
 ### Pending
 - Composer/npm dependency lockfiles, MySQL and Laravel test execution.
 - Actual TailAdmin Free components, provider adapters and safe delivery pipeline.
