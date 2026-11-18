@@ -156,9 +156,14 @@ if [[ -L "${state_dir}" ]]; then
     exit 2
 fi
 (umask 077; mkdir -p -- "${state_dir}")
-fingerprint="$(printf '%s\\n%s' "${base_url}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+fingerprint="$(printf '%s\\n%s\\n%s' "${base_url}" "${mode}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+marker2=""
+if [[ "${mode}" == "bulk" ]]; then
+    fingerprint2="$(printf '%s\\n%s\\n%s' "${base_url}" "${mode}" "${receptor2}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+    marker2="${state_dir}/kavenegar-single-${fingerprint2}.attempted"
+fi
 marker="${state_dir}/kavenegar-single-${fingerprint}.attempted"
-if [[ -e "${marker}" || -L "${marker}" ]]; then
+if [[ -e "${marker}" || -L "${marker}" || ( -n "${marker2}" && ( -e "${marker2}" || -L "${marker2}" ) ) ]]; then
     echo "An SMS trial already started for this local Relay origin and recipient." >&2
     echo "Review the provider dashboard and delivery attempt before considering any other send." >&2
     unset token
@@ -168,11 +173,18 @@ fi
 idempotency="live-smoke-$(php -r 'echo bin2hex(random_bytes(16));')"
 printf 'Target: %s\n' "${base_url}"
 printf 'Recipient: ********%s\n' "${receptor: -3}"
-printf 'Message: Arsam Relay live SMS connectivity test\n'
+printf 'Operation: %s\n' "${mode}"
+if [[ "${mode}" == "bulk" ]]; then
+    printf 'Second recipient: ********%s\n' "${receptor2: -3}"
+fi
+printf 'Payload: fixed harmless text or a hidden OTP token\n'
 printf 'Idempotency: %s\n' "${idempotency}"
-printf '\nThis is a REAL, possibly billable SMS. Type SEND ONE SMS to proceed: '
+confirm_text="SEND ONE SMS"
+if [[ "${mode}" == "bulk" ]]; then confirm_text="SEND TWO SMS"; fi
+if [[ "${mode}" == "otp" ]]; then confirm_text="SEND ONE OTP"; fi
+printf '\nREAL, potentially billable provider operation. Type %s to proceed: ' "${confirm_text}"
 IFS= read -r confirmation
-if [[ "${confirmation}" != 'SEND ONE SMS' ]]; then
+if [[ "${confirmation}" != "${confirm_text}" ]]; then
     echo "Cancelled. No network call made."
     unset token
     exit 0
@@ -184,6 +196,16 @@ if ! (set -C; printf 'Started: %s UTC\\nIdempotency: %s\\n' "$(date -u +'%Y-%m-%
     echo "Trial already reserved for this number. No SMS sent by this invocation." >&2
     unset token
     exit 3
+fi
+
+# Reserve the second bulk recipient before any network access.
+# A failed reservation is safe to leave as a no-send marker, not a retry.
+if [[ "${mode}" == "bulk" ]]; then
+    if ! (set -C; printf 'Started: %s UTC\nIdempotency: %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "${idempotency}" > "${marker2}") 2>/dev/null; then
+        echo "Second recipient already reserved. No provider request made." >&2
+        unset token otp
+        exit 3
+    fi
 fi
 
 # Curl's secret header is streamed through stdin config, never passed in
