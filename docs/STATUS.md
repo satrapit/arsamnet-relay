@@ -161,3 +161,13 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - **New source, NOT RUN on Mac:** privileged per-client review queue, GET `/clients/{client}/delivery-reviews` and password-confirmed POST `.../{delivery}/acknowledge`, new `DeliveryReviewController`, Blade view, link from Clients, `SecurityAudit` allowlist limited to `delivery_id` and static `review_action`, and seven PHP Feature tests.
 - Signed audit event `delivery.review_acknowledged` is recorded transactionally for an exact tenant-owned `review_required` delivery. No state transition, provider status claim, retry, send, migration, queue, or Cron change. Audit unavailability fails the action closed.
 - **Next gates:** PHP lint for authored controller/tests, focused `DeliveryReviewTest`, full PHPUnit, Pint, and isolated MySQL regression. Acknowledgement is triage, **not** provider-confirmed resolution. Live sends OFF; PR Draft; no `main` merge.
+
+
+## Manual Kavenegar status inquiry milestone — code authored, Mac QA pending (2026-11-18)
+
+- Verified official Kavenegar PHP SDK exposes `sms/status` by numeric `messageid`. A separate `ARSAM_KAVENEGAR_STATUS_ENABLED=false` gate was added; it does **not** require enabling SMS sends. No real status request was executed.
+- Added `KavenegarSmsAdapter::queryStatus` with fixed-host HTTPS POST, strict single-record message-ID validation and conservative normalized output (`provider_reports_delivered` only for code 10; other valid codes `not_confirmed`; malformed/timeouts `unknown`).
+- Added tenant-bound `KavenegarDeliveryStatus` for accepted attempts with `kv-<numeric id>` reference, and a staff-only, recent-password-confirmed, six-per-minute POST action in the Delivery Reviews page. The action records signed `delivery.provider_status_queried` metadata without exposing raw provider response, OTP, phone or key.
+- **No delivery state transition, receipt insertion, retry, resend or automatic polling**, even on provider code 10. Current audit logs are the only persisted inquiry history.
+- Added four focused adapter tests plus four DeliveryReview feature tests; expanded the isolated real MySQL test runner with an HTTP-faked status lookup. These **new tests are NOT RUN** and the changes are NOT verified on Mac.
+- Before considering status network access, run PHP lint, Pint, focused/full PHPUnit, and the guarded real-MySQL integration script. Keep the status/send gates OFF pending separate approval. PR #1 Draft, `main` unchanged.
