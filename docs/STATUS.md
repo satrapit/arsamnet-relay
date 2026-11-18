@@ -144,3 +144,12 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - **NEW SOURCE ONLY, NOT YET TESTED:** extra two-process barrier test in `scripts/mysql_publish_integration.php` races an inert `StageDeliveryJob` with `relay:reconcile-deliveries --apply` using separate PHP/MySQL connections and validates exactly one safely staged delivery with no new provider attempts. This is **not** evidence of in-flight HTTP crash safety, concurrent operator resolution, or high-load stress.
 - **Required next checks:** `php -l scripts/mysql_publish_integration.php`, `php vendor/bin/pint --test`, full PHPUnit and guarded MySQL runner on the already migrated/empty `arsamnet_relay_integration_test` schema. No migration/reset or real Kavenegar traffic.
 - `main` remains untouched; PR #1 is Draft; publish/send flags default OFF.
+
+
+## Two-process recovery QA and final formatter gate — developer Mac (2026-11-18)
+
+- Developer reports that all tests other than the previously flagged Pint formatting completed successfully after pulling `f4a8de8`. The full detailed concurrent test output was not pasted, so retain this as a **developer-reported** pass, not an independently inspected per-scenario run.
+- After formatter-only commit `736e3a4`, the developer ran `php vendor/bin/pint --test`: **PASS across 102 PHP files**. `git diff --check` and `git status --short` returned no output, confirming a clean local worktree at that point.
+- Previously supplied full PHPUnit output: **150 passed, 602 assertions**. Previously supplied independent MySQL output confirmed safe offline recovery and Kavenegar mock operations.
+- No recent actual Kavenegar delivery or target-host Cron rehearsal. In-flight HTTP crash recovery and audited operator resolution remain open; the two-process stage-vs-reconcile race is not a substitute.
+- Next architectural checkpoint: inspect the current `SecurityAudit` allowlist and `review_required` transition rules before adding an operator resolution API, any automatic recovery, or status polling. Keep live sends disabled and PR #1 Draft.
