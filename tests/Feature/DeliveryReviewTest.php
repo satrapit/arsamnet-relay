@@ -287,4 +287,78 @@ class DeliveryReviewTest extends TestCase
         $this->assertStringNotContainsString('Private response', $audit->context_json);
         Http::assertSentCount(1);
     }
+
+    public function test_delivery_history_only_shows_verified_events_for_exact_tenant_and_delivery(): void
+    {
+        $one = $this->fixture('history-owned');
+        $other = $this->fixture('history-foreign');
+        $admin = $this->actor('platform_admin');
+
+        SecurityAudit::record('delivery.review_acknowledged', 'high', $admin->id, [
+            'delivery_id' => $one['delivery'], 'review_action' => 'investigating',
+        ], $one['client']);
+        SecurityAudit::record('delivery.provider_status_queried', 'high', $admin->id, [
+            'delivery_id' => $one['delivery'], 'review_action' => 'provider_reports_delivered',
+            'provider_status_code' => 10,
+        ], $one['client']);
+        SecurityAudit::record('delivery.review_acknowledged', 'high', $admin->id, [
+            'delivery_id' => $other['delivery'], 'review_action' => 'investigating',
+        ], $other['client']);
+
+        $page = $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.history', [$one['client'], $one['delivery']]))
+            ->assertOk()
+            ->assertSee('provider_reports_delivered')
+            ->assertSee('Verified')
+            ->assertDontSee($other['delivery']);
+
+        $this->assertStringNotContainsString('09123456789', $page->getContent());
+        $this->assertStringNotContainsString('Sensitive payload', $page->getContent());
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $one['delivery'], 'state' => 'review_required', 'attempt_count' => 1,
+        ]);
+        Http::assertNothingSent();
+    }
+
+    public function test_delivery_history_flags_tampering_and_hides_unverified_metadata(): void
+    {
+        $fixture = $this->fixture('history-tampering');
+        $admin = $this->actor('super_admin');
+        SecurityAudit::record('delivery.provider_status_queried', 'high', $admin->id, [
+            'delivery_id' => $fixture['delivery'],
+            'review_action' => 'provider_reports_delivered',
+            'provider_status_code' => 10,
+        ], $fixture['client']);
+        DB::table('security_events')->update(['severity' => 'critical']);
+
+        $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.history', [$fixture['client'], $fixture['delivery']]))
+            ->assertOk()
+            ->assertSee('Integrity failed')
+            ->assertDontSee('provider_reports_delivered')
+            ->assertDontSee('Verified');
+        Http::assertNothingSent();
+    }
+
+    public function test_delivery_history_requires_platform_permission_and_exact_client(): void
+    {
+        $one = $this->fixture('history-permission-one');
+        $two = $this->fixture('history-permission-two');
+        $url = route('clients.delivery-reviews.history', [$one['client'], $one['delivery']]);
+
+        $this->get($url)->assertRedirect();
+        $support = $this->actor('support');
+        $this->actingAs($support)->get($url)->assertForbidden();
+
+        $admin = $this->actor('super_admin');
+        $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.history', [$two['client'], $one['delivery']]))
+            ->assertNotFound();
+        $this->actingAs($admin)
+            ->get(route('clients.delivery-reviews.history', [$one['client'], 'invalid']))
+            ->assertNotFound();
+
+        Http::assertNothingSent();
+    }
+
 }
