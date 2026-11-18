@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\KavenegarDeliveryStatus;
 use App\Support\SecurityAudit;
@@ -57,7 +58,7 @@ final class DeliveryReviewController extends Controller
 
         // This is a manual, separate network gate. It never sends messages,
         // changes attempts or marks a delivery as delivered.
-        if (! config('relay.kavenegar_status_enabled', false)) {
+        if (! Feature::globally()->active('provider-status-queries')) {
             return back()->with('status', 'Provider status queries are disabled.');
         }
 
