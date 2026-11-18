@@ -125,7 +125,8 @@ class KavenegarAccountConfigurationTest extends TestCase
         $admin = $this->platformUser('platform_admin');
         $this->actingAs($admin)->get(route('clients.providers.kavenegar.index', $client))
             ->assertOk();
-        $this->actingAs($admin)->post(route('clients.providers.kavenegar.save', $client), $this->settings())
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => 0])
+            ->post(route('clients.providers.kavenegar.save', $client), $this->settings())
             ->assertRedirect('/user/confirm-password');
         $this->assertDatabaseCount('provider_accounts', 0);
     }
