@@ -223,7 +223,6 @@ function runConcurrent(array $f): void
     }
 }
 
-
 /**
  * One of two no-network recovery race participants on separate MySQL connections.
  *
@@ -237,7 +236,7 @@ function recoveryRaceWorker(array $options): void
     ensure(is_string($role) && in_array($role, ['stage', 'reconcile'], true)
         && is_string($barrier) && str_starts_with($barrier, rtrim(sys_get_temp_dir(), '/').'/relay_mysql_')
         && is_dir($barrier) && is_string($deliveryId)
-        && (bool) preg_match('/\A[0-9A-HJKMNP-TV-Z]{26}\z/D', $deliveryId),
+        && preg_match('/\A[0-9A-HJKMNP-TV-Z]{26}\z/D', $deliveryId) === 1,
         'Invalid recovery race worker parameters.');
 
     ensure(file_put_contents($barrier.'/ready-'.$role, '1', LOCK_EX) === 1,
