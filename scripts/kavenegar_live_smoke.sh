@@ -156,10 +156,10 @@ if [[ -L "${state_dir}" ]]; then
     exit 2
 fi
 (umask 077; mkdir -p -- "${state_dir}")
-fingerprint="$(printf '%s\\n%s\\n%s' "${base_url}" "${mode}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+fingerprint="$(printf '%s\n%s\n%s' "${base_url}" "${mode}" "${receptor}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
 marker2=""
 if [[ "${mode}" == "bulk" ]]; then
-    fingerprint2="$(printf '%s\\n%s\\n%s' "${base_url}" "${mode}" "${receptor2}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
+    fingerprint2="$(printf '%s\n%s\n%s' "${base_url}" "${mode}" "${receptor2}" | php -r 'echo hash("sha256", stream_get_contents(STDIN));')"
     marker2="${state_dir}/kavenegar-single-${fingerprint2}.attempted"
 fi
 marker="${state_dir}/kavenegar-single-${fingerprint}.attempted"
@@ -192,7 +192,7 @@ fi
 
 # Reserve the trial BEFORE network access. No retry after an ambiguous result.
 # noclobber keeps simultaneous terminal runs from both sending.
-if ! (set -C; printf 'Started: %s UTC\\nIdempotency: %s\\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "${idempotency}" > "${marker}") 2>/dev/null; then
+if ! (set -C; printf 'Started: %s UTC\nIdempotency: %s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "${idempotency}" > "${marker}") 2>/dev/null; then
     echo "Trial already reserved for this number. No SMS sent by this invocation." >&2
     unset token
     exit 3
