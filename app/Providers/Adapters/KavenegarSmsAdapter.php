@@ -2,6 +2,7 @@
 
 namespace App\Providers\Adapters;
 
+use Laravel\Pennant\Feature;
 use App\Contracts\Providers\OutboundProviderAdapter;
 use App\DTO\OutboundProviderRequest;
 use App\DTO\OutboundProviderResult;
@@ -179,8 +180,8 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
      */
     private function post(string $path, array $params, bool $statusOnly = false): array
     {
-        if ($statusOnly ? ! config('relay.kavenegar_status_enabled', false)
-            : ! config('relay.kavenegar_send_enabled', false)) {
+        if ($statusOnly ? ! Feature::globally()->active('provider-status-queries')
+            : ! Feature::globally()->active('kavenegar-sending')) {
             throw new LogicException('Kavenegar network operation is disabled.');
         }
 
