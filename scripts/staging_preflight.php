@@ -10,7 +10,6 @@ declare(strict_types=1);
 use Illuminate\Contracts\Console\Kernel;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Laravel\Pennant\Feature;
 
 require dirname(__DIR__).'/vendor/autoload.php';
 $app = require dirname(__DIR__).'/bootstrap/app.php';
@@ -18,13 +17,13 @@ $app->make(Kernel::class)->bootstrap();
 
 function failed(string $reason): never
 {
-    fwrite(STDERR, "FAIL: ".$reason."\n");
+    fwrite(STDERR, 'FAIL: '.$reason.PHP_EOL);
     exit(1);
 }
 
 function passed(string $label): void
 {
-    fwrite(STDOUT, "PASS: ".$label."\n");
+    fwrite(STDOUT, 'PASS: '.$label.PHP_EOL);
 }
 
 try {
@@ -92,17 +91,21 @@ try {
     }
     passed('Application encryption and audit signing configured');
 
-    // Fail closed. Super Admin may enable a one-recipient trial separately
-    // after this preflight and after staging identity/egress review.
-    if (Feature::globally()->active('message-publishing')
-        || Feature::globally()->active('kavenegar-sending')
-        || Feature::globally()->active('provider-status-queries')) {
-        failed('At least one network/publish flag is already enabled. Disable it in Super Admin before preflight.');
+    // Read Pennant rows directly: resolving Feature::active() on a new
+    // global flag can persist its default, violating this read-only command.
+    // Fail closed for unknown or non-boolean stored values.
+    $networkFlags = ['message-publishing', 'kavenegar-sending', 'provider-status-queries'];
+    $stored = DB::table('features')->whereIn('name', $networkFlags)->get(['name', 'value']);
+    foreach ($stored as $flag) {
+        $enabled = json_decode((string) $flag->value, true);
+        if ($enabled !== false) {
+            failed('A publish/send/status flag is enabled or malformed. Disable all three in Super Admin.');
+        }
     }
     passed('Publishing, Kavenegar sending and provider-status network gates are OFF');
 
-    echo "READY: Read-only staging prerequisites passed. No SMS sent and no data changed.\n";
-    echo "NEXT: Inspect tenant/route and egress logging; then run one explicit operator-controlled trial.\n";
+    echo 'READY: Read-only staging prerequisites passed. No SMS sent and no data changed.'.PHP_EOL;
+    echo 'NEXT: Inspect tenant/route and egress logging; then run one explicit operator-controlled trial.'.PHP_EOL;
 } catch (Throwable) {
     failed('Preflight encountered an environment or database error. Inspect staging configuration privately.');
 }
