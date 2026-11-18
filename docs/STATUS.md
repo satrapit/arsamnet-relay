@@ -181,3 +181,11 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - `.env.example` now retains infrastructure/secret configuration only, including APP_KEY, DB, SMTP, ARSAM_AUDIT_HMAC_KEY and initial admin provisioning. Former `ARSAM_PUBLISH_ENABLED`, `ARSAM_KAVENEGAR_SEND_ENABLED`, `ARSAM_KAVENEGAR_STATUS_ENABLED` and `ARSAM_KAVENEGAR_HOURLY_LIMIT` are no longer read by runtime.
 - Existing PHP test setup and isolated MySQL runner were switched to explicit Pennant gates, with the runner using the **array** store to avoid modifying global flags in the fixture-only MySQL schema. New role/limit tests were added.
 - **QA pending:** full PHPUnit, Pint, isolated MySQL runner, syntax/lint and review of all gate transitions. No live provider contact, Cron change, database migration, or `main` merge; PR #1 Draft.
+
+
+## QA regression fixes after developer Mac report (2026-11-19)
+
+- **Developer-confirmed PASS:** 106/106 Pint files; syntax checks; standalone `KavenegarStatusAdapterTest` 4 tests/10 assertions; `PlatformSecurityTest` 11 tests/37 assertions. Real-MySQL baseline passed through independent staging/recovery races.
+- **Developer-confirmed FAIL:** full PHPUnit 166 passed, **1 failed** (687 assertions): `DeliveryReviewTest` expected signed provider status code `10` but recorded `null`. The test installed a default `Http::fake()` before a later specific `Http::fake(['*' => ...])`; this can shadow the intended response. Its setup now uses `Http::preventStrayRequests()` only, while the positive provider test supplies the explicit response.
+- **Developer-confirmed FAIL:** guarded MySQL integration stopped at `Client hourly SMS submission limit has been reached` after Pennant configuration migration. The runner now explicitly sets `kavenegar-hourly-limit=100` in its **array-only** Pennant test store before publishing.
+- **Fixes are committed but NOT YET TESTED ON MAC.** Retest focused `DeliveryReviewTest`, full PHPUnit, Pint and isolated MySQL runner. No live sends, no migration, no `main` merge.
