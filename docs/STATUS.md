@@ -116,3 +116,13 @@ send or third-party callback/status verification has occurred.
 - **Pint issue:** 102 PHP files scanned; exactly one style issue in `tests/Feature/ReconcileDeliveriesTest.php` (`fully_qualified_strict_types` / `ordered_imports`). A follow-up feature-branch commit replaces the fully qualified class reference with an ordered `use App\\Services\\DeliveryLeaseManager;` import. **Pint after that change has NOT been run on Mac**.
 - `git diff --check` and `git status --short` produced no error/output in the developer log before this follow-up commit.
 - **Still pending:** independent real MySQL 8 reconciliation tests, concurrent repair/dispatch race evaluation, cPanel Cron rehearsal, provider delivery status proof and any real Kavenegar send. Go-live flags stay OFF; PR #1 remains Draft.
+
+
+## Recovery formatting gate closed — developer Mac (2026-11-18)
+
+- **PASS:** `php vendor/bin/pint --test` — **102 PHP files**, zero style issues after the ordered-import fix.
+- **PASS:** `php artisan test --filter=ReconcileDeliveriesTest` — **6 tests / 21 assertions**, no failures.
+- **Previously PASS:** full `php artisan test` — **150 tests / 602 assertions** before the import-only correction. The full suite was not rerun after that correction.
+- **Source control:** developer `git pull --ff-only` advanced the feature branch to `da15513`; subsequent `git diff --check` and `git status --short` produced no reported output.
+- **Next gate:** separately execute the guarded, pre-existing `scripts/mysql_publish_integration.php` on the exact pre-migrated, empty `arsamnet_relay_integration_test` schema. The current MySQL runner covers the prior delivery lifecycle, but does **not** yet exercise the new reconciliation command or concurrent recovery. Do not interpret a MySQL pass as validating reconciliation until explicit recovery assertions are implemented and run.
+- **Production gate:** live Kavenegar sending remains disabled; no provider status proof or manual operator resolution workflow is implemented. No merge to `main`.
