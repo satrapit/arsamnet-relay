@@ -168,3 +168,42 @@ tests; the entire new Kavenegar milestone now has **28 additional tests**
 relative to the last 116-test verified baseline. The expected complete suite
 is **144 tests if all pass**, but no Kavenegar tests have been executed on
 the developer Mac. Do NOT enable live sends based on this code alone.
+
+
+## Manual delivery status inquiry — new source, Mac QA pending (2026-11-18)
+
+The official Kavenegar SDK documents `sms/status` with a provider `messageid`. Arsam Relay now has a separate status-only operation, guarded independently of all send paths:
+
+```ini
+ARSAM_KAVENEGAR_STATUS_ENABLED=false
+ARSAM_KAVENEGAR_SEND_ENABLED=false
+```
+
+The status gate is **OFF by default**. No production deployment or live status call was made. Enabling the read-only status gate permits **network access to Kavenegar** and may reveal the API key in the URL path to host/network diagnostics; review outbound logging and secret-handling controls before enabling even this gate.
+
+A platform administrator with confirmed MFA, recent password confirmation and `clients.manage` may manually query a client-owned `accepted` Kavenegar SMS via Clients → Delivery reviews → **Check provider status**. The POST route is `/clients/{client}/delivery-reviews/{delivery}/check-status` and is capped at six requests/minute by middleware. There is no scheduler or autonomous polling.
+
+The query requires a tenant-bound delivery, an already-accepted durable attempt, matching enabled Kavenegar account and a validated `kv-<numeric id>` provider reference. It sends form-encoded HTTPS POST to the fixed `sms/status` endpoint with **only** `messageid`, validates one matching response and returns a sanitized classification:
+
+- Provider status code `10` → `provider_reports_delivered` (an observation only).
+- Other valid codes → `not_confirmed`.
+- Invalid, missing, mismatched, failed or timed-out responses → `unknown`.
+
+The signed event `delivery.provider_status_queried` records the opaque delivery ID, one normalized classification and numeric provider status, never raw status text, recipient, body, OTP, credentials or raw response. The result is also briefly shown in a session flash message. **No Delivery state changes, retries, receipts, automatic delivery proof or provider sends occur**, including when code `10` is returned. The operator must independently investigate and later use an approved evidence-based resolution mechanism.
+
+New Unit and Feature tests use `Http::fake`; **NOT YET RUN on the developer Mac**. Check:
+
+```bash
+php -l app/Providers/Adapters/KavenegarSmsAdapter.php
+php -l app/Services/KavenegarDeliveryStatus.php
+php -l app/Http/Controllers/Admin/DeliveryReviewController.php
+php -l tests/Unit/KavenegarStatusAdapterTest.php
+php -l tests/Feature/DeliveryReviewTest.php
+php vendor/bin/pint --test
+php artisan test --filter=KavenegarStatusAdapterTest
+php artisan test --filter=DeliveryReviewTest
+php artisan test
+DB_DATABASE=arsamnet_relay_integration_test php scripts/mysql_publish_integration.php --expect=arsamnet_relay_integration_test
+```
+
+The isolated MySQL integration runner still checks the **previous** recovery/send-with-HTTP-fake scenarios; it does not yet independently cover this new status-query workflow. Do not claim status production readiness or make a live provider request based only on these tests.
