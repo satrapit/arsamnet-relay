@@ -79,5 +79,4 @@ class FeatureFlagController extends Controller
 
         return back()->with('status', 'Kavenegar hourly limit updated.');
     }
-
 }
