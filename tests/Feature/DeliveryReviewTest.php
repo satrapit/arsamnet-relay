@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class DeliveryReviewTest extends TestCase
@@ -183,7 +184,7 @@ class DeliveryReviewTest extends TestCase
     {
         $fixture = $this->fixture('status-offline');
         $admin = $this->actor('platform_admin');
-        config()->set('relay.kavenegar_status_enabled', false);
+        Feature::globally()->deactivate('provider-status-queries');
 
         $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
             ->post(route('clients.delivery-reviews.check-status', [$fixture['client'], $fixture['delivery']]))
@@ -201,7 +202,7 @@ class DeliveryReviewTest extends TestCase
         $one = $this->fixture('status-foreign');
         $two = $this->fixture('status-other');
         $admin = $this->actor('super_admin');
-        config()->set('relay.kavenegar_status_enabled', true);
+        Feature::globally()->activate('provider-status-queries');
 
         $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
             ->post(route('clients.delivery-reviews.check-status', [$two['client'], $one['delivery']]))
@@ -217,7 +218,7 @@ class DeliveryReviewTest extends TestCase
     {
         $fixture = $this->fixture('status-auth');
         $url = route('clients.delivery-reviews.check-status', [$fixture['client'], $fixture['delivery']]);
-        config()->set('relay.kavenegar_status_enabled', true);
+        Feature::globally()->activate('provider-status-queries');
         $admin = $this->actor('platform_admin');
         $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => 0])
             ->post($url)->assertRedirect('/user/confirm-password');
@@ -234,8 +235,8 @@ class DeliveryReviewTest extends TestCase
     {
         $fixture = $this->fixture('status-accepted', 'accepted');
         $admin = $this->actor('platform_admin');
-        config()->set('relay.kavenegar_status_enabled', true);
-        config()->set('relay.kavenegar_send_enabled', false);
+        Feature::globally()->activate('provider-status-queries');
+        Feature::globally()->deactivate('kavenegar-sending');
         $accountId = DB::table('provider_accounts')->insertGetId([
             'client_id' => $fixture['client'], 'adapter_code' => 'kavenegar',
             'channel' => 'sms', 'display_name' => 'Test Kavenegar',
