@@ -4,6 +4,7 @@ return [
     'audit_hmac_key' => env('ARSAM_AUDIT_HMAC_KEY'),
     'provision_admin' => (bool) env('ARSAM_PROVISION_ADMIN', false),
     'publish_enabled' => (bool) env('ARSAM_PUBLISH_ENABLED', false),
+    'kavenegar_status_enabled' => (bool) env('ARSAM_KAVENEGAR_STATUS_ENABLED', false),
     'kavenegar_send_enabled' => (bool) env('ARSAM_KAVENEGAR_SEND_ENABLED', false),
     'kavenegar_hourly_limit' => (int) env('ARSAM_KAVENEGAR_HOURLY_LIMIT', 100),
     'flags' => [
