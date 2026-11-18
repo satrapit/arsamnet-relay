@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use Laravel\Pennant\Feature;
 use App\DTO\OutboundProviderRequest;
 use App\DTO\OutboundProviderResult;
 use App\Enums\ProviderAttemptOutcome;
@@ -31,8 +32,8 @@ final class KavenegarSmsDispatcher
      */
     public function dispatch(int $clientId, string $messageId): array
     {
-        if (! config('relay.publish_enabled', false)
-            || ! config('relay.kavenegar_send_enabled', false)) {
+        if (! Feature::globally()->active('message-publishing')
+            || ! Feature::globally()->active('kavenegar-sending')) {
             return ['state' => 'disabled', 'deliveries' => []];
         }
 
