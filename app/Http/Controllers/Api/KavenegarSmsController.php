@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\KavenegarMessageService;
 use App\Services\KavenegarSmsDispatcher;
@@ -103,8 +104,8 @@ final class KavenegarSmsController extends Controller
 
     private function authorizeSend(Request $request): ?JsonResponse
     {
-        if (! config('relay.publish_enabled', false)
-            || ! config('relay.kavenegar_send_enabled', false)) {
+        if (! Feature::globally()->active('message-publishing')
+            || ! Feature::globally()->active('kavenegar-sending')) {
             return $this->problem(503, 'Sending disabled', 'Kavenegar SMS sending is not enabled.');
         }
 
