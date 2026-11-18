@@ -51,6 +51,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->name('security-monitor.index');
         Route::get('/system/feature-flags', [FeatureFlagController::class, 'index'])
             ->name('feature-flags.index');
+        Route::post('/system/settings/kavenegar-hourly-limit', [FeatureFlagController::class, 'updateHourlyLimit'])
+            ->middleware('password.confirm')->name('settings.kavenegar-hourly-limit.update');
         Route::post('/system/feature-flags/{key}', [FeatureFlagController::class, 'update'])
             ->middleware('password.confirm')->name('feature-flags.update');
     });
