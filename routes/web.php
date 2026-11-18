@@ -35,6 +35,8 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->name('clients.delivery-reviews.index');
         Route::post('/clients/{client}/delivery-reviews/{delivery}/acknowledge', [DeliveryReviewController::class, 'acknowledge'])
             ->middleware('password.confirm')->name('clients.delivery-reviews.acknowledge');
+        Route::post('/clients/{client}/delivery-reviews/{delivery}/check-status', [DeliveryReviewController::class, 'checkStatus'])
+            ->middleware('password.confirm')->name('clients.delivery-reviews.check-status');
         Route::get('/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'index'])
             ->name('clients.providers.kavenegar.index');
         Route::post('/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'save'])
