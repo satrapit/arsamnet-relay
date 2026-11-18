@@ -126,5 +126,4 @@ class DashboardOverviewTest extends TestCase
             ->assertDontSee('Restricted Tenant Name')
             ->assertDontSee($delivery);
     }
-
 }
