@@ -68,6 +68,7 @@ class AppServiceProvider extends ServiceProvider
             Limit::perMinute(120)->by(hash('sha256', (string) $request->ip())),
             Limit::perMinute(60)->by(hash('sha256', (string) $request->bearerToken())),
         ]);
+        Feature::define('kavenegar-hourly-limit', fn (): int => 100);
         foreach (array_keys(config('relay.flags', [])) as $feature) {
             Feature::define($feature, fn (): bool => false);
         }
