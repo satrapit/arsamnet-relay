@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ClientApiKeyController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ClientIpAllowlistController;
+use App\Http\Controllers\Admin\DeliveryReviewController;
 use App\Http\Controllers\Admin\FeatureFlagController;
 use App\Http\Controllers\Admin\KavenegarAccountController;
 use App\Http\Controllers\Admin\SecurityMonitorController;
@@ -30,6 +31,10 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
             ->middleware('password.confirm')->name('clients.keys.rotate');
         Route::post('/clients/{client}/keys/{key}/revoke', [ClientApiKeyController::class, 'revoke'])
             ->middleware('password.confirm')->name('clients.keys.revoke');
+        Route::get('/clients/{client}/delivery-reviews', [DeliveryReviewController::class, 'index'])
+            ->name('clients.delivery-reviews.index');
+        Route::post('/clients/{client}/delivery-reviews/{delivery}/acknowledge', [DeliveryReviewController::class, 'acknowledge'])
+            ->middleware('password.confirm')->name('clients.delivery-reviews.acknowledge');
         Route::get('/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'index'])
             ->name('clients.providers.kavenegar.index');
         Route::post('/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'save'])
