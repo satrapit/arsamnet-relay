@@ -272,4 +272,47 @@ class KavenegarSmsApiTest extends TestCase
 
         Http::assertSentCount(1);
     }
+
+    public function test_local_machine_identity_probe_is_read_only_when_live_sending_is_disabled(): void
+    {
+        $fixture = $this->fixture('sms-local-probe', true, ['messages.publish']);
+        Feature::globally()->deactivate('message-publishing');
+        Feature::globally()->deactivate('kavenegar-sending');
+        Http::fake();
+
+        $this->withToken($fixture['token'])->getJson('/api/v1/me')
+            ->assertOk()
+            ->assertJsonPath('data.client_id', $fixture['client'])
+            ->assertJsonPath('data.scopes.0', 'messages.publish');
+
+        $this->assertDatabaseCount('messages', 0);
+        $this->assertDatabaseCount('delivery_attempts', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_local_status_lookup_is_read_only_after_both_send_flags_are_disabled(): void
+    {
+        $fixture = $this->fixture('sms-local-lookup');
+        $this->goodResponse([456789]);
+
+        $send = $this->request($fixture['token'], 'sms-readonly-lookup-0001', '/api/v1/sms/send', [
+            'receptor' => '09123456789',
+            'message' => 'Local status privacy test',
+        ])->assertStatus(202);
+
+        $messageId = $send->json('data.message_id');
+        Feature::globally()->deactivate('message-publishing');
+        Feature::globally()->deactivate('kavenegar-sending');
+        Http::fake();
+
+        $result = $this->withToken($fixture['token'])
+            ->getJson('/api/v1/sms/messages/'.$messageId)
+            ->assertOk()
+            ->assertJsonPath('data.deliveries.0.state', 'accepted')
+            ->assertJsonPath('data.deliveries.0.provider_ref', 'kv-456789');
+        $this->assertStringNotContainsString('09123456789', $result->getContent());
+        $this->assertStringNotContainsString('Local status privacy test', $result->getContent());
+        $this->assertDatabaseCount('delivery_attempts', 1);
+        Http::assertNothingSent();
+    }
 }
