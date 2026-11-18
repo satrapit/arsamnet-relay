@@ -230,7 +230,6 @@ class DeliveryReviewTest extends TestCase
         Http::assertNothingSent();
     }
 
-
     public function test_status_query_records_signed_provider_evidence_without_marking_delivered(): void
     {
         $fixture = $this->fixture('status-accepted', 'accepted');
@@ -286,5 +285,4 @@ class DeliveryReviewTest extends TestCase
         $this->assertStringNotContainsString('Private response', $audit->context_json);
         Http::assertSentCount(1);
     }
-
 }
