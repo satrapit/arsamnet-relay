@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Admin;
 
-use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\KavenegarDeliveryStatus;
 use App\Support\SecurityAudit;
@@ -11,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Laravel\Pennant\Feature;
 
 /**
  * Privileged, read-only delivery triage with a signed acknowledgement.
