@@ -14,7 +14,7 @@ if [[ "${#}" -gt 1 || ( "${#}" -eq 1 && "${1}" != "--status" ) ]]; then
 fi
 
 if [[ ! -t 0 ]]; then
-    echo "Interactive terminal required. Refusing unattended live SMS." >&2
+    echo "Interactive terminal required. Refusing unattended SMS or status checks." >&2
     exit 2
 fi
 
@@ -80,7 +80,7 @@ if [[ ! "${receptor}" =~ ^09[0-9]{9}$ ]]; then
     exit 2
 fi
 
-printf 'Paste the ONE-TIME ISSUED tenant Relay API token (hidden input): '
+printf 'Paste the tenant Relay API token with messages.publish (hidden input): '
 IFS= read -r -s token
 printf '\n'
 if [[ ! "${token}" =~ ^relay_[a-f0-9]{64}$ ]]; then
