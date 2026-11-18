@@ -221,3 +221,11 @@ These results cover the **existing signed audit history implementation**, not a 
 - Added `scripts/kavenegar_live_smoke.sh` and `docs/KAVENEGAR_LIVE_SMOKE.md`: interactive, HTTPS-only, one explicit manually confirmed single SMS with a separate scoped Relay machine token, redacted phone display, fixed harmless text, fresh idempotency, bounded curl and no automatic retries/redirects. **No real SMS was sent or tested by the assistant**; script itself has NOT yet been shell-checked on Mac.
 - PR #1 is **Draft, not merged**, last GitHub metadata reports `mergeable=false` and around 215 changed files. `main` therefore remains unchanged. Before merge: investigate GitHub mergeability, vet generated lockfiles and runtime prerequisites, run PHP tests/Pint, `npm run build`, shell syntax/UX/browser checks, review production-specific deployment and secret-safe upstream traffic. Do not auto-merge an unreviewed staging build.
 - Prioritize a dedicated isolated staging host and an operator-owned number for the first single real Kavenegar trial. The real network send remains dependent on the Super Admin independently enabling `message-publishing` and `kavenegar-sending` and the provider route. Both default OFF; no bulk/OTP live trial or automatic retry.
+
+
+## Dashboard UI and merge-readiness checkpoint — developer QA (2026-11-19)
+
+- Developer Mac report after pulling `f184737`: **Laravel Pint PASS on all 108 PHP files**; `git diff --check` and `git status --short` produced no output (clean working tree).
+- The developer also reported all other checks PASS in the immediately preceding QA round (DashboardOverviewTest, full PHPUnit, npm/Vite build, Bash syntax, guarded isolated MySQL). Detailed fresh counts and browser screenshots were not supplied; these claims are recorded as developer-reported, not independently verified by GitHub Actions.
+- GitHub PR #1 metadata rechecked: **mergeable=true**, **draft=true**, **merged=false**, base `main`; no CI status entries found for head `f184737`.
+- Remaining release distinctions: code review/merge to `main` is separate from staging deployment and real provider sending. Browser UIX review and operator-run one-recipient staging Kavenegar SMS smoke are not yet evidenced. All operational publishing/sending flags stay OFF by default, and no live sends are authorized through automated tests.
