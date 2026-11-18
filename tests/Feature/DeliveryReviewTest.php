@@ -148,6 +148,7 @@ class DeliveryReviewTest extends TestCase
         $this->assertDatabaseCount('security_events', 0);
         Http::assertNothingSent();
     }
+
     public function test_invalid_delivery_identifier_cannot_create_audit_event(): void
     {
         $fixture = $this->fixture('review-invalid-id');
@@ -177,5 +178,4 @@ class DeliveryReviewTest extends TestCase
             Http::assertNothingSent();
         }
     }
-
 }
