@@ -106,3 +106,13 @@ send or third-party callback/status verification has occurred.
 - **Pending:** lint/Pint, full PHPUnit, isolated real MySQL recovery/concurrency evaluation and code review for these new commits. Do not add the six cases to the 144-confirmed total until actually run.
 - **Official API discovery:** Kavenegar `sms/status` / `sms/statuslocalmessageid` exist, but status polling and verified status mapping are still NOT IMPLEMENTED.
 - **Safety:** global publish and Kavenegar live send flags default OFF; no production change, no real SMS or `main` merge. PR #1 remains Draft.
+
+
+## Recovery feature Mac regression (developer output, 2026-11-18)
+
+- **PASS (developer Mac):** `php -l` on reconciliation command and new feature test.
+- **PASS (developer Mac):** `ReconcileDeliveriesTest` — 6 tests / 21 assertions, with dry-run, idempotent staging, expiry, expired-lease quarantine, prior-attempt refusal and invalid limit.
+- **PASS (developer Mac):** full Laravel PHPUnit — **150 tests / 602 assertions** (SQLite in-memory). No test failures.
+- **Pint issue:** 102 PHP files scanned; exactly one style issue in `tests/Feature/ReconcileDeliveriesTest.php` (`fully_qualified_strict_types` / `ordered_imports`). A follow-up feature-branch commit replaces the fully qualified class reference with an ordered `use App\\Services\\DeliveryLeaseManager;` import. **Pint after that change has NOT been run on Mac**.
+- `git diff --check` and `git status --short` produced no error/output in the developer log before this follow-up commit.
+- **Still pending:** independent real MySQL 8 reconciliation tests, concurrent repair/dispatch race evaluation, cPanel Cron rehearsal, provider delivery status proof and any real Kavenegar send. Go-live flags stay OFF; PR #1 remains Draft.
