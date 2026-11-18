@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers\Api;
 
-use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\KavenegarMessageService;
 use App\Services\KavenegarSmsDispatcher;
@@ -12,6 +11,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Laravel\Pennant\Feature;
 
 /**
  * Machine-client Kavenegar intake. Never accepts a provider API key,
