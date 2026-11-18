@@ -129,7 +129,8 @@ fi
 auth_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-auth.XXXXXXXX")"
 body_file=""
 response_file=""
-trap 'rm -f -- "${auth_file}" "${body_file}" "${response_file}"' EXIT
+readiness_file=""
+trap 'rm -f -- "${auth_file}" "${body_file}" "${response_file}" "${readiness_file}"' EXIT
 if ! auth_status="$(printf 'header = "Authorization: Bearer %s"\nheader = "Accept: application/json"\n' "${token}" |
     curl --silent --show-error --noproxy '*' --proto '=http' \
       --max-redirs 0 --connect-timeout 2 --max-time 6 --retry 0 \
@@ -146,6 +147,35 @@ if [[ "${auth_status}" != "200" ]] ||
     exit 3
 fi
 echo "Local Relay identity and messages.publish scope verified."
+
+# Check live send gates, tenant route and available quota before creating
+# an irreversible local attempt marker. No provider HTTP call occurs here.
+required_slots=1
+if [[ "${mode}" == "bulk" ]]; then required_slots=2; fi
+readiness_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-ready.XXXXXXXX")"
+if ! ready_http="$(printf 'header = "Authorization: Bearer %s"\nheader = "Accept: application/json"\n' "${token}" |
+    curl --silent --show-error --noproxy '*' --proto '=http' \
+        --max-redirs 0 --connect-timeout 2 --max-time 6 --retry 0 \
+        --config - --output "${readiness_file}" --write-out '%{http_code}' \
+        "${base_url}/api/v1/sms/readiness?recipients=${required_slots}")"; then
+    echo "Local SMS readiness check failed; no provider request made." >&2
+    unset token otp
+    exit 3
+fi
+if [[ "${ready_http}" != "200" ]] ||
+    ! php -r '
+        $r=json_decode((string)file_get_contents($argv[1]),true);
+        $ready=$r["data"]["ready"]??false;
+        if($ready!==true){
+            echo "Provider route, sending flags or hourly capacity are not ready. No SMS requested.\n";
+            exit(1);
+        }
+    ' "${readiness_file}"; then
+    echo "Check System Settings and the test client Kavenegar route; no SMS requested." >&2
+    unset token otp
+    exit 3
+fi
+echo "Kavenegar test route, gates and hourly capacity verified."
 
 # A persistent local marker prevents accidental duplicate paid trials
 # after a timeout, ambiguous outcome or interrupted terminal session.
