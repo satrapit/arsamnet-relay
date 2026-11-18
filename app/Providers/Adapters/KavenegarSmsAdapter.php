@@ -2,7 +2,6 @@
 
 namespace App\Providers\Adapters;
 
-use Laravel\Pennant\Feature;
 use App\Contracts\Providers\OutboundProviderAdapter;
 use App\DTO\OutboundProviderRequest;
 use App\DTO\OutboundProviderResult;
@@ -10,6 +9,7 @@ use App\Enums\ProviderAttemptOutcome;
 use App\Enums\ProviderCapability;
 use Illuminate\Support\Facades\Http;
 use InvalidArgumentException;
+use Laravel\Pennant\Feature;
 use LogicException;
 use Throwable;
 
