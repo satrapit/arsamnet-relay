@@ -19,7 +19,7 @@
                 @forelse($deliveries as $delivery)
                     <tr class="border-b border-slate-100">
                         <td class="py-3">{{ $delivery->updated_at }}</td>
-                        <td class="font-mono text-xs">{{ $delivery->id }}</td>
+                        <td class="font-mono text-xs"><a class="text-blue-700 hover:underline" href="{{ route('clients.delivery-reviews.history', [$owner->id, $delivery->id]) }}">{{ $delivery->id }}</a></td>
                         <td>{{ $delivery->attempt_count }}</td>
                         <td>{{ $delivery->last_error_code ?? '—' }}</td>
                         <td>
