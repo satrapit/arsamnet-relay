@@ -28,9 +28,13 @@ class PlatformSecurityTest extends TestCase
             'two_factor_confirmed_at' => $mfa ? now() : null,
             'two_factor_secret' => $mfa ? 'encrypted-by-fortify-in-production' : null,
         ]);
-        $roleId = DB::table('roles')->insertGetId([
-            'scope' => 'platform', 'code' => $role, 'created_at' => now(),
-        ]);
+        $roleId = DB::table('roles')->where('scope', 'platform')
+            ->where('code', $role)->value('id');
+        if ($roleId === null) {
+            $roleId = DB::table('roles')->insertGetId([
+                'scope' => 'platform', 'code' => $role, 'created_at' => now(),
+            ]);
+        }
         DB::table('platform_role_assignments')->insert([
             'user_id' => $user->id, 'role_id' => $roleId, 'created_at' => now(),
         ]);
@@ -149,7 +153,7 @@ class PlatformSecurityTest extends TestCase
             ->assertOk()
             ->assertSee('Message delivery')
             ->assertSee('Providers &amp; integrations', false)
-            ->assertSee('Limits &amp; quotas', false)
+            ->assertSee('Limits & quotas', false)
             ->assertSee('data-settings-toggle')
             ->assertSee('data-settings-toasts')
             ->assertSee('role="switch"', false)
