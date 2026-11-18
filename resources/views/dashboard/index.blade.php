@@ -26,7 +26,7 @@
         <span class="size-1.5 rounded-full {{ $flags['status'] ? 'bg-emerald-500' : 'bg-slate-400' }}"></span> Status queries {{ $flags['status'] ? 'on' : 'off' }}
     </span>
     @can('feature-flags.view')
-        <a href="{{ route('feature-flags.index') }}" class="ml-auto rounded-lg px-3 py-2 font-semibold text-blue-700 hover:bg-blue-50">Manage settings <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
+        <a href="{{ route('settings.index') }}" class="ml-auto rounded-lg px-3 py-2 font-semibold text-blue-700 hover:bg-blue-50">Manage settings <i class="fa-solid fa-arrow-right ml-1" aria-hidden="true"></i></a>
     @endcan
 </div>
 
@@ -96,7 +96,7 @@
                 </a>
             @endcan
             @can('feature-flags.view')
-                <a href="{{ route('feature-flags.index') }}" class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
+                <a href="{{ route('settings.index') }}" class="flex min-h-14 items-center gap-3 rounded-xl border border-slate-100 px-4 py-3 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50">
                     <i class="fa-solid fa-sliders w-5 text-blue-700" aria-hidden="true"></i><span class="flex-1">Operational settings</span><i class="fa-solid fa-arrow-right text-slate-400" aria-hidden="true"></i>
                 </a>
             @endcan
