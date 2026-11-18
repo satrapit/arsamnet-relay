@@ -8,8 +8,8 @@ use App\Providers\Adapters\KavenegarSmsAdapter;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 use InvalidArgumentException;
-use LogicException;
 use Laravel\Pennant\Feature;
+use LogicException;
 use Tests\TestCase;
 
 class KavenegarSmsAdapterTest extends TestCase
