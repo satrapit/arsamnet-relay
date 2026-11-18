@@ -5,7 +5,7 @@ umask 077
 
 if [[ "${1:-}" == "--help" ]]; then
     echo "Usage: bash scripts/kavenegar_live_smoke.sh [--status]"
-    echo "Default: explicit one-SMS live test on localhost. --status: read-only message lookup."
+    echo "Default: choose single, 2-recipient bulk or OTP live test. --status: read-only lookup."
     exit 0
 fi
 if [[ "${#}" -gt 1 || ( "${#}" -eq 1 && "${1}" != "--status" ) ]]; then
@@ -73,11 +73,46 @@ if [[ "${1:-}" == "--status" ]]; then
     exit 0
 fi
 
+printf 'Test operation [single/bulk/otp] (default single): '
+IFS= read -r mode
+mode="${mode:-single}"
+case "${mode}" in
+    single|bulk|otp) ;;
+    *) echo "Invalid operation." >&2; exit 2 ;;
+esac
+
 printf 'Owned Iranian mobile test number (09xxxxxxxxx): '
 IFS= read -r receptor
 if [[ ! "${receptor}" =~ ^09[0-9]{9}$ ]]; then
     echo "Only a normalized Iranian test mobile is allowed." >&2
     exit 2
+fi
+
+receptor2=""
+template=""
+otp=""
+if [[ "${mode}" == "bulk" ]]; then
+    printf 'Second owned Iranian mobile (different from first): '
+    IFS= read -r receptor2
+    if [[ ! "${receptor2}" =~ ^09[0-9]{9}$ || "${receptor2}" == "${receptor}" ]]; then
+        echo "Bulk test requires two distinct owned Iranian mobile numbers." >&2
+        exit 2
+    fi
+elif [[ "${mode}" == "otp" ]]; then
+    printf 'Approved Kavenegar VerifyLookup template name: '
+    IFS= read -r template
+    if [[ ! "${template}" =~ ^[A-Za-z][A-Za-z0-9_-]{0,63}$ ]]; then
+        echo "Invalid VerifyLookup template." >&2
+        exit 2
+    fi
+    printf 'OTP test code (hidden): '
+    IFS= read -r -s otp
+    printf '\n'
+    if [[ ! "${otp}" =~ ^[A-Za-z0-9_-]{4,32}$ ]]; then
+        echo "Invalid OTP token." >&2
+        unset otp
+        exit 2
+    fi
 fi
 
 printf 'Paste the tenant Relay API token with messages.publish (hidden input): '
