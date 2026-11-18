@@ -10,3 +10,5 @@
 
 - Lucide: one self-hosted 20-symbol SVG sprite; Font Awesome removed from npm, CSS and main views. Local smoke script accepts only `http://127.0.0.1:<port>` / `localhost` for the operator-triggered, potentially billable test; repeated attempts are blocked by a local marker. Neither a browser check nor a live SMS has been performed.
 - Remote housekeeping: five already-merged legacy feature branches still require deletion by the repository owner; GitHub connector has no delete-branch action.
+
+- Latest local Kavenegar work (NOT YET Mac-tested): single/two-number bulk/OTP manual script with local machine scope and client readiness preflight, private one-time markers, sanitized response; `--status` reads only persisted delivery information. Added tenant-scoped `GET /api/v1/sms/readiness` plus feature tests for flags, route scope and quotas. No provider network operation performed by assistant.
