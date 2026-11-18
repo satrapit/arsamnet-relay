@@ -666,6 +666,13 @@ try {
             ->push([
                 'return' => ['status' => 200, 'message' => 'OK'],
                 'entries' => [['messageid' => 777004]],
+            ], 200)
+            ->push([
+                'return' => ['status' => 200],
+                'entries' => [[
+                    'messageid' => 777001, 'status' => 10,
+                    'receptor' => '09123456789', 'statustext' => 'Sensitive provider text',
+                ]],
             ], 200)]);
         $singleKv = $kvService->publish(
             $f['client'], $f['key'], 'kv-single-'.bin2hex(random_bytes(12)),
@@ -797,13 +804,6 @@ try {
         // enabled network gate and always keeps the delivery accepted.
         config()->set('relay.kavenegar_send_enabled', false);
         config()->set('relay.kavenegar_status_enabled', true);
-        Http::fake(['*' => Http::response([
-            'return' => ['status' => 200],
-            'entries' => [[
-                'messageid' => 777001, 'status' => 10,
-                'receptor' => '09123456789', 'statustext' => 'Sensitive provider text',
-            ]],
-        ], 200)]);
         $statusDeliveryId = $singleKv['delivery_ids'][0];
         $deliveryStatus = app(KavenegarDeliveryStatus::class)->query($f['client'], $statusDeliveryId);
         ensure($deliveryStatus === ['state' => 'provider_reports_delivered', 'provider_code' => 10],
