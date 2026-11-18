@@ -95,4 +95,36 @@ class DashboardOverviewTest extends TestCase
         ]);
         $this->actingAs($user)->get(route('dashboard'))->assertForbidden();
     }
+
+    public function test_support_can_see_overview_but_not_tenant_delivery_identifiers(): void
+    {
+        $support = $this->staff('support');
+        $client = DB::table('clients')->insertGetId([
+            'slug' => 'restricted-tenant', 'name' => 'Restricted Tenant Name',
+            'status' => 'active', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        $message = (string) Str::ulid();
+        DB::table('messages')->insert([
+            'id' => $message, 'client_id' => $client, 'kind' => 'direct',
+            'priority' => 'normal', 'payload_ciphertext' => 'encrypted',
+            'payload_hash' => hash('sha256', 'restricted'), 'created_at' => now(),
+        ]);
+        $target = DB::table('delivery_targets')->insertGetId([
+            'client_id' => $client, 'channel' => 'sms',
+            'address_ciphertext' => 'encrypted', 'address_hmac' => hash('sha256', 'private'),
+            'enabled' => true, 'created_at' => now(),
+        ]);
+        $delivery = (string) Str::ulid();
+        DB::table('deliveries')->insert([
+            'id' => $delivery, 'client_id' => $client,
+            'message_id' => $message, 'target_id' => $target,
+            'state' => 'accepted', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->actingAs($support)->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('Restricted Tenant Name')
+            ->assertDontSee($delivery);
+    }
+
 }
