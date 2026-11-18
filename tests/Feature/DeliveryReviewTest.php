@@ -148,4 +148,34 @@ class DeliveryReviewTest extends TestCase
         $this->assertDatabaseCount('security_events', 0);
         Http::assertNothingSent();
     }
+    public function test_invalid_delivery_identifier_cannot_create_audit_event(): void
+    {
+        $fixture = $this->fixture('review-invalid-id');
+        $admin = $this->actor('super_admin');
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('clients.delivery-reviews.acknowledge', [$fixture['client'], 'invalid-id']))
+            ->assertNotFound();
+        $this->assertDatabaseCount('security_events', 0);
+        Http::assertNothingSent();
+    }
+
+    public function test_missing_audit_key_fails_closed_without_state_change(): void
+    {
+        $fixture = $this->fixture('review-audit-fail');
+        $admin = $this->actor('super_admin');
+        config()->set('relay.audit_hmac_key', null);
+
+        try {
+            $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+                ->post(route('clients.delivery-reviews.acknowledge', [$fixture['client'], $fixture['delivery']]))
+                ->assertStatus(500);
+        } finally {
+            $this->assertDatabaseHas('deliveries', [
+                'id' => $fixture['delivery'], 'state' => 'review_required', 'attempt_count' => 1,
+            ]);
+            $this->assertDatabaseCount('security_events', 0);
+            Http::assertNothingSent();
+        }
+    }
+
 }
