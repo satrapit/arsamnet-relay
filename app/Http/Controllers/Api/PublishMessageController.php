@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use Laravel\Pennant\Feature;
 use App\Http\Controllers\Controller;
 use App\Services\MessagePublisher;
 use App\Support\InvalidPublishTargets;
@@ -14,7 +15,7 @@ final class PublishMessageController extends Controller
 {
     public function __invoke(Request $request, MessagePublisher $publisher): JsonResponse
     {
-        if (! config('relay.publish_enabled', false)) {
+        if (! Feature::globally()->active('message-publishing')) {
             return $this->problem(503, 'Publishing disabled', 'Message publishing is not enabled.');
         }
 
