@@ -22,8 +22,9 @@ class DeliveryReviewTest extends TestCase
         $this->withoutVite();
         config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
         config()->set('relay.audit_hmac_key', bin2hex(random_bytes(32)));
+        // Fail closed on unexpected HTTP; individual provider tests install
+        // their own exact fake so a prior wildcard cannot shadow it.
         Http::preventStrayRequests();
-        Http::fake();
     }
 
     private function actor(string $role): User
