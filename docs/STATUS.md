@@ -189,3 +189,11 @@ Run `php artisan test --filter=ReconcileDeliveriesTest`, full `php artisan test`
 - **Developer-confirmed FAIL:** full PHPUnit 166 passed, **1 failed** (687 assertions): `DeliveryReviewTest` expected signed provider status code `10` but recorded `null`. The test installed a default `Http::fake()` before a later specific `Http::fake(['*' => ...])`; this can shadow the intended response. Its setup now uses `Http::preventStrayRequests()` only, while the positive provider test supplies the explicit response.
 - **Developer-confirmed FAIL:** guarded MySQL integration stopped at `Client hourly SMS submission limit has been reached` after Pennant configuration migration. The runner now explicitly sets `kavenegar-hourly-limit=100` in its **array-only** Pennant test store before publishing.
 - **Fixes are committed but NOT YET TESTED ON MAC.** Retest focused `DeliveryReviewTest`, full PHPUnit, Pint and isolated MySQL runner. No live sends, no migration, no `main` merge.
+
+ 
+## Signed per-delivery audit history (source only, Mac QA pending — 2026-11-19)
+
+- Developer's latest message reports **all previously requested tests PASS** after fixes to HTTP fake ordering and Pennant hourly-limit fixture. Exact new totals were not supplied; do not invent a PHPUnit count.
+- Added password-session/MFA-protected platform staff history for one tenant-owned Delivery: `GET /clients/{client}/delivery-reviews/{delivery}/history`. Delivery IDs in both review and accepted lists link to this view.
+- History uses already-signed `security_events`, not another table; filters exact tenant and `context_json.delivery_id`, paginates 25, re-verifies each event's HMAC and hides any tampered record metadata. Only review acknowledgements and provider-status inquiries are included.
+- Added **three new Feature tests**, including foreign-client access and forged audit detection. **Not yet executed on Mac.** No migration, provider call, automatic settlement, retry, Cron or `main` merge. PR #1 remains Draft and operational gates default OFF.
