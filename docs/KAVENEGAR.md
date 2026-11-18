@@ -25,11 +25,11 @@ The account is scoped to one client (or a platform-shared account can be configu
 
 **Both global gates default OFF**; account activation never overrides them:
 
-~~~ini
-ARSAM_PUBLISH_ENABLED=false
-ARSAM_KAVENEGAR_SEND_ENABLED=false
-ARSAM_KAVENEGAR_HOURLY_LIMIT=100
-~~~
+- `message-publishing` — OFF by default
+- `kavenegar-sending` — OFF by default
+- `kavenegar-hourly-limit` — default 100 deliveries per client per hour
+
+All are configured through **System → Feature Flags** by Super Admin, with recent password confirmation and signed audit.
 
 Do NOT enable real sending until independent PHP/MySQL tests, Kavenegar sandbox validation, operator approval and production readiness review are complete. Never place a real Kavenegar API key in source control or test fixtures. The Kavenegar official API puts its key in the URL path: suppress outbound URI, HTTP trace, request exceptions and proxy/APM logs containing that URL.
 
@@ -207,3 +207,8 @@ DB_DATABASE=arsamnet_relay_integration_test php scripts/mysql_publish_integratio
 ```
 
 The isolated MySQL integration runner now includes an **additional** HTTP-faked, tenant-bound `KavenegarDeliveryStatus` lookup against an accepted record, including a no-state-change check. The new assertions are **not yet executed on the developer Mac** and do not establish production status-query readiness. Do not claim status production readiness or make a live provider request based only on these tests.
+
+
+### Operational settings location (2026-11-18)
+
+The Super Admin-only **System → Feature Flags** page owns the global publishing, Kavenegar sending, status querying and per-client/hour SMS quota settings. These are persisted through Laravel Pennant in the database and audited. No feature is enabled automatically by editing `.env`. Keep `.env` for application/database/mail connections, application encryption, the audit signing key and first-admin provisioning only. Previous `ARSAM_PUBLISH_ENABLED`, `ARSAM_KAVENEGAR_SEND_ENABLED`, `ARSAM_KAVENEGAR_STATUS_ENABLED`, and `ARSAM_KAVENEGAR_HOURLY_LIMIT` values are obsolete and are intentionally ignored by the application after this change; remove them manually from private runtime configuration when convenient (do not expose secrets). **New code has not yet been tested on Mac.**
