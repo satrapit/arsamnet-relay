@@ -206,4 +206,4 @@ php artisan test
 DB_DATABASE=arsamnet_relay_integration_test php scripts/mysql_publish_integration.php --expect=arsamnet_relay_integration_test
 ```
 
-The isolated MySQL integration runner still checks the **previous** recovery/send-with-HTTP-fake scenarios; it does not yet independently cover this new status-query workflow. Do not claim status production readiness or make a live provider request based only on these tests.
+The isolated MySQL integration runner now includes an **additional** HTTP-faked, tenant-bound `KavenegarDeliveryStatus` lookup against an accepted record, including a no-state-change check. The new assertions are **not yet executed on the developer Mac** and do not establish production status-query readiness. Do not claim status production readiness or make a live provider request based only on these tests.
