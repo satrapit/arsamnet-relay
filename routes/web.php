@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\ClientApiKeyController;
 use App\Http\Controllers\Admin\ClientController;
 use App\Http\Controllers\Admin\ClientIpAllowlistController;
+use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\DeliveryReviewController;
 use App\Http\Controllers\Admin\FeatureFlagController;
 use App\Http\Controllers\Admin\KavenegarAccountController;
@@ -19,7 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function (): void {
     Route::post('/account/clients/{client}/providers/kavenegar', [KavenegarAccountController::class, 'save'])
         ->middleware('password.confirm')->name('account.clients.providers.kavenegar.save');
     Route::middleware(['platform.mfa'])->group(function (): void {
-        Route::view('/dashboard', 'dashboard.index')->name('dashboard');
+        Route::get('/dashboard', DashboardController::class)->name('dashboard');
         Route::view('/security/recovery-codes', 'security.recovery-codes')
             ->middleware('password.confirm')->name('security.recovery-codes');
         Route::get('/clients', [ClientController::class, 'index'])->name('clients.index');
