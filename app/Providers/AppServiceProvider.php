@@ -8,6 +8,7 @@ use Illuminate\Auth\Events\Failed;
 use Illuminate\Auth\Events\Lockout;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -37,7 +38,7 @@ class AppServiceProvider extends ServiceProvider
                 return false;
             }
 
-            return \Illuminate\Support\Facades\DB::table('client_memberships as memberships')
+            return DB::table('client_memberships as memberships')
                 ->join('roles', 'roles.id', '=', 'memberships.role_id')
                 ->join('clients', 'clients.id', '=', 'memberships.client_id')
                 ->where('memberships.client_id', $clientId)

@@ -125,8 +125,8 @@ final class KavenegarSmsController extends Controller
     }
 
     /**
-     * @param list<array{receptor:string,message?:string}> $items
-     * @param array<string, mixed> $meta
+     * @param  list<array{receptor:string,message?:string}>  $items
+     * @param  array<string, mixed>  $meta
      */
     private function publish(
         Request $request,

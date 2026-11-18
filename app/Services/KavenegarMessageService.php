@@ -16,8 +16,8 @@ final class KavenegarMessageService
     public function __construct(private readonly MessagePublisher $publisher) {}
 
     /**
-     * @param list<array{receptor:string,message?:string}> $items
-     * @param array<string, mixed> $meta
+     * @param  list<array{receptor:string,message?:string}>  $items
+     * @param  array<string, mixed>  $meta
      * @return array{message_id:string,delivery_ids:list<string>,replayed:bool}
      */
     public function publish(int $clientId, int $apiKeyId, string $idempotencyKey, string $mode, array $items, array $meta): array

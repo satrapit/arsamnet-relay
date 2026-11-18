@@ -68,7 +68,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
      * One physical Kavenegar sendarray call for several different messages.
      * The returned array always preserves each original input index.
      *
-     * @param list<array{receptor:string,message:string}> $recipients
+     * @param  list<array{receptor:string,message:string}>  $recipients
      * @return list<OutboundProviderResult>
      */
     public function sendBulk(array $recipients): array
@@ -132,7 +132,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
     }
 
     /** @param array<string,string> $params
-     *  @return array{http_status:int,body:?array}
+     * @return array{http_status:int,body:?array}
      */
     private function post(string $path, array $params): array
     {
@@ -154,6 +154,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
                 ->post($url, $params);
 
             $data = $response->json();
+
             return [
                 'http_status' => $response->status(),
                 'body' => is_array($data) ? $data : null,
@@ -166,7 +167,7 @@ final class KavenegarSmsAdapter implements OutboundProviderAdapter
     }
 
     /**
-     * @param array{http_status:int,body:?array} $response
+     * @param  array{http_status:int,body:?array}  $response
      * @return list<OutboundProviderResult>
      */
     private function normalize(array $response, int $count): array

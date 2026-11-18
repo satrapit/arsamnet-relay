@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\DTO\OutboundProviderRequest;
 use App\DTO\OutboundProviderResult;
 use App\Enums\ProviderAttemptOutcome;
 use App\Jobs\StageDeliveryJob;
@@ -176,7 +177,7 @@ final class KavenegarSmsDispatcher
                     isset($payload['token3']) ? (string) $payload['token3'] : null,
                 )];
             } else {
-                $results = [$adapter->send(new \App\DTO\OutboundProviderRequest(
+                $results = [$adapter->send(new OutboundProviderRequest(
                     $recipients[0]['id'], 'sms', $recipients[0]['receptor'],
                     $requests[0]['message'],
                 ))];
