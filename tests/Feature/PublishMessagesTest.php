@@ -7,6 +7,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Queue;
+use Laravel\Pennant\Feature;
 use Tests\TestCase;
 
 class PublishMessagesTest extends TestCase
@@ -17,7 +18,7 @@ class PublishMessagesTest extends TestCase
     {
         parent::setUp();
         config()->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
-        config()->set('relay.publish_enabled', true);
+        Feature::globally()->activate('message-publishing');
     }
 
     private function createClient(string $slug): int
@@ -70,7 +71,7 @@ class PublishMessagesTest extends TestCase
 
     public function test_publishing_is_disabled_by_default(): void
     {
-        config()->set('relay.publish_enabled', false);
+        Feature::globally()->deactivate('message-publishing');
         $client = $this->createClient('disabled-publisher');
         $target = $this->target($client);
 
