@@ -3,6 +3,16 @@
 set -euo pipefail
 umask 077
 
+if [[ "${1:-}" == "--help" ]]; then
+    echo "Usage: bash scripts/kavenegar_live_smoke.sh [--status]"
+    echo "Default: explicit one-SMS live test on localhost. --status: read-only message lookup."
+    exit 0
+fi
+if [[ "${#}" -gt 1 || ( "${#}" -eq 1 && "${1}" != "--status" ) ]]; then
+    echo "Unknown option. Try --help." >&2
+    exit 2
+fi
+
 if [[ ! -t 0 ]]; then
     echo "Interactive terminal required. Refusing unattended live SMS." >&2
     exit 2
@@ -15,6 +25,52 @@ base_url="${base_url%/}"
 if [[ ! "${base_url}" =~ ^http://(127\.0\.0\.1|localhost):[0-9]{2,5}$ ]]; then
     echo "Only a local loopback HTTP origin with explicit port is allowed." >&2
     exit 2
+fi
+
+if [[ "${1:-}" == "--status" ]]; then
+    printf 'Message ULID to check (26 uppercase characters): '
+    IFS= read -r message_id
+    if [[ ! "${message_id}" =~ ^[0-9A-HJKMNP-TV-Z]{26}$ ]]; then
+        echo "Invalid message ID." >&2
+        exit 2
+    fi
+    printf 'Relay token with messages.read scope (hidden input): '
+    IFS= read -r -s token
+    printf '\n'
+    if [[ ! "${token}" =~ ^relay_[a-f0-9]{64}$ ]]; then
+        echo "Invalid machine token format." >&2
+        unset token
+        exit 2
+    fi
+    status_file="$(mktemp "${TMPDIR:-/tmp}/arsam-relay-status.XXXXXXXX")"
+    trap 'rm -f -- "${status_file}"' EXIT
+    http="$(printf 'header = "Authorization: Bearer %s"\nheader = "Accept: application/json"\n' "${token}" |
+        curl --silent --show-error --noproxy '*' --proto '=http' \
+            --max-redirs 0 --connect-timeout 2 --max-time 6 --retry 0 \
+            --config - --output "${status_file}" --write-out '%{http_code}' \
+            "${base_url}/api/v1/sms/messages/${message_id}")" || {
+        echo "Local read-only lookup failed." >&2
+        unset token
+        exit 3
+    }
+    unset token
+    if [[ "${http}" != "200" ]]; then
+        echo "Status lookup returned HTTP ${http}; check messages.read scope and tenant ownership." >&2
+        exit 3
+    fi
+    php -r '
+        $r=json_decode((string)file_get_contents($argv[1]),true);
+        $d=$r["data"]??null;
+        if(!is_array($d))exit(1);
+        printf("Message: %s\n",$d["message_id"]??"unknown");
+        foreach($d["deliveries"]??[] as $v){
+            printf("Delivery: %s | state: %s | attempt: %s | outcome: %s | provider ref: %s\n",
+                $v["id"]??"unknown",$v["state"]??"unknown",
+                $v["attempt_count"]??"unknown",$v["outcome"]??"none",$v["provider_ref"]??"none");
+        }
+    ' "${status_file}"
+    echo "Stored Relay status is not a live Kavenegar delivery receipt."
+    exit 0
 fi
 
 printf 'Owned Iranian mobile test number (09xxxxxxxxx): '
