@@ -37,4 +37,30 @@
     </div>
     <div class="mt-4">{{ $deliveries->links() }}</div>
 </section>
+
+<section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5">
+    <h2 class="mb-2 text-lg font-semibold">Accepted Kavenegar messages</h2>
+    <p class="mb-4 text-sm text-slate-500">A manual status inquiry is separate from SMS sending and does not mark the delivery as delivered. Network status queries are disabled by default.</p>
+    <div class="overflow-x-auto">
+        <table class="w-full min-w-[580px] text-left text-sm">
+            <thead><tr class="border-b text-slate-500"><th class="py-2">Updated (UTC)</th><th>Delivery</th><th>Action</th></tr></thead>
+            <tbody>
+                @forelse($accepted as $delivery)
+                    <tr class="border-b border-slate-100">
+                        <td class="py-3">{{ $delivery->updated_at }}</td>
+                        <td class="font-mono text-xs">{{ $delivery->id }}</td>
+                        <td>
+                            <form method="POST" action="{{ route('clients.delivery-reviews.check-status', [$owner->id, $delivery->id]) }}" data-submit-once>
+                                @csrf
+                                <button type="submit" class="rounded-lg border border-slate-300 px-3 py-2 text-xs hover:bg-slate-50" data-confirm="Query Kavenegar for status only? The delivery state will not change.">Check provider status</button>
+                            </form>
+                        </td>
+                    </tr>
+                @empty
+                    <tr><td colspan="3" class="py-6 text-slate-500">No accepted Kavenegar messages awaiting confirmation.</td></tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</section>
 @endsection
