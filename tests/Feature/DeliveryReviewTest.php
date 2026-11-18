@@ -178,4 +178,56 @@ class DeliveryReviewTest extends TestCase
             Http::assertNothingSent();
         }
     }
+
+    public function test_provider_status_gate_blocks_queries_without_network(): void
+    {
+        $fixture = $this->fixture('status-offline');
+        $admin = $this->actor('platform_admin');
+        config()->set('relay.kavenegar_status_enabled', false);
+
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('clients.delivery-reviews.check-status', [$fixture['client'], $fixture['delivery']]))
+            ->assertRedirect();
+
+        $this->assertDatabaseCount('security_events', 0);
+        $this->assertDatabaseHas('deliveries', [
+            'id' => $fixture['delivery'], 'state' => 'review_required',
+        ]);
+        Http::assertNothingSent();
+    }
+
+    public function test_status_query_denies_foreign_tenant_and_unaccepted_attempt(): void
+    {
+        $one = $this->fixture('status-foreign');
+        $two = $this->fixture('status-other');
+        $admin = $this->actor('super_admin');
+        config()->set('relay.kavenegar_status_enabled', true);
+
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('clients.delivery-reviews.check-status', [$two['client'], $one['delivery']]))
+            ->assertNotFound();
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => time()])
+            ->post(route('clients.delivery-reviews.check-status', [$one['client'], $one['delivery']]))
+            ->assertNotFound();
+        Http::assertNothingSent();
+        $this->assertDatabaseCount('security_events', 0);
+    }
+
+    public function test_status_query_requires_recent_password_and_platform_role(): void
+    {
+        $fixture = $this->fixture('status-auth');
+        $url = route('clients.delivery-reviews.check-status', [$fixture['client'], $fixture['delivery']]);
+        config()->set('relay.kavenegar_status_enabled', true);
+        $admin = $this->actor('platform_admin');
+        $this->actingAs($admin)->withSession(['auth.password_confirmed_at' => 0])
+            ->post($url)->assertRedirect('/user/confirm-password');
+
+        $support = $this->actor('support');
+        $this->actingAs($support)->withSession(['auth.password_confirmed_at' => time()])
+            ->post($url)->assertForbidden();
+
+        $this->assertDatabaseCount('security_events', 0);
+        Http::assertNothingSent();
+    }
+
 }
